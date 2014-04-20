@@ -1,4 +1,4 @@
-package strat.mining.stratum.proxy.model;
+package strat.mining.stratum.proxy.pool;
 
 
 public class Pool {

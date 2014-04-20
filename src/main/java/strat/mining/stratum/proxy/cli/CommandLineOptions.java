@@ -9,7 +9,7 @@ import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.spi.StringArrayOptionHandler;
 
 import strat.mining.stratum.proxy.constant.Constants;
-import strat.mining.stratum.proxy.model.Pool;
+import strat.mining.stratum.proxy.pool.Pool;
 
 /**
  * Parse and stores the parameters given through command line
