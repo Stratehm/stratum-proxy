@@ -1,5 +1,6 @@
 package strat.mining.stratum.proxy.pool;
 
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 
@@ -33,14 +34,19 @@ public class Pool {
 
 	public void startPool() throws Exception {
 		URI uri = new URI("stratum+tcp://" + host);
-		Socket socket = new Socket(uri.getHost(),
-				uri.getPort() > -1 ? uri.getPort() : DEFAULT_POOL_PORT);
+		Socket socket = new Socket();
+		socket.setKeepAlive(true);
+		socket.connect(new InetSocketAddress(uri.getHost(),
+				uri.getPort() > -1 ? uri.getPort() : DEFAULT_POOL_PORT));
 		connection = new PoolConnection(this, socket);
+
+		connection.sendRequest(request);
 	}
 
 	public void stopPool() {
 		if (connection != null) {
 			connection.close();
+			isActive = false;
 		}
 	}
 
@@ -64,9 +70,21 @@ public class Pool {
 		return isEnabled;
 	}
 
-	public void setEnabled(boolean isEnabled) {
-		this.isEnabled = isEnabled;
-		// TODO close the pool connection or connect it.
+	/**
+	 * Enable/Disable the pool. Throw an exception if cannot enable the pool.
+	 * 
+	 * @param isEnabled
+	 * @throws Exception
+	 */
+	public void setEnabled(boolean isEnabled) throws Exception {
+		if (this.isEnabled != isEnabled) {
+			this.isEnabled = isEnabled;
+			if (isEnabled) {
+				startPool();
+			} else {
+				stopPool();
+			}
+		}
 	}
 
 	public String getExtranonce1() {
@@ -79,6 +97,15 @@ public class Pool {
 
 	public boolean isActive() {
 		return isActive;
+	}
+
+	public void onMiningSubscriptionResponse() {
+
+	}
+
+	public void onMiningAuthorizationResponse() {
+
+		this.isActive = true;
 	}
 
 }
