@@ -8,13 +8,11 @@ public class MiningSubscribeRequest extends JsonRpcRequest {
 	public static final String METHOD_NAME = "mining.subscribe";
 
 	public MiningSubscribeRequest() {
-		super();
-		setMethod(METHOD_NAME);
+		super(METHOD_NAME);
 	}
 
 	public MiningSubscribeRequest(JsonRpcRequest request) {
 		super(request);
-		setMethod(METHOD_NAME);
 	}
 
 	@Override

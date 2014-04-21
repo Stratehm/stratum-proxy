@@ -9,8 +9,6 @@ public class MiningNotifyNotification extends JsonRpcNotification {
 
 	public static final String METHOD_NAME = "mining.notify";
 
-	private List<Object> params;
-
 	@JsonIgnore
 	private String jobId;
 	@JsonIgnore
@@ -31,14 +29,11 @@ public class MiningNotifyNotification extends JsonRpcNotification {
 	private Boolean cleanJobs;
 
 	public MiningNotifyNotification() {
-		super();
-		setMethod(METHOD_NAME);
+		super(METHOD_NAME);
 	}
 
 	public MiningNotifyNotification(MiningNotifyNotification notification) {
 		super(notification);
-		setMethod(METHOD_NAME);
-		setParams(notification.getParams());
 	}
 
 	public String getJobId() {
@@ -115,8 +110,9 @@ public class MiningNotifyNotification extends JsonRpcNotification {
 
 	@Override
 	public List<Object> getParams() {
-		if (params == null) {
-			params = new ArrayList<Object>();
+		if (super.getParams() == null) {
+			List<Object> params = new ArrayList<Object>();
+			super.setParams(params);
 			params.add(jobId);
 			params.add(previousHash);
 			params.add(coinbase1);
@@ -127,23 +123,23 @@ public class MiningNotifyNotification extends JsonRpcNotification {
 			params.add(currentNTime);
 			params.add(cleanJobs);
 		}
-		return params;
+		return super.getParams();
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public void setParams(List<Object> params) {
-		this.params = params;
+		super.setParams(params);
 		if (params != null) {
 			jobId = (String) params.get(0);
-			previousHash = (String) params.get(0);
-			coinbase1 = (String) params.get(0);
-			coinbase2 = (String) params.get(0);
-			merkleBranches = (List<String>) params.get(0);
-			bitcoinVersion = (String) params.get(0);
-			networkDifficultyBits = (String) params.get(0);
-			currentNTime = (String) params.get(0);
-			cleanJobs = (Boolean) params.get(0);
+			previousHash = (String) params.get(1);
+			coinbase1 = (String) params.get(2);
+			coinbase2 = (String) params.get(3);
+			merkleBranches = (List<String>) params.get(4);
+			bitcoinVersion = (String) params.get(5);
+			networkDifficultyBits = (String) params.get(6);
+			currentNTime = (String) params.get(7);
+			cleanJobs = (Boolean) params.get(8);
 		}
 	}
 }

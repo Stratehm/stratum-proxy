@@ -5,17 +5,25 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class JsonRpcNotification extends JsonRpcRequest {
+public class JsonRpcNotification {
 
 	// The id of a notification is always null.
 	private String id = null;
 	private String method;
+	private List<Object> params;
 
-	public JsonRpcNotification() {
+	public JsonRpcNotification(String method) {
+		this.method = method;
 	}
 
 	public JsonRpcNotification(JsonRpcNotification request) {
 		this.method = request.method;
+		this.setParams(request.getParams());
+	}
+
+	public JsonRpcNotification(JsonRpcRequest request) {
+		this.method = request.getMethod();
+		this.setParams(request.getParams());
 	}
 
 	public String getId() {
@@ -26,22 +34,12 @@ public abstract class JsonRpcNotification extends JsonRpcRequest {
 		return method;
 	}
 
-	public void setMethod(String method) {
-		this.method = method;
+	public List<Object> getParams() {
+		return params;
 	}
 
-	/**
-	 * Return the parameters
-	 * 
-	 * @return
-	 */
-	public abstract List<Object> getParams();
-
-	/**
-	 * Set the parameters
-	 * 
-	 * @return
-	 */
-	public abstract void setParams(List<Object> params);
+	public void setParams(List<Object> params) {
+		this.params = params;
+	}
 
 }

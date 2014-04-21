@@ -5,17 +5,20 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class JsonRpcRequest {
+public class JsonRpcRequest {
 
 	private String id;
 	private String method;
+	private List<Object> params;
 
-	public JsonRpcRequest() {
+	public JsonRpcRequest(String method) {
+		this.method = method;
 	}
 
 	public JsonRpcRequest(JsonRpcRequest request) {
 		this.id = request.id;
 		this.method = request.method;
+		this.setParams(request.getParams());
 	}
 
 	public String getId() {
@@ -30,22 +33,12 @@ public abstract class JsonRpcRequest {
 		return method;
 	}
 
-	protected void setMethod(String method) {
-		this.method = method;
+	public List<Object> getParams() {
+		return params;
 	}
 
-	/**
-	 * Return the parameters
-	 * 
-	 * @return
-	 */
-	public abstract List<Object> getParams();
-
-	/**
-	 * Set the parameters
-	 * 
-	 * @return
-	 */
-	public abstract void setParams(List<Object> params);
+	public void setParams(List<Object> params) {
+		this.params = params;
+	}
 
 }

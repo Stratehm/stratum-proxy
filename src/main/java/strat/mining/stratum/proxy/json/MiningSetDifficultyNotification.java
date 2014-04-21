@@ -9,34 +9,30 @@ public class MiningSetDifficultyNotification extends JsonRpcNotification {
 
 	public static final String METHOD_NAME = "mining.set_difficulty";
 
-	private List<Object> params;
-
 	@JsonIgnore
 	private Integer difficulty;
 
 	public MiningSetDifficultyNotification() {
-		super();
-		setMethod(METHOD_NAME);
+		super(METHOD_NAME);
 	}
 
 	public MiningSetDifficultyNotification(JsonRpcNotification notification) {
 		super(notification);
-		setId(METHOD_NAME);
-		setParams(notification.getParams());
 	}
 
 	@Override
 	public List<Object> getParams() {
-		if (params == null) {
-			params = new ArrayList<Object>();
+		if (super.getParams() == null) {
+			List<Object> params = new ArrayList<Object>();
+			super.setParams(params);
 			params.add(difficulty);
 		}
-		return params;
+		return super.getParams();
 	}
 
 	@Override
 	public void setParams(List<Object> params) {
-		this.params = params;
+		super.setParams(params);
 		if (params != null) {
 			difficulty = (Integer) params.get(0);
 		}

@@ -9,21 +9,17 @@ public class MiningAuthorizeRequest extends JsonRpcRequest {
 
 	public static final String METHOD_NAME = "mining.authorize";
 
-	private List<Object> params;
 	@JsonIgnore
 	private String username;
 	@JsonIgnore
 	private String password;
 
 	public MiningAuthorizeRequest() {
-		super();
-		setMethod(METHOD_NAME);
+		super(METHOD_NAME);
 	}
 
 	public MiningAuthorizeRequest(JsonRpcRequest request) {
 		super(request);
-		setMethod(METHOD_NAME);
-		setParams(request.getParams());
 	}
 
 	public String getUsername() {
@@ -44,17 +40,18 @@ public class MiningAuthorizeRequest extends JsonRpcRequest {
 
 	@Override
 	public List<Object> getParams() {
-		if (params == null) {
-			params = new ArrayList<Object>();
+		if (super.getParams() == null) {
+			List<Object> params = new ArrayList<Object>();
+			super.setParams(params);
 			params.add(username);
 			params.add(password);
 		}
-		return params;
+		return super.getParams();
 	}
 
 	@Override
 	public void setParams(List<Object> params) {
-		this.params = params;
+		super.setParams(params);
 		if (params != null) {
 			username = (String) params.get(0);
 			password = (String) params.get(1);

@@ -7,15 +7,22 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * 
  * @author strat
  * 
- * @param <T>
- *            the result type
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class JsonRpcResponse<T> {
+public class JsonRpcResponse {
 
 	private String id;
-	private T result;
 	private JsonRpcError error;
+	private Object result;
+
+	public JsonRpcResponse() {
+	}
+
+	public JsonRpcResponse(JsonRpcResponse response) {
+		this.id = response.id;
+		this.error = response.error;
+		this.setResult(response.getResult());
+	}
 
 	public String getId() {
 		return id;
@@ -23,14 +30,6 @@ public abstract class JsonRpcResponse<T> {
 
 	public void setId(String id) {
 		this.id = id;
-	}
-
-	public T getResult() {
-		return result;
-	}
-
-	public void setResult(T result) {
-		this.result = result;
 	}
 
 	public JsonRpcError getError() {
@@ -41,4 +40,11 @@ public abstract class JsonRpcResponse<T> {
 		this.error = error;
 	}
 
+	public Object getResult() {
+		return result;
+	}
+
+	public void setResult(Object result) {
+		this.result = result;
+	}
 }
