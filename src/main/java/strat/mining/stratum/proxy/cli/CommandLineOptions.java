@@ -1,11 +1,13 @@
 package strat.mining.stratum.proxy.cli;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.kohsuke.args4j.spi.FileOptionHandler;
 import org.kohsuke.args4j.spi.StringArrayOptionHandler;
 
 import strat.mining.stratum.proxy.constant.Constants;
@@ -18,6 +20,8 @@ import strat.mining.stratum.proxy.pool.Pool;
  * 
  */
 public class CommandLineOptions {
+
+	private CmdLineParser parser;
 
 	@Option(name = "-h", aliases = { "--host" }, usage = "Hosts of the stratum servers (only the host, not the protocol), space separated", handler = StringArrayOptionHandler.class)
 	private List<String> poolHosts;
@@ -34,10 +38,16 @@ public class CommandLineOptions {
 	@Option(name = "-f", aliases = { "--failover-on-jsonrpc-error" }, usage = "True if the proxy has to failover when a JSON-RPC error happens. False by default")
 	private Boolean failoverOnJsonRpcError = false;
 
+	@Option(name = "-l", aliases = { "--log-directory" }, usage = "The directory where logs will be written", handler = FileOptionHandler.class)
+	private File logDirectory;
+
 	private List<Pool> pools;
 
+	public CommandLineOptions() {
+		parser = new CmdLineParser(this);
+	}
+
 	public void parseArguments(String... args) throws CmdLineException {
-		CmdLineParser parser = new CmdLineParser(this);
 		parser.parseArgument(args);
 	}
 
@@ -64,14 +74,11 @@ public class CommandLineOptions {
 						password = poolPasswords.get(index);
 					}
 
-					if (poolConnectionNumbers != null
-							&& poolConnectionNumbers.size() >= index) {
-						nbConnections = poolConnectionNumbers.get(index) > 0 ? poolConnectionNumbers
-								.get(index) : nbConnections;
+					if (poolConnectionNumbers != null && poolConnectionNumbers.size() >= index) {
+						nbConnections = poolConnectionNumbers.get(index) > 0 ? poolConnectionNumbers.get(index) : nbConnections;
 					}
 
-					Pool pool = new Pool(poolHost, username, password,
-							nbConnections);
+					Pool pool = new Pool(poolHost, username, password, nbConnections);
 					pools.add(pool);
 
 					index++;
@@ -79,6 +86,19 @@ public class CommandLineOptions {
 			}
 		}
 		return pools;
+	}
+
+	public File getLogDirectory() {
+		File result = logDirectory;
+		if (result == null || !result.isDirectory() || result.exists()) {
+			System.err.println("Log directory not set or available. Use the tmp OS directory.");
+			result = new File(System.getProperty("java.io.tmpdir"));
+		}
+		return result;
+	}
+
+	public void printUsage() {
+		parser.printUsage(System.out);
 	}
 
 }

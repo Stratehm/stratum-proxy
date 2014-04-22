@@ -32,7 +32,7 @@ public class MiningNotifyNotification extends JsonRpcNotification {
 		super(METHOD_NAME);
 	}
 
-	public MiningNotifyNotification(MiningNotifyNotification notification) {
+	public MiningNotifyNotification(JsonRpcNotification notification) {
 		super(notification);
 	}
 

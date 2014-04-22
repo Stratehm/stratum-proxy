@@ -20,6 +20,14 @@ public class MiningSetDifficultyNotification extends JsonRpcNotification {
 		super(notification);
 	}
 
+	public Integer getDifficulty() {
+		return difficulty;
+	}
+
+	public void setDifficulty(Integer difficulty) {
+		this.difficulty = difficulty;
+	}
+
 	@Override
 	public List<Object> getParams() {
 		if (super.getParams() == null) {

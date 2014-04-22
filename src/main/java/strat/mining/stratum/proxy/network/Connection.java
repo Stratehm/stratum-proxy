@@ -1,15 +1,17 @@
 package strat.mining.stratum.proxy.network;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.json.JsonRpcNotification;
 import strat.mining.stratum.proxy.json.JsonRpcRequest;
@@ -19,22 +21,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public abstract class Connection {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(Connection.class);
+
 	private Socket socket;
 	private Thread readThread;
 	private ObjectMapper objectMapper;
 
 	private AtomicInteger nextRequestId;
 
-	private Map<String, JsonRpcRequest> sentRequestIds;
+	private Map<Integer, JsonRpcRequest> sentRequestIds;
 
-	private BufferedWriter writer;
+	private DataOutputStream outputStream;
 
 	public Connection(Socket socket) {
 		this.socket = socket;
 		this.objectMapper = new ObjectMapper();
-		this.sentRequestIds = Collections
-				.synchronizedMap(new HashMap<String, JsonRpcRequest>());
-		this.nextRequestId = new AtomicInteger(1);
+		this.sentRequestIds = Collections.synchronizedMap(new HashMap<Integer, JsonRpcRequest>());
+		this.nextRequestId = new AtomicInteger(0);
 	}
 
 	/**
@@ -42,15 +45,21 @@ public abstract class Connection {
 	 * 
 	 * @param line
 	 */
-	public void sendRequest(JsonRpcRequest request) throws Exception {
-		if (request.getId() == null) {
-			request.setId(Integer.toString(nextRequestId.getAndIncrement()));
-		}
-		sentRequestIds.put(request.getId(), request);
-		String json = objectMapper.writeValueAsString(request);
+	public void sendRequest(JsonRpcRequest request) {
+		try {
+			if (request.getId() == null) {
+				request.setId(nextRequestId.getAndIncrement());
+			}
+			sentRequestIds.put(request.getId(), request);
+			String json = objectMapper.writeValueAsString(request);
 
-		ensureWriter().write(json + "\n");
-		ensureWriter().flush();
+			LOGGER.debug("{}. Send request: {}", getConnectionName(), json);
+			byte[] stringBytes = (json + "\n").getBytes("UTF-8");
+			ensureStream().write(stringBytes, 0, stringBytes.length);
+			ensureStream().flush();
+		} catch (IOException e) {
+			onDisconnect(e);
+		}
 	}
 
 	/**
@@ -58,11 +67,17 @@ public abstract class Connection {
 	 * 
 	 * @param line
 	 */
-	public void sendResponse(JsonRpcResponse response) throws Exception {
-		String json = objectMapper.writeValueAsString(response);
+	public void sendResponse(JsonRpcResponse response) {
+		try {
+			String json = objectMapper.writeValueAsString(response);
 
-		ensureWriter().write(json + "\n");
-		ensureWriter().flush();
+			LOGGER.debug("{}. Send response: {}", getConnectionName(), json);
+			byte[] stringBytes = (json + "\n").getBytes("UTF-8");
+			ensureStream().write(stringBytes, 0, stringBytes.length);
+			ensureStream().flush();
+		} catch (IOException e) {
+			onDisconnect(e);
+		}
 	}
 
 	/**
@@ -70,12 +85,17 @@ public abstract class Connection {
 	 * 
 	 * @param notification
 	 */
-	public void sendNotification(JsonRpcNotification notification)
-			throws Exception {
-		String json = objectMapper.writeValueAsString(notification);
+	public void sendNotification(JsonRpcNotification notification) {
+		try {
+			String json = objectMapper.writeValueAsString(notification);
 
-		ensureWriter().write(json + "\n");
-		ensureWriter().flush();
+			LOGGER.debug("{}. Send notification: {}", getConnectionName(), json);
+			byte[] stringBytes = (json + "\n").getBytes("UTF-8");
+			ensureStream().write(stringBytes, 0, stringBytes.length);
+			ensureStream().flush();
+		} catch (IOException e) {
+			onDisconnect(e);
+		}
 	}
 
 	/**
@@ -84,23 +104,18 @@ public abstract class Connection {
 	public void startReading() {
 		readThread = new Thread() {
 			public void run() {
-				if (socket != null && socket.isConnected()
-						&& !socket.isClosed()) {
+				if (socket != null && socket.isConnected() && !socket.isClosed()) {
 					try {
-						BufferedReader reader = new BufferedReader(
-								new InputStreamReader(socket.getInputStream()));
+						BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
 						String line = reader.readLine();
-						while (line != null
-								&& !Thread.currentThread().isInterrupted()) {
+						while (line != null && !Thread.currentThread().isInterrupted()) {
 							onLineRead(line);
 							line = reader.readLine();
 						}
 
-					} catch (IOException e) {
-						e.printStackTrace();
 					} catch (Exception e) {
-						e.printStackTrace();
+						onDisconnect(e);
 					} finally {
 						try {
 							socket.close();
@@ -111,12 +126,14 @@ public abstract class Connection {
 				}
 			}
 		};
+		readThread.start();
 	}
 
 	/**
 	 * Close the connection
 	 */
 	public void close() {
+		LOGGER.debug("Closing connection {}...", getConnectionName());
 		readThread.interrupt();
 		try {
 			socket.close();
@@ -126,20 +143,19 @@ public abstract class Connection {
 	}
 
 	/**
-	 * Return the writer of the connection. If it is not available, then throw
-	 * an exception.
+	 * Return the output stream of the connection. If it is not available, then
+	 * throw an exception.
 	 * 
 	 * @return
 	 * @throws Exception
 	 */
-	private BufferedWriter ensureWriter() throws Exception {
+	private DataOutputStream ensureStream() throws IOException {
 		if (socket.isConnected() && !socket.isClosed()) {
-			writer = new BufferedWriter(new OutputStreamWriter(
-					socket.getOutputStream()));
+			outputStream = new DataOutputStream(socket.getOutputStream());
 		} else {
 			throw new IOException("Socket not connected.");
 		}
-		return writer;
+		return outputStream;
 	}
 
 	/**
@@ -149,8 +165,8 @@ public abstract class Connection {
 	 */
 	private void onLineRead(String line) {
 		try {
-			JsonRpcRequest request = objectMapper.readValue(line,
-					JsonRpcRequest.class);
+			LOGGER.debug("{}. Line read: {}", getConnectionName(), line);
+			JsonRpcRequest request = objectMapper.readValue(line, JsonRpcRequest.class);
 
 			// If there is an id, it may be a request or a response
 			if (request.getId() != null) {
@@ -159,8 +175,7 @@ public abstract class Connection {
 					onRequestReceived(request);
 				} else {
 					// Else it is a response
-					JsonRpcResponse response = objectMapper.readValue(line,
-							JsonRpcResponse.class);
+					JsonRpcResponse response = objectMapper.readValue(line, JsonRpcResponse.class);
 					request = sentRequestIds.remove(request.getId());
 					onResponseReceived(request, response);
 				}
@@ -177,14 +192,12 @@ public abstract class Connection {
 	/**
 	 * Called when a notification is received from the remote host.
 	 */
-	protected abstract void onNotificationReceived(
-			JsonRpcNotification notification);
+	protected abstract void onNotificationReceived(JsonRpcNotification notification);
 
 	/**
 	 * Called when a response message is received from a previous request
 	 */
-	protected abstract void onResponseReceived(JsonRpcRequest request,
-			JsonRpcResponse response);
+	protected abstract void onResponseReceived(JsonRpcRequest request, JsonRpcResponse response);
 
 	/**
 	 * Called when a request is received from the remote host
@@ -195,4 +208,18 @@ public abstract class Connection {
 	 * Called when a parsing error occurs
 	 */
 	protected abstract void onParsingError(String line, Throwable throwable);
+
+	/**
+	 * Called when a disconnection is detected.
+	 * 
+	 * @param cause
+	 */
+	protected abstract void onDisconnect(Throwable cause);
+
+	/**
+	 * Return the name of the connection
+	 * 
+	 * @return
+	 */
+	protected abstract String getConnectionName();
 }

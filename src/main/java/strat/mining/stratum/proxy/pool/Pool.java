@@ -4,7 +4,21 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
+import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
+import strat.mining.stratum.proxy.json.MiningNotifyNotification;
+import strat.mining.stratum.proxy.json.MiningSetDifficultyNotification;
+import strat.mining.stratum.proxy.json.MiningSubmitRequest;
+import strat.mining.stratum.proxy.json.MiningSubmitResponse;
+import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
+import strat.mining.stratum.proxy.json.MiningSubscribeResponse;
+
 public class Pool {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(Pool.class);
 
 	public static final Integer DEFAULT_POOL_PORT = 3333;
 
@@ -13,6 +27,7 @@ public class Pool {
 	private String password;
 	private Integer nbConnections;
 
+	private Integer difficulty;
 	private String extranonce1;
 	private Integer extranonce2Size;
 
@@ -21,8 +36,7 @@ public class Pool {
 
 	private PoolConnection connection;
 
-	public Pool(String host, String username, String password,
-			Integer nbConnections) {
+	public Pool(String host, String username, String password, Integer nbConnections) {
 		super();
 		this.host = host;
 		this.username = username;
@@ -33,20 +47,27 @@ public class Pool {
 	}
 
 	public void startPool() throws Exception {
-		URI uri = new URI("stratum+tcp://" + host);
-		Socket socket = new Socket();
-		socket.setKeepAlive(true);
-		socket.connect(new InetSocketAddress(uri.getHost(),
-				uri.getPort() > -1 ? uri.getPort() : DEFAULT_POOL_PORT));
-		connection = new PoolConnection(this, socket);
+		if (connection == null) {
+			LOGGER.info("Starting pool {}...", getHost());
+			URI uri = new URI("stratum+tcp://" + host);
+			Socket socket = new Socket();
+			socket.setKeepAlive(true);
+			socket.connect(new InetSocketAddress(uri.getHost(), uri.getPort() > -1 ? uri.getPort() : DEFAULT_POOL_PORT));
+			connection = new PoolConnection(this, socket);
+			connection.startReading();
 
-		connection.sendRequest(request);
+			MiningSubscribeRequest request = new MiningSubscribeRequest();
+			connection.sendRequest(request);
+		}
 	}
 
 	public void stopPool() {
 		if (connection != null) {
+			LOGGER.info("Stopping pool {}...", getHost());
 			connection.close();
+			connection = null;
 			isActive = false;
+			LOGGER.info("Pool {} stopped.", getHost());
 		}
 	}
 
@@ -99,13 +120,62 @@ public class Pool {
 		return isActive;
 	}
 
-	public void onMiningSubscriptionResponse() {
+	public Integer getDifficulty() {
+		return difficulty;
+	}
+
+	public void processNotify(MiningNotifyNotification notify) {
 
 	}
 
-	public void onMiningAuthorizationResponse() {
+	public void processSetDifficulty(MiningSetDifficultyNotification setDifficulty) {
+		difficulty = setDifficulty.getDifficulty();
+	}
 
-		this.isActive = true;
+	public void processSubscribeResponse(MiningSubscribeRequest request, MiningSubscribeResponse response) {
+		extranonce1 = response.getExtranonce1();
+		extranonce2Size = response.getExtranonce2Size();
+
+		MiningAuthorizeRequest authorizeRequest = new MiningAuthorizeRequest();
+		authorizeRequest.setUsername(username);
+		authorizeRequest.setPassword(password);
+		connection.sendRequest(authorizeRequest);
+	}
+
+	public void processAuthorizeResponse(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
+		if (response.getIsAuthorized()) {
+			LOGGER.info("Pool {} started", getHost());
+			this.isActive = true;
+		} else {
+			System.out.println("Stopping pool since user not authorized.");
+			stopPool();
+		}
+	}
+
+	public void processSubmitResponse(MiningSubmitRequest request, MiningSubmitResponse response) {
+
+	}
+
+	public void onDisconnect(Throwable cause) {
+		LOGGER.error("Disconnect of pool {}.", this, cause);
+		stopPool();
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Pool [host=");
+		builder.append(host);
+		builder.append(", username=");
+		builder.append(username);
+		builder.append(", password=");
+		builder.append(password);
+		builder.append(", nbConnections=");
+		builder.append(nbConnections);
+		builder.append(", isEnabled=");
+		builder.append(isEnabled);
+		builder.append("]");
+		return builder.toString();
 	}
 
 }

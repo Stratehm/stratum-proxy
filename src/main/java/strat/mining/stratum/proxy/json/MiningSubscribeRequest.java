@@ -17,12 +17,14 @@ public class MiningSubscribeRequest extends JsonRpcRequest {
 
 	@Override
 	public List<Object> getParams() {
-		return new ArrayList<Object>();
+		ArrayList<Object> params = new ArrayList<Object>();
+		params.add("JStratumProxy");
+		return params;
 	}
 
 	@Override
 	public void setParams(List<Object> params) {
-		// Do nothing since there is no parameters for this request
+		// Do nothing since there is no mutable parameters for this request
 	}
 
 }

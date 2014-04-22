@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class JsonRpcNotification {
 
 	// The id of a notification is always null.
-	private String id = null;
+	private Integer id = null;
 	private String method;
 	private List<Object> params;
 
@@ -26,7 +26,7 @@ public class JsonRpcNotification {
 		this.setParams(request.getParams());
 	}
 
-	public String getId() {
+	public Integer getId() {
 		return id;
 	}
 

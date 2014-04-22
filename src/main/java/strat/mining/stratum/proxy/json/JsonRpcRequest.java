@@ -7,9 +7,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class JsonRpcRequest {
 
-	private String id;
+	private Integer id;
 	private String method;
 	private List<Object> params;
+
+	protected JsonRpcRequest() {
+	}
 
 	public JsonRpcRequest(String method) {
 		this.method = method;
@@ -21,11 +24,11 @@ public class JsonRpcRequest {
 		this.setParams(request.getParams());
 	}
 
-	public String getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 

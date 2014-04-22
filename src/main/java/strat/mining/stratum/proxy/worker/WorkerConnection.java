@@ -20,8 +20,7 @@ public class WorkerConnection extends Connection {
 	}
 
 	@Override
-	protected void onResponseReceived(JsonRpcRequest request,
-			JsonRpcResponse response) {
+	protected void onResponseReceived(JsonRpcRequest request, JsonRpcResponse response) {
 		// TODO Auto-generated method stub
 
 	}
@@ -36,6 +35,18 @@ public class WorkerConnection extends Connection {
 	protected void onParsingError(String line, Throwable throwable) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	protected void onDisconnect(Throwable cause) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected String getConnectionName() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

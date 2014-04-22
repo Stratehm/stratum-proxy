@@ -11,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class JsonRpcResponse {
 
-	private String id;
+	private Integer id;
 	private JsonRpcError error;
 	private Object result;
 
@@ -24,11 +24,11 @@ public class JsonRpcResponse {
 		this.setResult(response.getResult());
 	}
 
-	public String getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 
