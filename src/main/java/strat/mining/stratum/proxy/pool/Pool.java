@@ -22,6 +22,7 @@ import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
 import strat.mining.stratum.proxy.json.MiningSetDifficultyNotification;
+import strat.mining.stratum.proxy.json.MiningSetExtranonceNotification;
 import strat.mining.stratum.proxy.json.MiningSubmitRequest;
 import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
@@ -100,10 +101,11 @@ public class Pool {
 
 	public void stopPool() {
 		if (connection != null) {
+			isActive = false;
+			manager.onPoolStateChange(this);
 			LOGGER.info("Stopping pool {}...", getHost());
 			connection.close();
 			connection = null;
-			isActive = false;
 			LOGGER.info("Pool {} stopped.", getHost());
 		}
 	}
@@ -172,6 +174,22 @@ public class Pool {
 		manager.onPoolSetDifficulty(this, setDifficulty);
 	}
 
+	public void processSetExtranonce(MiningSetExtranonceNotification setExtranonce) {
+		extranonce1 = setExtranonce.getExtranonce1();
+
+		if (extranonce2Size - Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE < 1) {
+			// If the extranonce2size is not big enough, we cannot generate
+			// unique extranonce for workers, so deactivate the pool.
+			LOGGER.error("The extranonce2Size for the pool {} is to low. Size: {}, mininum needed {}.", getHost(), extranonce2Size,
+					Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1);
+			stopPool();
+		} else {
+			// If extrnaonce is OK, notify the manager.
+			manager.onPoolSetExtranonce(this, setExtranonce);
+		}
+
+	}
+
 	public void processSubscribeResponse(MiningSubscribeRequest request, MiningSubscribeResponse response) {
 		extranonce1 = response.getExtranonce1();
 		extranonce2Size = response.getExtranonce2Size();
@@ -195,6 +213,7 @@ public class Pool {
 		if (response.getIsAuthorized()) {
 			LOGGER.info("Pool {} started", getHost());
 			this.isActive = true;
+			manager.onPoolStateChange(this);
 		} else {
 			LOGGER.error("Stopping pool {} since user {} is not authorized.", getHost(), username);
 			stopPool();
@@ -244,7 +263,9 @@ public class Pool {
 	 * @param tail
 	 */
 	public void releaseTail(String tail) {
-		tails.add(tail);
+		if (tail != null && !tails.contains(tail)) {
+			tails.add(tail);
+		}
 	}
 
 	/**

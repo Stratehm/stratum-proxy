@@ -17,4 +17,6 @@ public class Constants {
 	// The size of a tail in bytes
 	public static final Integer DEFAULT_EXTRANONCE1_TAIL_SIZE = 2;
 
+	public static final String ERROR_MESSAGE_SUBSCRIBE_EXTRANONCE = "Method 'subscribe' not found for service 'mining.extranonce'";
+
 }

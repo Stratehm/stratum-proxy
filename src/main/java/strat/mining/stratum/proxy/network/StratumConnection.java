@@ -19,6 +19,7 @@ import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
 import strat.mining.stratum.proxy.json.MiningSetDifficultyNotification;
+import strat.mining.stratum.proxy.json.MiningSetExtranonceNotification;
 import strat.mining.stratum.proxy.json.MiningSubmitRequest;
 import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
@@ -189,7 +190,11 @@ public abstract class StratumConnection {
 					// Else it is a response
 					JsonRpcResponse response = objectMapper.readValue(line, JsonRpcResponse.class);
 					request = sentRequestIds.remove(request.getId());
-					onResponseReceived(request, response);
+					if (request != null) {
+						onResponseReceived(request, response);
+					} else {
+						LOGGER.debug("Drop response since no request has been sent with the id {}.", response.getId());
+					}
 				}
 			} else {
 				// Else it is a notification
@@ -213,6 +218,10 @@ public abstract class StratumConnection {
 		case MiningSetDifficultyNotification.METHOD_NAME:
 			MiningSetDifficultyNotification setDiff = new MiningSetDifficultyNotification(notification);
 			onSetDifficulty(setDiff);
+			break;
+		case MiningSetExtranonceNotification.METHOD_NAME:
+			MiningSetExtranonceNotification setExtranonce = new MiningSetExtranonceNotification(notification);
+			onSetExtranonce(setExtranonce);
 			break;
 
 		default:
@@ -285,6 +294,11 @@ public abstract class StratumConnection {
 	 * Called when a setDifficulty is received
 	 */
 	protected abstract void onSetDifficulty(MiningSetDifficultyNotification setDifficulty);
+
+	/**
+	 * Called when a setExtranonce is received
+	 */
+	protected abstract void onSetExtranonce(MiningSetExtranonceNotification setExtranonce);
 
 	/**
 	 * Called when a authorize request is received

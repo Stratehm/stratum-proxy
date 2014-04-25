@@ -20,6 +20,7 @@ import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
 import strat.mining.stratum.proxy.json.MiningSetDifficultyNotification;
+import strat.mining.stratum.proxy.json.MiningSetExtranonceNotification;
 import strat.mining.stratum.proxy.json.MiningSubmitRequest;
 import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
@@ -45,6 +46,8 @@ public class WorkerConnection extends StratumConnection {
 	private Integer extranonce2Size;
 
 	private Set<String> authorizedWorkers;
+
+	private boolean isSetExtranonceNotificationSupported = false;
 
 	public WorkerConnection(Socket socket, StratumProxyManager manager) {
 		super(socket);
@@ -179,6 +182,13 @@ public class WorkerConnection extends StratumConnection {
 	 * @param poolResponse
 	 */
 	public void onPoolSubmitResponse(MiningSubmitRequest workerRequest, MiningSubmitResponse poolResponse) {
+		if (poolResponse.getIsAccepted()) {
+			LOGGER.info("Accepted share from {} on {}. Yeah !!!!", getConnectionName(), pool.getHost());
+		} else {
+			LOGGER.info("REJECTED share from {} on {}. Booo !!!!. (errorCode: {}, message: {})", getConnectionName(), pool.getHost(), poolResponse
+					.getJsonError().getCode(), poolResponse.getJsonError().getMessage());
+		}
+
 		MiningSubmitResponse workerResponse = new MiningSubmitResponse();
 		workerResponse.setId(workerRequest.getId());
 		workerResponse.setIsAccepted(poolResponse.getIsAccepted());
@@ -234,6 +244,15 @@ public class WorkerConnection extends StratumConnection {
 	 * current job.
 	 */
 	private void sendInitialNotifications() {
+		// Send the setExtranonce notif
+		if (isSetExtranonceNotificationSupported) {
+			MiningSetExtranonceNotification extranonceNotif = new MiningSetExtranonceNotification();
+			extranonceNotif.setExtranonce1(pool.getExtranonce1() + extranonce1Tail);
+			extranonceNotif.setExtranonce2Size(extranonce2Size);
+			sendNotification(extranonceNotif);
+			LOGGER.debug("Initial extranonce sent to {}.", getConnectionName());
+		}
+
 		// Send the difficulty if available
 		Integer difficulty = pool.getDifficulty();
 		if (difficulty != null) {
@@ -250,5 +269,37 @@ public class WorkerConnection extends StratumConnection {
 			LOGGER.debug("Initial job sent to {}.", getConnectionName());
 		}
 
+	}
+
+	/**
+	 * Reset the connection with the parameters of the new pool. May close the
+	 * connection if setExtranonce is not supported.
+	 * 
+	 * @param newPool
+	 * @throws TooManyWorkersException
+	 */
+	public void rebindToPool(Pool newPool) throws TooManyWorkersException {
+		if (isSetExtranonceNotificationSupported) {
+			// Release the old extranonce
+			pool.releaseTail(extranonce1Tail);
+
+			// Then retrieve a free tail from the new pool.
+			extranonce1Tail = newPool.getFreeTail();
+			extranonce2Size = newPool.getWorkerExtranonce2Size();
+			pool = newPool;
+
+			// Finally, send all notifications to the worker
+			sendInitialNotifications();
+
+		} else {
+			// If set extranonce not supported, just disconnect
+			manager.onWorkerPoolSwitchFailure(this);
+		}
+	}
+
+	@Override
+	public void close() {
+		super.close();
+		pool.releaseTail(extranonce1Tail);
 	}
 }

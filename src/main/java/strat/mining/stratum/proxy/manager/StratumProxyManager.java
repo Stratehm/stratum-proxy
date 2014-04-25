@@ -15,9 +15,11 @@ import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
+import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
 import strat.mining.stratum.proxy.json.MiningSetDifficultyNotification;
+import strat.mining.stratum.proxy.json.MiningSetExtranonceNotification;
 import strat.mining.stratum.proxy.json.MiningSubmitRequest;
 import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
@@ -229,6 +231,11 @@ public class StratumProxyManager {
 
 	}
 
+	public void onPoolSetExtranonce(Pool pool, MiningSetExtranonceNotification setExtranonce) {
+		// TODO Auto-generated method stub
+
+	}
+
 	/**
 	 * Called when a pool send a notify request.
 	 * 
@@ -301,6 +308,80 @@ public class StratumProxyManager {
 		}
 		LOGGER.info("Worker connection {} closed. {} connections active. Cause: {}", workerConnection.getConnectionName(), connections == null ? 0
 				: connections.size(), cause.getMessage());
+	}
+
+	/**
+	 * Called by pool when its state changes
+	 */
+	public void onPoolStateChange(final Pool pool) {
+		if (pool.isActive()) {
+			LOGGER.warn("Pool {} is UP again.");
+			// TODO maybe move worker connections to this pool
+		} else {
+			LOGGER.warn("Pool {} is DOAN. Moving connections to another one.");
+			Thread moveWorkersThread = new Thread() {
+				public void run() {
+					List<WorkerConnection> connections = poolWorkerConnections.get(pool);
+					if (connections != null) {
+						synchronized (connections) {
+							for (WorkerConnection connection : connections) {
+								switchPoolForConnection(connection);
+							}
+						}
+					}
+				}
+			};
+			moveWorkersThread.start();
+		}
+	}
+
+	/**
+	 * Switch the given connection to another pool. The pool is selected through
+	 * the selectPool(connection) method.
+	 * 
+	 * @param connection
+	 */
+	private void switchPoolForConnection(WorkerConnection connection) {
+		Pool newPool = null;
+		try {
+			// Select the new pool for the connection
+			newPool = selectPool(connection);
+			// Then rebind the connection to this pool
+			connection.rebindToPool(newPool);
+			// And finally add the worker connection to the pool's worker
+			// connections
+			List<WorkerConnection> newPoolConnections = poolWorkerConnections.get(newPool);
+			newPoolConnections.add(connection);
+		} catch (NoPoolAvailableException e) {
+			// If no more pool available, close the connection.
+			LOGGER.warn("Closing connection {} since no more pool is active.", connection.getConnectionName());
+			connection.close();
+		} catch (TooManyWorkersException e) {
+			// If no more free space on the pool close the connection.
+			LOGGER.warn("Closing connection {} since no more space on the pool {}.", connection.getConnectionName(), newPool.getHost());
+			connection.close();
+		}
+	}
+
+	/**
+	 * Called when a worker pool switch has failed. If so, close the connection
+	 * and remove it.
+	 */
+	public void onWorkerPoolSwitchFailure(WorkerConnection connection) {
+		onWorkerDisconnection(connection, new Exception("The workerConnection " + connection.getConnectionName()
+				+ " does not support setExtranonce notification."));
+	}
+
+	/**
+	 * Return the pool to which the given connection should be bound.
+	 * 
+	 * @param connection
+	 * @return
+	 * @throws NoPoolAvailableException
+	 */
+	private Pool selectPool(WorkerConnection connection) throws NoPoolAvailableException {
+		// TODO to improve. At the moment, just return the first active.
+		return getPoolForNewConnection();
 	}
 
 }

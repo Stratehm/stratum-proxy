@@ -9,6 +9,7 @@ import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
 import strat.mining.stratum.proxy.json.MiningSetDifficultyNotification;
+import strat.mining.stratum.proxy.json.MiningSetExtranonceNotification;
 import strat.mining.stratum.proxy.json.MiningSubmitRequest;
 import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
@@ -49,6 +50,11 @@ public class PoolConnection extends StratumConnection {
 	@Override
 	protected void onSetDifficulty(MiningSetDifficultyNotification setDifficulty) {
 		pool.processSetDifficulty(setDifficulty);
+	}
+
+	@Override
+	protected void onSetExtranonce(MiningSetExtranonceNotification setExtranonce) {
+		pool.processSetExtranonce(setExtranonce);
 	}
 
 	@Override
