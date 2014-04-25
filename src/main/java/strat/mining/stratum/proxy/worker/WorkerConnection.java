@@ -183,6 +183,8 @@ public class WorkerConnection extends StratumConnection {
 		workerResponse.setId(workerRequest.getId());
 		workerResponse.setIsAccepted(poolResponse.getIsAccepted());
 		workerResponse.setError(poolResponse.getError());
+
+		sendResponse(workerResponse);
 	}
 
 	@Override
