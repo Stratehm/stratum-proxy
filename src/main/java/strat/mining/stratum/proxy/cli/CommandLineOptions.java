@@ -41,6 +41,12 @@ public class CommandLineOptions {
 	@Option(name = "-l", aliases = { "--log-directory" }, usage = "The directory where logs will be written", handler = FileOptionHandler.class)
 	private File logDirectory;
 
+	@Option(name = "--listen-port", usage = "The port number to listen incoming connections. (3333 by default")
+	private Integer listeningPort = Constants.DEFAULT_LISTENING_PORT;
+
+	@Option(name = "--listen-address", usage = "The address to bind to listen incoming connections. (0.0.0.0 by default)")
+	private String bindAddress;
+
 	private List<Pool> pools;
 
 	public CommandLineOptions() {
@@ -99,6 +105,14 @@ public class CommandLineOptions {
 
 	public void printUsage() {
 		parser.printUsage(System.out);
+	}
+
+	public Integer getListeningPort() {
+		return listeningPort;
+	}
+
+	public String getBindAddress() {
+		return bindAddress;
 	}
 
 }

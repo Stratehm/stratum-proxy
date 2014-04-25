@@ -1,14 +1,11 @@
 package strat.mining.stratum.proxy.json;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class JsonRpcError {
 
 	public enum ErrorCode {
 
-		UNKNOWN(20), JOB_NOT_FOUND(21), DUPLICATE_SHARE(22), LOW_DIFFICULTY_SHARE(
-				23), UNAUTHORIZED_WORKER(24), NOT_SUBSCRIBED(25);
+		UNKNOWN(20), JOB_NOT_FOUND(21), DUPLICATE_SHARE(22), LOW_DIFFICULTY_SHARE(23), UNAUTHORIZED_WORKER(24), NOT_SUBSCRIBED(25);
 
 		private int code;
 

@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class MiningSetDifficultyNotification extends JsonRpcNotification {
 
 	public static final String METHOD_NAME = "mining.set_difficulty";
@@ -42,7 +44,7 @@ public class MiningSetDifficultyNotification extends JsonRpcNotification {
 	public void setParams(List<Object> params) {
 		super.setParams(params);
 		if (params != null) {
-			difficulty = (Integer) params.get(0);
+			difficulty = ((Number) params.get(0)).intValue();
 		}
 	}
 

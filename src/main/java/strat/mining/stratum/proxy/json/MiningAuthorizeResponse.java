@@ -1,7 +1,12 @@
 package strat.mining.stratum.proxy.json;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class MiningAuthorizeResponse extends JsonRpcResponse {
 
+	@JsonIgnore
 	private Boolean isAuthorized;
 
 	public MiningAuthorizeResponse() {

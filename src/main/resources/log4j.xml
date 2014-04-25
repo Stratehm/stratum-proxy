@@ -10,7 +10,7 @@
 	</appender>
 
 	<appender name="file" class="org.apache.log4j.RollingFileAppender">
-		<param name="File" value="JStratumProxy.log" />
+		<param name="File" value="${log.directory.path}/JStratumProxy.log" />
 		<param name="MaxFileSize" value="100000000" />
 		<param name="MaxBackupIndex" value="3" />
 		<param name="Append" value="true" />

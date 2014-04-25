@@ -1,20 +1,25 @@
 package strat.mining.stratum.proxy.json;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class JsonRpcRequest {
 
-	private Integer id;
+	private static final AtomicLong nextRequestId = new AtomicLong(0);
+
+	private Long id;
 	private String method;
 	private List<Object> params;
 
 	protected JsonRpcRequest() {
+		id = nextRequestId.getAndIncrement();
 	}
 
 	public JsonRpcRequest(String method) {
+		this();
 		this.method = method;
 	}
 
@@ -24,11 +29,11 @@ public class JsonRpcRequest {
 		this.setParams(request.getParams());
 	}
 
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 

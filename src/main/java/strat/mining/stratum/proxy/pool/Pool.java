@@ -1,12 +1,23 @@
 package strat.mining.stratum.proxy.pool;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
+import strat.mining.stratum.proxy.constant.Constants;
+import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
@@ -15,12 +26,13 @@ import strat.mining.stratum.proxy.json.MiningSubmitRequest;
 import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.json.MiningSubscribeResponse;
+import strat.mining.stratum.proxy.manager.StratumProxyManager;
 
 public class Pool {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Pool.class);
 
-	public static final Integer DEFAULT_POOL_PORT = 3333;
+	private StratumProxyManager manager;
 
 	private String host;
 	private String username;
@@ -34,7 +46,17 @@ public class Pool {
 	private boolean isActive;
 	private boolean isEnabled;
 
+	// Contains all available tails in Hexa format.
+	private Deque<String> tails;
+
 	private PoolConnection connection;
+
+	private MiningNotifyNotification currentJob;
+
+	private Timer reconnectTimer;
+
+	// Store the callbacks to call when the pool responds to a submit request.
+	private Map<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>> submitCallbacks;
 
 	public Pool(String host, String username, String password, Integer nbConnections) {
 		super();
@@ -44,20 +66,35 @@ public class Pool {
 		this.nbConnections = nbConnections;
 		this.isActive = false;
 		this.isEnabled = true;
+
+		this.tails = buildTails();
+		this.submitCallbacks = Collections.synchronizedMap(new HashMap<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>>());
 	}
 
-	public void startPool() throws Exception {
-		if (connection == null) {
-			LOGGER.info("Starting pool {}...", getHost());
-			URI uri = new URI("stratum+tcp://" + host);
-			Socket socket = new Socket();
-			socket.setKeepAlive(true);
-			socket.connect(new InetSocketAddress(uri.getHost(), uri.getPort() > -1 ? uri.getPort() : DEFAULT_POOL_PORT));
-			connection = new PoolConnection(this, socket);
-			connection.startReading();
+	public void startPool(StratumProxyManager manager) throws Exception {
+		if (manager != null) {
+			this.manager = manager;
+			if (connection == null) {
+				LOGGER.info("Starting pool {}...", getHost());
+				URI uri = new URI("stratum+tcp://" + host);
+				Socket socket = new Socket();
+				socket.setKeepAlive(true);
+				socket.setTcpNoDelay(true);
 
-			MiningSubscribeRequest request = new MiningSubscribeRequest();
-			connection.sendRequest(request);
+				try {
+					socket.connect(new InetSocketAddress(uri.getHost(), uri.getPort() > -1 ? uri.getPort() : Constants.DEFAULT_POOL_PORT));
+					connection = new PoolConnection(this, socket);
+					connection.startReading();
+
+					MiningSubscribeRequest request = new MiningSubscribeRequest();
+					connection.sendRequest(request);
+				} catch (IOException e) {
+					LOGGER.warn("Failed to connect the pool {}.", getHost());
+					retryConnect();
+				}
+			}
+		} else {
+			throw new Exception("Do not start pool since manager is null.");
 		}
 	}
 
@@ -101,7 +138,7 @@ public class Pool {
 		if (this.isEnabled != isEnabled) {
 			this.isEnabled = isEnabled;
 			if (isEnabled) {
-				startPool();
+				startPool(manager);
 			} else {
 				stopPool();
 			}
@@ -125,21 +162,33 @@ public class Pool {
 	}
 
 	public void processNotify(MiningNotifyNotification notify) {
-
+		currentJob = notify;
+		manager.onPoolNotify(this, notify);
+		notify.setCleanJobs(true);
 	}
 
 	public void processSetDifficulty(MiningSetDifficultyNotification setDifficulty) {
 		difficulty = setDifficulty.getDifficulty();
+		manager.onPoolSetDifficulty(this, setDifficulty);
 	}
 
 	public void processSubscribeResponse(MiningSubscribeRequest request, MiningSubscribeResponse response) {
 		extranonce1 = response.getExtranonce1();
 		extranonce2Size = response.getExtranonce2Size();
 
-		MiningAuthorizeRequest authorizeRequest = new MiningAuthorizeRequest();
-		authorizeRequest.setUsername(username);
-		authorizeRequest.setPassword(password);
-		connection.sendRequest(authorizeRequest);
+		if (extranonce2Size - Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE < 1) {
+			// If the extranonce2size is not big enough, we cannot generate
+			// unique extranonce for workers, so deactivate the pool.
+			LOGGER.error("The extranonce2Size for the pool {} is to low. Size: {}, mininum needed {}.", getHost(), extranonce2Size,
+					Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1);
+			stopPool();
+		} else {
+			// Else send the authorize request
+			MiningAuthorizeRequest authorizeRequest = new MiningAuthorizeRequest();
+			authorizeRequest.setUsername(username);
+			authorizeRequest.setPassword(password);
+			connection.sendRequest(authorizeRequest);
+		}
 	}
 
 	public void processAuthorizeResponse(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
@@ -147,18 +196,103 @@ public class Pool {
 			LOGGER.info("Pool {} started", getHost());
 			this.isActive = true;
 		} else {
-			System.out.println("Stopping pool since user not authorized.");
+			LOGGER.error("Stopping pool {} since user {} is not authorized.", getHost(), username);
 			stopPool();
 		}
 	}
 
 	public void processSubmitResponse(MiningSubmitRequest request, MiningSubmitResponse response) {
-
+		ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse> callback = submitCallbacks.remove(response.getId());
+		callback.onResponseReceived(request, response);
 	}
 
-	public void onDisconnect(Throwable cause) {
+	/**
+	 * Send a submit request and return the submit response.
+	 * 
+	 * @param request
+	 * @return
+	 */
+	public void submitShare(MiningSubmitRequest request, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse> callback) {
+		submitCallbacks.put(request.getId(), callback);
+		connection.sendRequest(request);
+	}
+
+	public void onDisconnectWithError(Throwable cause) {
 		LOGGER.error("Disconnect of pool {}.", this, cause);
 		stopPool();
+
+		retryConnect();
+	}
+
+	/**
+	 * Return a free tail for this pool.
+	 * 
+	 * @return
+	 * @throws TooManyWorkersException
+	 */
+	public String getFreeTail() throws TooManyWorkersException {
+		if (tails.size() > 0) {
+			return tails.poll();
+		} else {
+			throw new TooManyWorkersException("No more tails available on pool " + getHost());
+		}
+	}
+
+	/**
+	 * Release the given tail.
+	 * 
+	 * @param tail
+	 */
+	public void releaseTail(String tail) {
+		tails.add(tail);
+	}
+
+	/**
+	 * Return the extranonce2 size
+	 * 
+	 * @return
+	 */
+	public Integer getWorkerExtranonce2Size() {
+		return extranonce2Size - Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE;
+	}
+
+	private Deque<String> buildTails() {
+		Deque<String> result = new ConcurrentLinkedDeque<String>();
+		int nbTails = (int) Math.pow(2, Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE * 8);
+		int tailNbChars = Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE * 2;
+		for (int i = 0; i < nbTails; i++) {
+			String tail = Integer.toHexString(i);
+
+			if (tail.length() > Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE * 2) {
+				tail = tail.substring(0, tailNbChars);
+			} else {
+				while (tail.length() < Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE * 2) {
+					tail = "0" + tail;
+				}
+			}
+
+			result.add(tail);
+		}
+		return result;
+	}
+
+	public MiningNotifyNotification getCurrentJob() {
+		return currentJob;
+	}
+
+	private void retryConnect() {
+		LOGGER.info("Trying reconnect of pool {} in {} ms.", getHost(), Constants.DEFAULT_POOL_RECONNECT_DELAY);
+		reconnectTimer = new Timer();
+		reconnectTimer.schedule(new TimerTask() {
+			public void run() {
+				try {
+					LOGGER.info("Trying reconnect of pool {}...", getHost());
+					startPool(manager);
+				} catch (Exception e) {
+					LOGGER.error("Failed to restart the pool {}.", getHost(), e);
+				}
+			}
+		}, Constants.DEFAULT_POOL_RECONNECT_DELAY);
 	}
 
 	@Override
