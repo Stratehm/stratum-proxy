@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class MiningExtranonceSubscribeResponse extends JsonRpcResponse {
 
 	@JsonIgnore
-	private List<Object> subscriptionDetails;
+	private Boolean isSubscribed;
 
 	public MiningExtranonceSubscribeResponse() {
 		super();
@@ -20,12 +20,12 @@ public class MiningExtranonceSubscribeResponse extends JsonRpcResponse {
 		super(response);
 	}
 
-	public List<Object> getSubscriptionDetails() {
-		return subscriptionDetails;
+	public Boolean getIsSubscribed() {
+		return isSubscribed;
 	}
 
-	public void setSubscriptionDetails(List<Object> subscriptionDetails) {
-		this.subscriptionDetails = subscriptionDetails;
+	public void setIsSubscribed(Boolean isSubscribed) {
+		this.isSubscribed = isSubscribed;
 	}
 
 	@Override
@@ -33,7 +33,7 @@ public class MiningExtranonceSubscribeResponse extends JsonRpcResponse {
 		if (super.getResult() == null) {
 			List<Object> result = new ArrayList<Object>();
 			super.setResult(result);
-			result.add(subscriptionDetails);
+			result.add(isSubscribed);
 		}
 		return super.getResult();
 	}
@@ -44,7 +44,7 @@ public class MiningExtranonceSubscribeResponse extends JsonRpcResponse {
 		super.setResult(result);
 		if (result != null) {
 			List<Object> resultList = (List<Object>) result;
-			subscriptionDetails = (List<Object>) resultList.get(0);
+			isSubscribed = (Boolean) resultList.get(0);
 		}
 	}
 

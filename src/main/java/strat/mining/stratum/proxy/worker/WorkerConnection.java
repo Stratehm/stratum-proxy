@@ -90,6 +90,11 @@ public class WorkerConnection extends StratumConnection {
 	}
 
 	@Override
+	protected void onSetExtranonce(MiningSetExtranonceNotification setExtranonce) {
+		// Do nothing, should never happen
+	}
+
+	@Override
 	protected void onAuthorizeRequest(MiningAuthorizeRequest request) {
 		MiningAuthorizeResponse response = new MiningAuthorizeResponse();
 		response.setId(request.getId());
@@ -197,6 +202,23 @@ public class WorkerConnection extends StratumConnection {
 		sendResponse(workerResponse);
 	}
 
+	/**
+	 * Called when the pool change its extranonce. Send the extranonce change to
+	 * the worker.
+	 */
+	public void onPoolExtranonceChange() {
+		if (isSetExtranonceNotificationSupported) {
+			MiningSetExtranonceNotification extranonceNotif = new MiningSetExtranonceNotification();
+			extranonceNotif.setExtranonce1(pool.getExtranonce1() + extranonce1Tail);
+			extranonceNotif.setExtranonce2Size(extranonce2Size);
+			sendNotification(extranonceNotif);
+		} else {
+			// If the extranonce change is not supported by the worker, then
+			// notify the manager
+			manager.onWorkerChangeExtranonceFailure(this);
+		}
+	}
+
 	@Override
 	protected void onAuthorizeResponse(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
 		// Do nothing, should never happen
@@ -292,8 +314,8 @@ public class WorkerConnection extends StratumConnection {
 			sendInitialNotifications();
 
 		} else {
-			// If set extranonce not supported, just disconnect
-			manager.onWorkerPoolSwitchFailure(this);
+			// If set extranonce not supported, notify the manager
+			manager.onWorkerChangeExtranonceFailure(this);
 		}
 	}
 
@@ -302,4 +324,5 @@ public class WorkerConnection extends StratumConnection {
 		super.close();
 		pool.releaseTail(extranonce1Tail);
 	}
+
 }

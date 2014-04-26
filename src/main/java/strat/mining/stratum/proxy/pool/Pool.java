@@ -184,6 +184,7 @@ public class Pool {
 					Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1);
 			stopPool();
 		} else {
+			extranonce2Size = setExtranonce.getExtranonce2Size();
 			// If extrnaonce is OK, notify the manager.
 			manager.onPoolSetExtranonce(this, setExtranonce);
 		}

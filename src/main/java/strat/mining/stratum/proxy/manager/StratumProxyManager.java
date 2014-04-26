@@ -228,12 +228,28 @@ public class StratumProxyManager {
 				}
 			}
 		}
-
 	}
 
+	/**
+	 * Called when a pool set the extranonce
+	 * 
+	 * @param pool
+	 * @param setExtranonce
+	 */
 	public void onPoolSetExtranonce(Pool pool, MiningSetExtranonceNotification setExtranonce) {
-		// TODO Auto-generated method stub
+		LOGGER.info("Set the extranonce on pool {}.", pool.getHost());
 
+		List<WorkerConnection> connections = poolWorkerConnections.get(pool);
+
+		if (connections == null) {
+			LOGGER.debug("No worker connections on pool {}. Do not send setExtranonce.", pool.getHost());
+		} else {
+			synchronized (connections) {
+				for (WorkerConnection connection : connections) {
+					connection.onPoolExtranonceChange();
+				}
+			}
+		}
 	}
 
 	/**
@@ -364,10 +380,10 @@ public class StratumProxyManager {
 	}
 
 	/**
-	 * Called when a worker pool switch has failed. If so, close the connection
-	 * and remove it.
+	 * Called when a worker extranonce change has failed. If so, close the
+	 * connection and remove it.
 	 */
-	public void onWorkerPoolSwitchFailure(WorkerConnection connection) {
+	public void onWorkerChangeExtranonceFailure(WorkerConnection connection) {
 		onWorkerDisconnection(connection, new Exception("The workerConnection " + connection.getConnectionName()
 				+ " does not support setExtranonce notification."));
 	}
