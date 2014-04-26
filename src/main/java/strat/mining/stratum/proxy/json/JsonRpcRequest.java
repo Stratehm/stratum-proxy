@@ -1,6 +1,5 @@
 package strat.mining.stratum.proxy.json;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -43,9 +42,6 @@ public class JsonRpcRequest {
 	}
 
 	public List<Object> getParams() {
-		if (params == null) {
-			params = new ArrayList<Object>();
-		}
 		return params;
 	}
 

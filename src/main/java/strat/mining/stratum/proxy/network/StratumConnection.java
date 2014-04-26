@@ -17,6 +17,8 @@ import strat.mining.stratum.proxy.json.JsonRpcRequest;
 import strat.mining.stratum.proxy.json.JsonRpcResponse;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
+import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeRequest;
+import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeResponse;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
 import strat.mining.stratum.proxy.json.MiningSetDifficultyNotification;
 import strat.mining.stratum.proxy.json.MiningSetExtranonceNotification;
@@ -253,6 +255,12 @@ public abstract class StratumConnection {
 			onSubmitResponse(submitRequest, submitResponse);
 			break;
 
+		case MiningExtranonceSubscribeRequest.METHOD_NAME:
+			MiningExtranonceSubscribeRequest subscribeExtranonceRequest = new MiningExtranonceSubscribeRequest(request);
+			MiningExtranonceSubscribeResponse subscribeExtranonceResponse = new MiningExtranonceSubscribeResponse(response);
+			onExtranonceSubscribeResponse(subscribeExtranonceRequest, subscribeExtranonceResponse);
+			break;
+
 		default:
 			LOGGER.warn("Unknown response type. methodName: {}, result: {}", request.getMethod(), response.getResult());
 			break;
@@ -314,6 +322,11 @@ public abstract class StratumConnection {
 	 * Called when a submit request is received
 	 */
 	protected abstract void onSubmitRequest(MiningSubmitRequest request);
+
+	/**
+	 * Called when a extranonce subscribe response is received
+	 */
+	protected abstract void onExtranonceSubscribeResponse(MiningExtranonceSubscribeRequest request, MiningExtranonceSubscribeResponse response);
 
 	/**
 	 * Called when a authorize response is received

@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
+import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeRequest;
+import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeResponse;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
 import strat.mining.stratum.proxy.json.MiningSetDifficultyNotification;
 import strat.mining.stratum.proxy.json.MiningSetExtranonceNotification;
@@ -80,6 +82,11 @@ public class PoolConnection extends StratumConnection {
 	@Override
 	protected void onSubscribeResponse(MiningSubscribeRequest request, MiningSubscribeResponse response) {
 		pool.processSubscribeResponse(request, response);
+	}
+
+	@Override
+	protected void onExtranonceSubscribeResponse(MiningExtranonceSubscribeRequest request, MiningExtranonceSubscribeResponse response) {
+		pool.processSubscribeExtranonceResponse(request, response);
 	}
 
 	@Override

@@ -18,6 +18,8 @@ import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.JsonRpcError;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
+import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeRequest;
+import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeResponse;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
 import strat.mining.stratum.proxy.json.MiningSetDifficultyNotification;
 import strat.mining.stratum.proxy.json.MiningSetExtranonceNotification;
@@ -190,8 +192,7 @@ public class WorkerConnection extends StratumConnection {
 		if (poolResponse.getIsAccepted()) {
 			LOGGER.info("Accepted share from {} on {}. Yeah !!!!", getConnectionName(), pool.getHost());
 		} else {
-			LOGGER.info("REJECTED share from {} on {}. Booo !!!!. (errorCode: {}, message: {})", getConnectionName(), pool.getHost(), poolResponse
-					.getJsonError().getCode(), poolResponse.getJsonError().getMessage());
+			LOGGER.info("REJECTED share from {} on {}. Booo !!!!. Error: {}", getConnectionName(), pool.getHost(), poolResponse.getJsonError());
 		}
 
 		MiningSubmitResponse workerResponse = new MiningSubmitResponse();
@@ -231,6 +232,11 @@ public class WorkerConnection extends StratumConnection {
 
 	@Override
 	protected void onSubmitResponse(MiningSubmitRequest request, MiningSubmitResponse response) {
+		// Do nothing, should never happen
+	}
+
+	@Override
+	protected void onExtranonceSubscribeResponse(MiningExtranonceSubscribeRequest request, MiningExtranonceSubscribeResponse response) {
 		// Do nothing, should never happen
 	}
 
@@ -322,7 +328,9 @@ public class WorkerConnection extends StratumConnection {
 	@Override
 	public void close() {
 		super.close();
-		pool.releaseTail(extranonce1Tail);
+		if (pool != null) {
+			pool.releaseTail(extranonce1Tail);
+		}
 	}
 
 }

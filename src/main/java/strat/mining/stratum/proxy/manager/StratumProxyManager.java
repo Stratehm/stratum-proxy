@@ -331,10 +331,10 @@ public class StratumProxyManager {
 	 */
 	public void onPoolStateChange(final Pool pool) {
 		if (pool.isActive()) {
-			LOGGER.warn("Pool {} is UP again.");
+			LOGGER.warn("Pool {} is UP again.", pool.getHost());
 			// TODO maybe move worker connections to this pool
 		} else {
-			LOGGER.warn("Pool {} is DOAN. Moving connections to another one.");
+			LOGGER.warn("Pool {} is DOWN. Moving connections to another one.", pool.getHost());
 			Thread moveWorkersThread = new Thread() {
 				public void run() {
 					List<WorkerConnection> connections = poolWorkerConnections.get(pool);

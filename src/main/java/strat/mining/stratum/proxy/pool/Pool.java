@@ -20,6 +20,8 @@ import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
+import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeRequest;
+import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeResponse;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
 import strat.mining.stratum.proxy.json.MiningSetDifficultyNotification;
 import strat.mining.stratum.proxy.json.MiningSetExtranonceNotification;
@@ -202,11 +204,23 @@ public class Pool {
 					Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1);
 			stopPool();
 		} else {
-			// Else send the authorize request
+			// Else try to subscribe to extranonce change notification
+			MiningExtranonceSubscribeRequest extranonceRequest = new MiningExtranonceSubscribeRequest();
+			connection.sendRequest(extranonceRequest);
+
+			// And send the authorize request
 			MiningAuthorizeRequest authorizeRequest = new MiningAuthorizeRequest();
 			authorizeRequest.setUsername(username);
 			authorizeRequest.setPassword(password);
 			connection.sendRequest(authorizeRequest);
+		}
+	}
+
+	public void processSubscribeExtranonceResponse(MiningExtranonceSubscribeRequest request, MiningExtranonceSubscribeResponse response) {
+		if (response.getIsSubscribed()) {
+			LOGGER.info("Extranonce change subscribed on pool {}.", getHost());
+		} else {
+			LOGGER.info("Failed to subscribe to extranonce change on pool {}. Error: {}", getHost(), response.getJsonError());
 		}
 	}
 
@@ -330,6 +344,8 @@ public class Pool {
 		builder.append(nbConnections);
 		builder.append(", isEnabled=");
 		builder.append(isEnabled);
+		builder.append(", isActive=");
+		builder.append(isActive);
 		builder.append("]");
 		return builder.toString();
 	}

@@ -1,6 +1,5 @@
 package strat.mining.stratum.proxy.json;
 
-
 public class JsonRpcError {
 
 	public enum ErrorCode {
@@ -55,6 +54,19 @@ public class JsonRpcError {
 
 	public void setTraceback(Object traceback) {
 		this.traceback = traceback;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("JsonRpcError [code=");
+		builder.append(code);
+		builder.append(", message=");
+		builder.append(message);
+		builder.append(", traceback=");
+		builder.append(traceback);
+		builder.append("]");
+		return builder.toString();
 	}
 
 }
