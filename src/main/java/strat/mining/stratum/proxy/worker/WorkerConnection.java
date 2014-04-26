@@ -182,6 +182,11 @@ public class WorkerConnection extends StratumConnection {
 		}
 	}
 
+	@Override
+	protected void onExtranonceSubscribeRequest(MiningExtranonceSubscribeRequest request) {
+		this.isSetExtranonceNotificationSupported = true;
+	}
+
 	/**
 	 * Called when the pool has answered to a submit request.
 	 * 
@@ -222,22 +227,22 @@ public class WorkerConnection extends StratumConnection {
 
 	@Override
 	protected void onAuthorizeResponse(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
-		// Do nothing, should never happen
+		LOGGER.warn("Worker {} send an Authorize response. This should not happen.", getConnectionName());
 	}
 
 	@Override
 	protected void onSubscribeResponse(MiningSubscribeRequest request, MiningSubscribeResponse response) {
-		// Do nothing, should never happen
+		LOGGER.warn("Worker {} send a Subscribe response. This should not happen.", getConnectionName());
 	}
 
 	@Override
 	protected void onSubmitResponse(MiningSubmitRequest request, MiningSubmitResponse response) {
-		// Do nothing, should never happen
+		LOGGER.warn("Worker {} send a Submit response. This should not happen.", getConnectionName());
 	}
 
 	@Override
 	protected void onExtranonceSubscribeResponse(MiningExtranonceSubscribeRequest request, MiningExtranonceSubscribeResponse response) {
-		// Do nothing, should never happen
+		LOGGER.warn("Worker {} send an Extranonce subscribe response. This should not happen.", getConnectionName());
 	}
 
 	/**

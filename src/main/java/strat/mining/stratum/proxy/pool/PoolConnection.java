@@ -75,6 +75,11 @@ public class PoolConnection extends StratumConnection {
 	}
 
 	@Override
+	protected void onExtranonceSubscribeRequest(MiningExtranonceSubscribeRequest request) {
+		LOGGER.warn("Pool {} received an Extranonce Subscribe request. This should not happen.", pool.getHost());
+	}
+
+	@Override
 	protected void onAuthorizeResponse(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
 		pool.processAuthorizeResponse(request, response);
 	}

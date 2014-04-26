@@ -287,6 +287,11 @@ public abstract class StratumConnection {
 			onSubmitRequest(submitRequest);
 			break;
 
+		case MiningExtranonceSubscribeRequest.METHOD_NAME:
+			MiningExtranonceSubscribeRequest extranonceSubscribeRequest = new MiningExtranonceSubscribeRequest(request);
+			onExtranonceSubscribeRequest(extranonceSubscribeRequest);
+			break;
+
 		default:
 			LOGGER.warn("Unknown request type. methodName: {}, id: {}, params: {}", request.getMethod(), request.getId(), request.getParams());
 			break;
@@ -322,6 +327,11 @@ public abstract class StratumConnection {
 	 * Called when a submit request is received
 	 */
 	protected abstract void onSubmitRequest(MiningSubmitRequest request);
+
+	/**
+	 * Called when a extranonce subcribe request is received
+	 */
+	protected abstract void onExtranonceSubscribeRequest(MiningExtranonceSubscribeRequest request);
 
 	/**
 	 * Called when a extranonce subscribe response is received

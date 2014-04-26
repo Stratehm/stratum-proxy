@@ -56,7 +56,7 @@ public class MiningSetExtranonceNotification extends JsonRpcNotification {
 		super.setParams(params);
 		if (params != null) {
 			extranonce1 = (String) params.get(0);
-			extranonce2Size = ((Number) params.get(0)).intValue();
+			extranonce2Size = ((Number) params.get(1)).intValue();
 		}
 	}
 
