@@ -38,13 +38,11 @@ public class MiningExtranonceSubscribeResponse extends JsonRpcResponse {
 		return super.getResult();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void setResult(Object result) {
 		super.setResult(result);
 		if (result != null) {
-			List<Object> resultList = (List<Object>) result;
-			isSubscribed = (Boolean) resultList.get(0);
+			isSubscribed = (Boolean) result;
 		}
 	}
 
