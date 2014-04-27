@@ -33,6 +33,9 @@ public class CommandLineOptions {
 	@Option(name = "-p", aliases = { "--password" }, usage = "Passwords used for the users (x by default), space separated", handler = StringArrayOptionHandler.class)
 	private List<String> poolPasswords;
 
+	@Option(name = "--set-extranonce-subscribe", usage = "Enable/Disable the extranonce subscribe request on pool (default to true), space separated.", handler = BooleanArrayOptionHandler.class)
+	private List<Boolean> isExtranonceSubscribeEnabled;
+
 	@Option(name = "--log-directory", usage = "The directory where logs will be written", handler = FileOptionHandler.class)
 	private File logDirectory;
 
@@ -68,6 +71,7 @@ public class CommandLineOptions {
 				for (String poolHost : poolHosts) {
 					String username = Constants.DEFAULT_USERNAME;
 					String password = Constants.DEFAULT_PASSWORD;
+					Boolean isExtranonceSubscribe = Boolean.TRUE;
 
 					if (poolUsers != null && poolUsers.size() >= index) {
 						username = poolUsers.get(index);
@@ -77,7 +81,12 @@ public class CommandLineOptions {
 						password = poolPasswords.get(index);
 					}
 
+					if (isExtranonceSubscribeEnabled != null && isExtranonceSubscribeEnabled.size() >= index) {
+						isExtranonceSubscribe = isExtranonceSubscribeEnabled.get(index);
+					}
+
 					Pool pool = new Pool(poolHost, username, password);
+					pool.setExtranonceSubscribeEnabled(isExtranonceSubscribe);
 					pools.add(pool);
 
 					index++;

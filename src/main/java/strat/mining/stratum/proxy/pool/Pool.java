@@ -57,6 +57,8 @@ public class Pool {
 
 	private Timer reconnectTimer;
 
+	private Boolean isExtranonceSubscribeEnabled = true;
+
 	// Store the callbacks to call when the pool responds to a submit request.
 	private Map<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>> submitCallbacks;
 
@@ -198,9 +200,11 @@ public class Pool {
 					Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1);
 			stopPool();
 		} else {
-			// Else try to subscribe to extranonce change notification
-			MiningExtranonceSubscribeRequest extranonceRequest = new MiningExtranonceSubscribeRequest();
-			connection.sendRequest(extranonceRequest);
+			if (isExtranonceSubscribeEnabled) {
+				// Else try to subscribe to extranonce change notification
+				MiningExtranonceSubscribeRequest extranonceRequest = new MiningExtranonceSubscribeRequest();
+				connection.sendRequest(extranonceRequest);
+			}
 
 			// And send the authorize request
 			MiningAuthorizeRequest authorizeRequest = new MiningAuthorizeRequest();
@@ -323,6 +327,14 @@ public class Pool {
 				}
 			}
 		}, Constants.DEFAULT_POOL_RECONNECT_DELAY);
+	}
+
+	public Boolean isExtranonceSubscribeEnabled() {
+		return isExtranonceSubscribeEnabled;
+	}
+
+	public void setExtranonceSubscribeEnabled(Boolean isExtranonceSubscribeEnabled) {
+		this.isExtranonceSubscribeEnabled = isExtranonceSubscribeEnabled;
 	}
 
 	@Override

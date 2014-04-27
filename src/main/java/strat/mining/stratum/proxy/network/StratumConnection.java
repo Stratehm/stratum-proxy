@@ -27,6 +27,7 @@ import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.json.MiningSubscribeResponse;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public abstract class StratumConnection {
@@ -45,11 +46,14 @@ public abstract class StratumConnection {
 	// the disconnect is a user request)
 	private Boolean throwDisconnectError;
 
+	private boolean disconnectOnParsingError;
+
 	public StratumConnection(Socket socket) {
 		this.socket = socket;
 		this.objectMapper = new ObjectMapper();
 		this.sentRequestIds = Collections.synchronizedMap(new HashMap<Long, JsonRpcRequest>());
 		this.throwDisconnectError = true;
+		this.disconnectOnParsingError = false;
 	}
 
 	/**
@@ -181,26 +185,34 @@ public abstract class StratumConnection {
 	private void onLineRead(String line) {
 		try {
 			LOGGER.debug("{}. Line read: {}", getConnectionName(), line);
-			JsonRpcRequest request = objectMapper.readValue(line, JsonRpcRequest.class);
+			try {
+				JsonRpcRequest request = objectMapper.readValue(line, JsonRpcRequest.class);
 
-			// If there is an id, it may be a request or a response
-			if (request.getId() != null) {
-				// If there is a method name, it is a request.
-				if (request.getMethod() != null) {
-					onRequestReceived(request);
-				} else {
-					// Else it is a response
-					JsonRpcResponse response = objectMapper.readValue(line, JsonRpcResponse.class);
-					request = sentRequestIds.remove(request.getId());
-					if (request != null) {
-						onResponseReceived(request, response);
+				// If there is an id, it may be a request or a response
+				if (request.getId() != null) {
+					// If there is a method name, it is a request.
+					if (request.getMethod() != null) {
+						onRequestReceived(request);
 					} else {
-						LOGGER.debug("Drop response since no request has been sent with the id {}.", response.getId());
+						// Else it is a response
+						JsonRpcResponse response = objectMapper.readValue(line, JsonRpcResponse.class);
+						request = sentRequestIds.remove(request.getId());
+						if (request != null) {
+							onResponseReceived(request, response);
+						} else {
+							LOGGER.debug("Drop response since no request has been sent with the id {}.", response.getId());
+						}
 					}
+				} else {
+					// Else it is a notification
+					onNotificationReceived(new JsonRpcNotification(request));
 				}
-			} else {
-				// Else it is a notification
-				onNotificationReceived(new JsonRpcNotification(request));
+			} catch (JsonMappingException e) {
+				if (disconnectOnParsingError) {
+					throw e;
+				} else {
+					LOGGER.error("JSON-RPC Parsing error with line: {}", line, e);
+				}
 			}
 
 		} catch (Exception e) {
