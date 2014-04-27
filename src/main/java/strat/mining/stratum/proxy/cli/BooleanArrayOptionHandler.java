@@ -33,7 +33,7 @@ public class BooleanArrayOptionHandler extends OptionHandler<Boolean> {
 		ACCEPTABLE_VALUES.put("0", FALSE);
 	}
 
-	protected BooleanArrayOptionHandler(CmdLineParser parser, OptionDef option, Setter<? super Boolean> setter) {
+	public BooleanArrayOptionHandler(CmdLineParser parser, OptionDef option, Setter<? super Boolean> setter) {
 		super(parser, option, setter);
 	}
 
