@@ -192,18 +192,22 @@ public class StratumProxyManager {
 	 * @param workerRequest
 	 */
 	public void onSubmitRequest(final WorkerConnection workerConnection, final MiningSubmitRequest workerRequest) {
-		MiningSubmitRequest poolRequest = new MiningSubmitRequest();
-		poolRequest.setExtranonce2(workerRequest.getExtranonce2());
-		poolRequest.setJobId(workerRequest.getJobId());
-		poolRequest.setNonce(workerRequest.getNonce());
-		poolRequest.setNtime(workerRequest.getNtime());
-		poolRequest.setWorkerName(workerConnection.getPool().getUsername());
+		for (int i = 0; i < workerConnection.getPool().getNumberOfSubmit(); i++) {
+			MiningSubmitRequest poolRequest = new MiningSubmitRequest();
+			poolRequest.setExtranonce2(workerRequest.getExtranonce2());
+			poolRequest.setJobId(workerRequest.getJobId());
+			poolRequest.setNonce(workerRequest.getNonce());
+			poolRequest.setNtime(workerRequest.getNtime());
+			poolRequest.setWorkerName(workerConnection.getPool().getUsername());
 
-		workerConnection.getPool().submitShare(poolRequest, new ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>() {
-			public void onResponseReceived(MiningSubmitRequest request, MiningSubmitResponse response) {
-				workerConnection.onPoolSubmitResponse(workerRequest, response);
-			}
-		});
+			workerConnection.getPool().submitShare(poolRequest, new ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>() {
+				public void onResponseReceived(MiningSubmitRequest request, MiningSubmitResponse response) {
+					workerConnection.onPoolSubmitResponse(workerRequest, response);
+				}
+			});
+
+		}
+
 	}
 
 	/**
@@ -346,7 +350,7 @@ public class StratumProxyManager {
 	 */
 	public void onPoolStateChange(final Pool pool) {
 		if (pool.isActive()) {
-			LOGGER.warn("Pool {} is UP again.", pool.getHost());
+			LOGGER.warn("Pool {} is UP.", pool.getHost());
 			// TODO maybe move worker connections to this pool
 		} else {
 			LOGGER.warn("Pool {} is DOWN. Moving connections to another one.", pool.getHost());

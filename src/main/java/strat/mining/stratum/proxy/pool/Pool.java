@@ -59,6 +59,8 @@ public class Pool {
 
 	private Boolean isExtranonceSubscribeEnabled = true;
 
+	private Integer numberOfSubmit = 1;
+
 	// Store the callbacks to call when the pool responds to a submit request.
 	private Map<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>> submitCallbacks;
 
@@ -335,6 +337,14 @@ public class Pool {
 
 	public void setExtranonceSubscribeEnabled(Boolean isExtranonceSubscribeEnabled) {
 		this.isExtranonceSubscribeEnabled = isExtranonceSubscribeEnabled;
+	}
+
+	public Integer getNumberOfSubmit() {
+		return numberOfSubmit;
+	}
+
+	public void setNumberOfSubmit(Integer numberOfSubmit) {
+		this.numberOfSubmit = numberOfSubmit;
 	}
 
 	@Override

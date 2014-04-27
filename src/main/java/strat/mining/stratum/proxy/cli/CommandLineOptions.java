@@ -48,6 +48,9 @@ public class CommandLineOptions {
 	@Option(name = "--listen-address", usage = "The address to bind to listen incoming connections. (0.0.0.0 by default)")
 	private String bindAddress;
 
+	@Option(name = "--number-of-submit", usage = "The number of submit for each share. (Only for debug use)")
+	private Integer numberOfSubmit = 1;
+
 	private List<Pool> pools;
 
 	public CommandLineOptions() {
@@ -87,6 +90,7 @@ public class CommandLineOptions {
 
 					Pool pool = new Pool(poolHost, username, password);
 					pool.setExtranonceSubscribeEnabled(isExtranonceSubscribe);
+					pool.setNumberOfSubmit(numberOfSubmit);
 					pools.add(pool);
 
 					index++;
