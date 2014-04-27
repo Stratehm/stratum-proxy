@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.constant.Constants;
+import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.JsonRpcError;
@@ -210,9 +211,10 @@ public class WorkerConnection extends StratumConnection {
 
 	/**
 	 * Called when the pool change its extranonce. Send the extranonce change to
-	 * the worker.
+	 * the worker. Throw an exception if the extranonce change is not supported
+	 * on the fly.
 	 */
-	public void onPoolExtranonceChange() {
+	public void onPoolExtranonceChange() throws ChangeExtranonceNotSupportedException {
 		if (isSetExtranonceNotificationSupported) {
 			MiningSetExtranonceNotification extranonceNotif = new MiningSetExtranonceNotification();
 			extranonceNotif.setExtranonce1(pool.getExtranonce1() + extranonce1Tail);
@@ -220,8 +222,8 @@ public class WorkerConnection extends StratumConnection {
 			sendNotification(extranonceNotif);
 		} else {
 			// If the extranonce change is not supported by the worker, then
-			// notify the manager
-			manager.onWorkerChangeExtranonceFailure(this);
+			// throw an exception
+			throw new ChangeExtranonceNotSupportedException();
 		}
 	}
 
@@ -310,8 +312,9 @@ public class WorkerConnection extends StratumConnection {
 	 * 
 	 * @param newPool
 	 * @throws TooManyWorkersException
+	 * @throws ChangeExtranonceNotSupportedException
 	 */
-	public void rebindToPool(Pool newPool) throws TooManyWorkersException {
+	public void rebindToPool(Pool newPool) throws TooManyWorkersException, ChangeExtranonceNotSupportedException {
 		if (isSetExtranonceNotificationSupported) {
 			// Release the old extranonce
 			pool.releaseTail(extranonce1Tail);
@@ -325,8 +328,8 @@ public class WorkerConnection extends StratumConnection {
 			sendInitialNotifications();
 
 		} else {
-			// If set extranonce not supported, notify the manager
-			manager.onWorkerChangeExtranonceFailure(this);
+			// If set extranonce not supported, throw an exception
+			throw new ChangeExtranonceNotSupportedException();
 		}
 	}
 

@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Level;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
@@ -32,14 +33,11 @@ public class CommandLineOptions {
 	@Option(name = "-p", aliases = { "--password" }, usage = "Passwords used for the users (x by default), space separated", handler = StringArrayOptionHandler.class)
 	private List<String> poolPasswords;
 
-	@Option(name = "-c", aliases = { "--nb-connections" }, usage = "The number of connections opened on the stratum server. May be useful with pools that have problems with heavy hashrate on a single connection. 1 by default. Space separated", handler = StringArrayOptionHandler.class)
-	private List<Integer> poolConnectionNumbers;
-
-	@Option(name = "-f", aliases = { "--failover-on-jsonrpc-error" }, usage = "True if the proxy has to failover when a JSON-RPC error happens. False by default")
-	private Boolean failoverOnJsonRpcError = false;
-
-	@Option(name = "-l", aliases = { "--log-directory" }, usage = "The directory where logs will be written", handler = FileOptionHandler.class)
+	@Option(name = "--log-directory", usage = "The directory where logs will be written", handler = FileOptionHandler.class)
 	private File logDirectory;
+
+	@Option(name = "--log-level", usage = "The level of log: OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE. Default is INFO", handler = LogLevelOptionHandler.class)
+	private Level logLevel;
 
 	@Option(name = "--listen-port", usage = "The port number to listen incoming connections. (3333 by default")
 	private Integer listeningPort = Constants.DEFAULT_LISTENING_PORT;
@@ -70,7 +68,6 @@ public class CommandLineOptions {
 				for (String poolHost : poolHosts) {
 					String username = Constants.DEFAULT_USERNAME;
 					String password = Constants.DEFAULT_PASSWORD;
-					Integer nbConnections = Constants.DEFAULT_NB_CONNECTIONS;
 
 					if (poolUsers != null && poolUsers.size() >= index) {
 						username = poolUsers.get(index);
@@ -80,11 +77,7 @@ public class CommandLineOptions {
 						password = poolPasswords.get(index);
 					}
 
-					if (poolConnectionNumbers != null && poolConnectionNumbers.size() >= index) {
-						nbConnections = poolConnectionNumbers.get(index) > 0 ? poolConnectionNumbers.get(index) : nbConnections;
-					}
-
-					Pool pool = new Pool(poolHost, username, password, nbConnections);
+					Pool pool = new Pool(poolHost, username, password);
 					pools.add(pool);
 
 					index++;
@@ -113,6 +106,10 @@ public class CommandLineOptions {
 
 	public String getBindAddress() {
 		return bindAddress;
+	}
+
+	public Level getLogLevel() {
+		return logLevel;
 	}
 
 }

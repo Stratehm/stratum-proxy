@@ -40,7 +40,6 @@ public class Pool {
 	private String host;
 	private String username;
 	private String password;
-	private Integer nbConnections;
 
 	private Integer difficulty;
 	private String extranonce1;
@@ -61,12 +60,11 @@ public class Pool {
 	// Store the callbacks to call when the pool responds to a submit request.
 	private Map<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>> submitCallbacks;
 
-	public Pool(String host, String username, String password, Integer nbConnections) {
+	public Pool(String host, String username, String password) {
 		super();
 		this.host = host;
 		this.username = username;
 		this.password = password;
-		this.nbConnections = nbConnections;
 		this.isActive = false;
 		this.isEnabled = true;
 
@@ -122,10 +120,6 @@ public class Pool {
 
 	public String getPassword() {
 		return password;
-	}
-
-	public Integer getNbConnections() {
-		return nbConnections;
 	}
 
 	public boolean isEnabled() {
@@ -340,8 +334,6 @@ public class Pool {
 		builder.append(username);
 		builder.append(", password=");
 		builder.append(password);
-		builder.append(", nbConnections=");
-		builder.append(nbConnections);
 		builder.append(", isEnabled=");
 		builder.append(isEnabled);
 		builder.append(", isActive=");

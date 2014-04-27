@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
+import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
@@ -244,10 +245,24 @@ public class StratumProxyManager {
 		if (connections == null) {
 			LOGGER.debug("No worker connections on pool {}. Do not send setExtranonce.", pool.getHost());
 		} else {
+			List<WorkerConnection> connectionsToDisconnect = new ArrayList<WorkerConnection>();
 			synchronized (connections) {
 				for (WorkerConnection connection : connections) {
-					connection.onPoolExtranonceChange();
+					try {
+						connection.onPoolExtranonceChange();
+					} catch (ChangeExtranonceNotSupportedException e) {
+						connectionsToDisconnect.add(connection);
+					}
 				}
+			}
+
+			// Once all connections are notified, close and remove all
+			// connections that does not support the extranonce change on the
+			// fly
+			for (WorkerConnection workerConnection : connectionsToDisconnect) {
+				workerConnection.close();
+				onWorkerDisconnection(workerConnection, new Exception("The workerConnection " + workerConnection.getConnectionName()
+						+ " does not support setExtranonce notification."));
 			}
 		}
 	}
@@ -360,6 +375,12 @@ public class StratumProxyManager {
 	private void switchPoolForConnection(WorkerConnection connection) {
 		Pool newPool = null;
 		try {
+			// Remove the connection from the old pool connection list.
+			List<WorkerConnection> oldPoolConnections = poolWorkerConnections.get(connection.getPool());
+			if (oldPoolConnections != null) {
+				oldPoolConnections.remove(connection);
+			}
+
 			// Select the new pool for the connection
 			newPool = selectPool(connection);
 			// Then rebind the connection to this pool
@@ -370,22 +391,16 @@ public class StratumProxyManager {
 			newPoolConnections.add(connection);
 		} catch (NoPoolAvailableException e) {
 			// If no more pool available, close the connection.
-			LOGGER.warn("Closing connection {} since no more pool is active.", connection.getConnectionName());
 			connection.close();
+			onWorkerDisconnection(connection, e);
 		} catch (TooManyWorkersException e) {
 			// If no more free space on the pool close the connection.
-			LOGGER.warn("Closing connection {} since no more space on the pool {}.", connection.getConnectionName(), newPool.getHost());
 			connection.close();
+			onWorkerDisconnection(connection, e);
+		} catch (ChangeExtranonceNotSupportedException e) {
+			connection.close();
+			onWorkerDisconnection(connection, e);
 		}
-	}
-
-	/**
-	 * Called when a worker extranonce change has failed. If so, close the
-	 * connection and remove it.
-	 */
-	public void onWorkerChangeExtranonceFailure(WorkerConnection connection) {
-		onWorkerDisconnection(connection, new Exception("The workerConnection " + connection.getConnectionName()
-				+ " does not support setExtranonce notification."));
 	}
 
 	/**
