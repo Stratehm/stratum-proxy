@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
+import strat.mining.stratum.proxy.json.JsonRpcError;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
 import strat.mining.stratum.proxy.json.MiningSetDifficultyNotification;
@@ -192,22 +194,36 @@ public class StratumProxyManager {
 	 * @param workerRequest
 	 */
 	public void onSubmitRequest(final WorkerConnection workerConnection, final MiningSubmitRequest workerRequest) {
-		for (int i = 0; i < workerConnection.getPool().getNumberOfSubmit(); i++) {
-			MiningSubmitRequest poolRequest = new MiningSubmitRequest();
-			poolRequest.setExtranonce2(workerRequest.getExtranonce2());
-			poolRequest.setJobId(workerRequest.getJobId());
-			poolRequest.setNonce(workerRequest.getNonce());
-			poolRequest.setNtime(workerRequest.getNtime());
-			poolRequest.setWorkerName(workerConnection.getPool().getUsername());
+		if (workerConnection.getPool() != null && workerConnection.getPool().isActive()) {
+			for (int i = 0; i < workerConnection.getPool().getNumberOfSubmit(); i++) {
+				MiningSubmitRequest poolRequest = new MiningSubmitRequest();
+				poolRequest.setExtranonce2(workerRequest.getExtranonce2());
+				poolRequest.setJobId(workerRequest.getJobId());
+				poolRequest.setNonce(workerRequest.getNonce());
+				poolRequest.setNtime(workerRequest.getNtime());
+				poolRequest.setWorkerName(workerConnection.getPool().getUsername());
 
-			workerConnection.getPool().submitShare(poolRequest, new ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>() {
-				public void onResponseReceived(MiningSubmitRequest request, MiningSubmitResponse response) {
-					workerConnection.onPoolSubmitResponse(workerRequest, response);
-				}
-			});
+				workerConnection.getPool().submitShare(poolRequest, new ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>() {
+					public void onResponseReceived(MiningSubmitRequest request, MiningSubmitResponse response) {
+						workerConnection.onPoolSubmitResponse(workerRequest, response);
+					}
+				});
 
+			}
+		} else {
+			LOGGER.warn("Share submit from {}@{} dropped since pool {} is inactive.", workerRequest.getWorkerName(),
+					workerConnection.getConnectionName(), workerConnection.getPool());
+
+			// Notify the worker that the target pool is no more active
+			MiningSubmitResponse fakePoolResponse = new MiningSubmitResponse();
+			fakePoolResponse.setId(workerRequest.getId());
+			fakePoolResponse.setIsAccepted(false);
+			JsonRpcError error = new JsonRpcError();
+			error.setCode(JsonRpcError.ErrorCode.UNKNOWN.getCode());
+			error.setMessage("The traget pool is no more active.");
+			fakePoolResponse.setErrorRpc(error);
+			workerConnection.onPoolSubmitResponse(workerRequest, fakePoolResponse);
 		}
-
 	}
 
 	/**
@@ -249,6 +265,11 @@ public class StratumProxyManager {
 		if (connections == null) {
 			LOGGER.debug("No worker connections on pool {}. Do not send setExtranonce.", pool.getHost());
 		} else {
+			// Use an external list to store connection that should be
+			// closed to avoid concurrent modification exception during
+			// iteration over the connection list (since if we close a
+			// connection, the same thread remove the connection during
+			// the iteration).
 			List<WorkerConnection> connectionsToDisconnect = new ArrayList<WorkerConnection>();
 			synchronized (connections) {
 				for (WorkerConnection connection : connections) {
@@ -348,26 +369,53 @@ public class StratumProxyManager {
 	/**
 	 * Called by pool when its state changes
 	 */
-	public void onPoolStateChange(final Pool pool) {
+	public void onPoolStateChange(Pool pool) {
 		if (pool.isActive()) {
 			LOGGER.warn("Pool {} is UP.", pool.getHost());
 			// TODO maybe move worker connections to this pool
 		} else {
 			LOGGER.warn("Pool {} is DOWN. Moving connections to another one.", pool.getHost());
-			Thread moveWorkersThread = new Thread() {
-				public void run() {
-					List<WorkerConnection> connections = poolWorkerConnections.get(pool);
-					if (connections != null) {
-						synchronized (connections) {
-							for (WorkerConnection connection : connections) {
+			switchPoolConnections(pool);
+		}
+	}
+
+	/**
+	 * Switch all the conenctions of the given pool to another pool.
+	 * 
+	 * @param pool
+	 */
+	private void switchPoolConnections(final Pool pool) {
+		Thread moveWorkersThread = new Thread() {
+			public void run() {
+				List<WorkerConnection> connections = poolWorkerConnections.get(pool);
+				if (connections != null) {
+					// Use an external map to store connection that should be
+					// closed to avoid concurrent modification exception during
+					// iteration over the connection list (since if we close a
+					// connection, the same thread remove the connection during
+					// the iteration).
+					Map<WorkerConnection, Throwable> connectionToClose = new HashMap<WorkerConnection, Throwable>();
+					synchronized (connections) {
+						for (WorkerConnection connection : connections) {
+							try {
 								switchPoolForConnection(connection);
+							} catch (Exception e) {
+								// If an exception occurs, close the
+								// connection
+								connectionToClose.put(connection, e);
 							}
 						}
 					}
+
+					for (Entry<WorkerConnection, Throwable> entry : connectionToClose.entrySet()) {
+						entry.getKey().close();
+						onWorkerDisconnection(entry.getKey(), entry.getValue());
+					}
 				}
-			};
-			moveWorkersThread.start();
-		}
+			}
+		};
+		moveWorkersThread.start();
+
 	}
 
 	/**
@@ -376,35 +424,23 @@ public class StratumProxyManager {
 	 * 
 	 * @param connection
 	 */
-	private void switchPoolForConnection(WorkerConnection connection) {
+	private void switchPoolForConnection(WorkerConnection connection) throws NoPoolAvailableException, TooManyWorkersException,
+			ChangeExtranonceNotSupportedException {
 		Pool newPool = null;
-		try {
-			// Remove the connection from the old pool connection list.
-			List<WorkerConnection> oldPoolConnections = poolWorkerConnections.get(connection.getPool());
-			if (oldPoolConnections != null) {
-				oldPoolConnections.remove(connection);
-			}
-
-			// Select the new pool for the connection
-			newPool = selectPool(connection);
-			// Then rebind the connection to this pool
-			connection.rebindToPool(newPool);
-			// And finally add the worker connection to the pool's worker
-			// connections
-			List<WorkerConnection> newPoolConnections = poolWorkerConnections.get(newPool);
-			newPoolConnections.add(connection);
-		} catch (NoPoolAvailableException e) {
-			// If no more pool available, close the connection.
-			connection.close();
-			onWorkerDisconnection(connection, e);
-		} catch (TooManyWorkersException e) {
-			// If no more free space on the pool close the connection.
-			connection.close();
-			onWorkerDisconnection(connection, e);
-		} catch (ChangeExtranonceNotSupportedException e) {
-			connection.close();
-			onWorkerDisconnection(connection, e);
+		// Remove the connection from the old pool connection list.
+		List<WorkerConnection> oldPoolConnections = poolWorkerConnections.get(connection.getPool());
+		if (oldPoolConnections != null) {
+			oldPoolConnections.remove(connection);
 		}
+
+		// Select the new pool for the connection
+		newPool = selectPool(connection);
+		// Then rebind the connection to this pool
+		connection.rebindToPool(newPool);
+		// And finally add the worker connection to the pool's worker
+		// connections
+		List<WorkerConnection> newPoolConnections = poolWorkerConnections.get(newPool);
+		newPoolConnections.add(connection);
 	}
 
 	/**
