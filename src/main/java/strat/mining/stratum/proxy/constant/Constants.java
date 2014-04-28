@@ -4,7 +4,9 @@ public class Constants {
 
 	public static final String DEFAULT_USERNAME = "19wv8FQKv3NkwTdzBCQn1AGsb9ghqBPWXi";
 	public static final String DEFAULT_PASSWORD = "x";
-	public static final Integer DEFAULT_LISTENING_PORT = 3333;
+	public static final Integer DEFAULT_STRATUM_LISTENING_PORT = 3333;
+	public static final Integer DEFAULT_REST_LISTENING_PORT = 8888;
+	public static final String DEFAULT_REST_LISTENING_ADDRESS = "0.0.0.0";
 
 	public static final Integer DEFAULT_POOL_PORT = 3333;
 	public static final Integer DEFAULT_POOL_RECONNECT_DELAY = 5000;

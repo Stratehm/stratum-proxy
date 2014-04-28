@@ -41,7 +41,7 @@ public class PoolConnection extends StratumConnection {
 
 	@Override
 	public String getConnectionName() {
-		return "Pool-" + pool.getHost();
+		return "Pool-" + pool.getName();
 	}
 
 	@Override
@@ -61,22 +61,22 @@ public class PoolConnection extends StratumConnection {
 
 	@Override
 	protected void onAuthorizeRequest(MiningAuthorizeRequest request) {
-		LOGGER.warn("Pool {} received an Authorize request. This should not happen.", pool.getHost());
+		LOGGER.warn("Pool {} received an Authorize request. This should not happen.", pool.getName());
 	}
 
 	@Override
 	protected void onSubscribeRequest(MiningSubscribeRequest request) {
-		LOGGER.warn("Pool {} received a Subscribe request. This should not happen.", pool.getHost());
+		LOGGER.warn("Pool {} received a Subscribe request. This should not happen.", pool.getName());
 	}
 
 	@Override
 	protected void onSubmitRequest(MiningSubmitRequest request) {
-		LOGGER.warn("Pool {} received an Submit request. This should not happen.", pool.getHost());
+		LOGGER.warn("Pool {} received an Submit request. This should not happen.", pool.getName());
 	}
 
 	@Override
 	protected void onExtranonceSubscribeRequest(MiningExtranonceSubscribeRequest request) {
-		LOGGER.warn("Pool {} received an Extranonce Subscribe request. This should not happen.", pool.getHost());
+		LOGGER.warn("Pool {} received an Extranonce Subscribe request. This should not happen.", pool.getName());
 	}
 
 	@Override

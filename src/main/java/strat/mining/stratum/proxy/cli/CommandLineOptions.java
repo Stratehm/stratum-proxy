@@ -24,13 +24,16 @@ public class CommandLineOptions {
 
 	private CmdLineParser parser;
 
-	@Option(name = "-h", aliases = { "--host" }, usage = "Hosts of the stratum servers (only the host, not the protocol), space separated", handler = StringArrayOptionHandler.class)
+	@Option(name = "-n", aliases = { "--pool-names" }, usage = "Names of the pools. Space separated. (Default to host)")
+	private List<String> poolNames;
+
+	@Option(name = "-h", aliases = { "--pool-hosts" }, usage = "Hosts of the stratum servers (only the host, not the protocol), space separated", handler = StringArrayOptionHandler.class)
 	private List<String> poolHosts;
 
-	@Option(name = "-u", aliases = { "--user" }, usage = "User names used to connect to the servers (WARN: my BTC donation address by default), space separated", handler = StringArrayOptionHandler.class)
+	@Option(name = "-u", aliases = { "--pool-users" }, usage = "User names used to connect to the servers (WARN: my BTC donation address by default), space separated", handler = StringArrayOptionHandler.class)
 	private List<String> poolUsers;
 
-	@Option(name = "-p", aliases = { "--password" }, usage = "Passwords used for the users (x by default), space separated", handler = StringArrayOptionHandler.class)
+	@Option(name = "-p", aliases = { "--pool-passwords" }, usage = "Passwords used for the users (x by default), space separated", handler = StringArrayOptionHandler.class)
 	private List<String> poolPasswords;
 
 	@Option(name = "--set-extranonce-subscribe", usage = "Enable/Disable the extranonce subscribe request on pool (default to true), space separated.", handler = BooleanArrayOptionHandler.class)
@@ -42,14 +45,20 @@ public class CommandLineOptions {
 	@Option(name = "--log-level", usage = "The level of log: OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE. Default is INFO", handler = LogLevelOptionHandler.class)
 	private Level logLevel;
 
-	@Option(name = "--listen-port", usage = "The port number to listen incoming connections. (3333 by default")
-	private Integer listeningPort = Constants.DEFAULT_LISTENING_PORT;
+	@Option(name = "--stratum-listen-port", usage = "The port number to listen incoming connections. (3333 by default)")
+	private Integer stratumListeningPort = Constants.DEFAULT_STRATUM_LISTENING_PORT;
 
-	@Option(name = "--listen-address", usage = "The address to bind to listen incoming connections. (0.0.0.0 by default)")
-	private String bindAddress;
+	@Option(name = "--stratum-listen-address", usage = "The address to bind to listen incoming connections. (0.0.0.0 by default)")
+	private String stratumBindAddress;
 
 	@Option(name = "--number-of-submit", usage = "The number of submit for each share. (Only for debug use)")
 	private Integer numberOfSubmit = 1;
+
+	@Option(name = "--rest-listen-port", usage = "The port number to listen REST requests. (8888 by default)")
+	private Integer restListenPort = Constants.DEFAULT_REST_LISTENING_PORT;
+
+	@Option(name = "--rest-listen-address", usage = "The address to bind to listen incoming connections. (0.0.0.0 by default)")
+	private String restBindAddress = Constants.DEFAULT_REST_LISTENING_ADDRESS;
 
 	private List<Pool> pools;
 
@@ -72,9 +81,14 @@ public class CommandLineOptions {
 			if (poolHosts != null) {
 				int index = 0;
 				for (String poolHost : poolHosts) {
+					String poolName = poolHost;
 					String username = Constants.DEFAULT_USERNAME;
 					String password = Constants.DEFAULT_PASSWORD;
 					Boolean isExtranonceSubscribe = Boolean.TRUE;
+
+					if (poolNames != null && poolNames.size() >= index) {
+						poolName = poolNames.get(index);
+					}
 
 					if (poolUsers != null && poolUsers.size() >= index) {
 						username = poolUsers.get(index);
@@ -88,7 +102,7 @@ public class CommandLineOptions {
 						isExtranonceSubscribe = isExtranonceSubscribeEnabled.get(index);
 					}
 
-					Pool pool = new Pool(poolHost, username, password);
+					Pool pool = new Pool(poolName, poolHost, username, password);
 					pool.setExtranonceSubscribeEnabled(isExtranonceSubscribe);
 					pool.setNumberOfSubmit(numberOfSubmit);
 					pool.setPriority(index);
@@ -114,12 +128,20 @@ public class CommandLineOptions {
 		parser.printUsage(System.out);
 	}
 
-	public Integer getListeningPort() {
-		return listeningPort;
+	public Integer getStratumListeningPort() {
+		return stratumListeningPort;
 	}
 
-	public String getBindAddress() {
-		return bindAddress;
+	public String getStratumBindAddress() {
+		return stratumBindAddress;
+	}
+
+	public Integer getRestListenPort() {
+		return restListenPort;
+	}
+
+	public String getRestBindAddress() {
+		return restBindAddress;
 	}
 
 	public Level getLogLevel() {

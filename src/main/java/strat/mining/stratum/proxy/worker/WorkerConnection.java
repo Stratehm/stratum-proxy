@@ -136,7 +136,7 @@ public class WorkerConnection extends StratumConnection {
 				extranonce1Tail = pool.getFreeTail();
 				extranonce2Size = pool.getWorkerExtranonce2Size();
 			} catch (TooManyWorkersException e) {
-				LOGGER.error("Too many connections on pool {} for the connection {}. Sending error and close the connection.", pool.getHost(),
+				LOGGER.error("Too many connections on pool {} for the connection {}. Sending error and close the connection.", pool.getName(),
 						getConnectionName(), e);
 				error = new JsonRpcError();
 				error.setCode(JsonRpcError.ErrorCode.UNKNOWN.getCode());
@@ -197,10 +197,10 @@ public class WorkerConnection extends StratumConnection {
 	public void onPoolSubmitResponse(MiningSubmitRequest workerRequest, MiningSubmitResponse poolResponse) {
 		if (poolResponse.getIsAccepted()) {
 			LOGGER.info("Accepted share (diff: {}) from {}@{} on {}. Yeah !!!!", pool != null ? pool.getDifficulty() : "Unknown",
-					workerRequest.getWorkerName(), getConnectionName(), pool.getHost());
+					workerRequest.getWorkerName(), getConnectionName(), pool.getName());
 		} else {
 			LOGGER.info("REJECTED share (diff: {}) from {}@{} on {}. Booo !!!!. Error: {}", pool != null ? pool.getDifficulty() : "Unknown",
-					workerRequest.getWorkerName(), getConnectionName(), pool.getHost(), poolResponse.getJsonError());
+					workerRequest.getWorkerName(), getConnectionName(), pool.getName(), poolResponse.getJsonError());
 		}
 
 		MiningSubmitResponse workerResponse = new MiningSubmitResponse();

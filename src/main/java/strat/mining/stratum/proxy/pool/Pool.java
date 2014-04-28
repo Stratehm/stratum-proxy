@@ -31,12 +31,13 @@ import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.json.MiningSubscribeResponse;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 
-public class Pool {
+public class Pool implements Comparable<Pool> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Pool.class);
 
 	private StratumProxyManager manager;
 
+	private String name;
 	private String host;
 	private String username;
 	private String password;
@@ -66,8 +67,9 @@ public class Pool {
 	// Store the callbacks to call when the pool responds to a submit request.
 	private Map<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>> submitCallbacks;
 
-	public Pool(String host, String username, String password) {
+	public Pool(String name, String host, String username, String password) {
 		super();
+		this.name = name == null ? host : name;
 		this.host = host;
 		this.username = username;
 		this.password = password;
@@ -82,7 +84,7 @@ public class Pool {
 		if (manager != null) {
 			this.manager = manager;
 			if (connection == null) {
-				LOGGER.info("Starting pool {}...", getHost());
+				LOGGER.info("Starting pool {}...", getName());
 				URI uri = new URI("stratum+tcp://" + host);
 				Socket socket = new Socket();
 				socket.setKeepAlive(true);
@@ -96,7 +98,7 @@ public class Pool {
 					MiningSubscribeRequest request = new MiningSubscribeRequest();
 					connection.sendRequest(request);
 				} catch (IOException e) {
-					LOGGER.warn("Failed to connect the pool {}.", getHost());
+					LOGGER.warn("Failed to connect the pool {}.", getName());
 					retryConnect();
 				}
 			}
@@ -109,11 +111,15 @@ public class Pool {
 		if (connection != null) {
 			isActive = false;
 			manager.onPoolStateChange(this);
-			LOGGER.info("Stopping pool {}...", getHost());
+			LOGGER.info("Stopping pool {}...", getName());
 			connection.close();
 			connection = null;
-			LOGGER.info("Pool {} stopped.", getHost());
+			LOGGER.info("Pool {} stopped.", getName());
 		}
+	}
+
+	public String getName() {
+		return name;
 	}
 
 	public String getHost() {
@@ -182,7 +188,7 @@ public class Pool {
 		if (extranonce2Size - Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE < 1) {
 			// If the extranonce2size is not big enough, we cannot generate
 			// unique extranonce for workers, so deactivate the pool.
-			LOGGER.error("The extranonce2Size for the pool {} is to low. Size: {}, mininum needed {}.", getHost(), extranonce2Size,
+			LOGGER.error("The extranonce2Size for the pool {} is to low. Size: {}, mininum needed {}.", getName(), extranonce2Size,
 					Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1);
 			stopPool();
 		} else {
@@ -200,7 +206,7 @@ public class Pool {
 		if (extranonce2Size - Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE < 1) {
 			// If the extranonce2size is not big enough, we cannot generate
 			// unique extranonce for workers, so deactivate the pool.
-			LOGGER.error("The extranonce2Size for the pool {} is to low. Size: {}, mininum needed {}.", getHost(), extranonce2Size,
+			LOGGER.error("The extranonce2Size for the pool {} is to low. Size: {}, mininum needed {}.", getName(), extranonce2Size,
 					Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1);
 			stopPool();
 		} else {
@@ -220,19 +226,19 @@ public class Pool {
 
 	public void processSubscribeExtranonceResponse(MiningExtranonceSubscribeRequest request, MiningExtranonceSubscribeResponse response) {
 		if (response.getIsSubscribed()) {
-			LOGGER.info("Extranonce change subscribed on pool {}.", getHost());
+			LOGGER.info("Extranonce change subscribed on pool {}.", getName());
 		} else {
-			LOGGER.info("Failed to subscribe to extranonce change on pool {}. Error: {}", getHost(), response.getJsonError());
+			LOGGER.info("Failed to subscribe to extranonce change on pool {}. Error: {}", getName(), response.getJsonError());
 		}
 	}
 
 	public void processAuthorizeResponse(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
 		if (response.getIsAuthorized()) {
-			LOGGER.info("Pool {} started", getHost());
+			LOGGER.info("Pool {} started", getName());
 			this.isActive = true;
 			manager.onPoolStateChange(this);
 		} else {
-			LOGGER.error("Stopping pool {} since user {} is not authorized.", getHost(), username);
+			LOGGER.error("Stopping pool {} since user {} is not authorized.", getName(), username);
 			stopPool();
 		}
 	}
@@ -270,7 +276,7 @@ public class Pool {
 		if (tails.size() > 0) {
 			return tails.poll();
 		} else {
-			throw new TooManyWorkersException("No more tails available on pool " + getHost());
+			throw new TooManyWorkersException("No more tails available on pool " + getName());
 		}
 	}
 
@@ -319,15 +325,15 @@ public class Pool {
 	}
 
 	private void retryConnect() {
-		LOGGER.info("Trying reconnect of pool {} in {} ms.", getHost(), Constants.DEFAULT_POOL_RECONNECT_DELAY);
+		LOGGER.info("Trying reconnect of pool {} in {} ms.", getName(), Constants.DEFAULT_POOL_RECONNECT_DELAY);
 		reconnectTimer = new Timer();
 		reconnectTimer.schedule(new TimerTask() {
 			public void run() {
 				try {
-					LOGGER.info("Trying reconnect of pool {}...", getHost());
+					LOGGER.info("Trying reconnect of pool {}...", getName());
 					startPool(manager);
 				} catch (Exception e) {
-					LOGGER.error("Failed to restart the pool {}.", getHost(), e);
+					LOGGER.error("Failed to restart the pool {}.", getName(), e);
 				}
 			}
 		}, Constants.DEFAULT_POOL_RECONNECT_DELAY);
@@ -372,6 +378,11 @@ public class Pool {
 		builder.append(isActive);
 		builder.append("]");
 		return builder.toString();
+	}
+
+	@Override
+	public int compareTo(Pool o) {
+		return getPriority().compareTo(o.getPriority());
 	}
 
 }
