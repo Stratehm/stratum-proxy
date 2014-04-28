@@ -61,6 +61,8 @@ public class Pool {
 
 	private Integer numberOfSubmit = 1;
 
+	private Integer priority;
+
 	// Store the callbacks to call when the pool responds to a submit request.
 	private Map<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>> submitCallbacks;
 
@@ -345,6 +347,14 @@ public class Pool {
 
 	public void setNumberOfSubmit(Integer numberOfSubmit) {
 		this.numberOfSubmit = numberOfSubmit;
+	}
+
+	public Integer getPriority() {
+		return priority;
+	}
+
+	public void setPriority(Integer priority) {
+		this.priority = priority;
 	}
 
 	@Override

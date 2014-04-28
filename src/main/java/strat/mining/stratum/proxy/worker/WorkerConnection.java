@@ -196,10 +196,11 @@ public class WorkerConnection extends StratumConnection {
 	 */
 	public void onPoolSubmitResponse(MiningSubmitRequest workerRequest, MiningSubmitResponse poolResponse) {
 		if (poolResponse.getIsAccepted()) {
-			LOGGER.info("Accepted share from {} ({}) on {}. Yeah !!!!", getConnectionName(), workerRequest.getWorkerName(), pool.getHost());
+			LOGGER.info("Accepted share (diff: {}) from {}@{} on {}. Yeah !!!!", pool != null ? pool.getDifficulty() : "Unknown",
+					workerRequest.getWorkerName(), getConnectionName(), pool.getHost());
 		} else {
-			LOGGER.info("REJECTED share from {} ({}) on {}. Booo !!!!. Error: {}", getConnectionName(), workerRequest.getWorkerName(),
-					pool.getHost(), poolResponse.getJsonError());
+			LOGGER.info("REJECTED share (diff: {}) from {}@{} on {}. Booo !!!!. Error: {}", pool != null ? pool.getDifficulty() : "Unknown",
+					workerRequest.getWorkerName(), getConnectionName(), pool.getHost(), poolResponse.getJsonError());
 		}
 
 		MiningSubmitResponse workerResponse = new MiningSubmitResponse();

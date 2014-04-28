@@ -91,6 +91,7 @@ public class CommandLineOptions {
 					Pool pool = new Pool(poolHost, username, password);
 					pool.setExtranonceSubscribeEnabled(isExtranonceSubscribe);
 					pool.setNumberOfSubmit(numberOfSubmit);
+					pool.setPriority(index);
 					pools.add(pool);
 
 					index++;
