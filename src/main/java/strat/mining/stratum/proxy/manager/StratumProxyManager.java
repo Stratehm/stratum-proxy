@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
+import strat.mining.stratum.proxy.exception.BadParameterException;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
@@ -165,7 +166,8 @@ public class StratumProxyManager {
 			poolWorkerConnections.put(pool, workerConnections);
 		}
 		workerConnections.add(connection);
-		LOGGER.info("New WorkerConnection {} subscribed. {} connections active.", connection.getConnectionName(), workerConnections.size());
+		LOGGER.info("New WorkerConnection {} subscribed. {} connections active on pool {}.", connection.getConnectionName(),
+				workerConnections.size(), pool.getName());
 
 		return pool;
 	}
@@ -317,7 +319,7 @@ public class StratumProxyManager {
 		List<WorkerConnection> connections = poolWorkerConnections.get(pool);
 
 		if (connections == null) {
-			LOGGER.debug("No worker connections on pool {}. Do not send notify.", pool.getHost());
+			LOGGER.debug("No worker connections on pool {}. Do not send notify.", pool.getName());
 		} else {
 			synchronized (connections) {
 				for (WorkerConnection connection : connections) {
@@ -362,8 +364,8 @@ public class StratumProxyManager {
 		if (connections != null) {
 			connections.remove(workerConnection);
 		}
-		LOGGER.info("Worker connection {} closed. {} connections active. Cause: {}", workerConnection.getConnectionName(), connections == null ? 0
-				: connections.size(), cause.getMessage());
+		LOGGER.info("Worker connection {} closed. {} connections active on pool {}. Cause: {}", workerConnection.getConnectionName(),
+				connections == null ? 0 : connections.size(), workerConnection.getPool().getName(), cause.getMessage());
 	}
 
 	/**
@@ -410,15 +412,18 @@ public class StratumProxyManager {
 					// connection, the same thread remove the connection during
 					// the iteration).
 					Map<WorkerConnection, Throwable> connectionToClose = new HashMap<WorkerConnection, Throwable>();
+					List<WorkerConnection> tempConnectionsList = null;
 					synchronized (connections) {
-						for (WorkerConnection connection : connections) {
-							try {
-								switchPoolForConnection(connection);
-							} catch (Exception e) {
-								// If an exception occurs, close the
-								// connection
-								connectionToClose.put(connection, e);
-							}
+						tempConnectionsList = new ArrayList<>(connections);
+					}
+
+					for (WorkerConnection connection : tempConnectionsList) {
+						try {
+							switchPoolForConnection(connection);
+						} catch (Exception e) {
+							// If an exception occurs, close the
+							// connection
+							connectionToClose.put(connection, e);
 						}
 					}
 
@@ -472,8 +477,59 @@ public class StratumProxyManager {
 		return getHighestPriorityActivePool();
 	}
 
-	public void setPoolPriority() {
+	/**
+	 * Set the priority of the pool with the given name and rebind worker
+	 * connections based on this new priority.
+	 * 
+	 * @param poolName
+	 * @param newPriority
+	 * @throws BadParameterException
+	 */
+	public void setPoolPriority(String poolName, int newPriority) throws NoPoolAvailableException, BadParameterException {
+		if (getPool(poolName) == null) {
+			throw new NoPoolAvailableException("Pool with name " + poolName + " not found");
+		}
 
+		if (newPriority < 0) {
+			throw new BadParameterException("The priority has to be higher or equal to 0");
+		}
+
+		synchronized (pools) {
+			if (pools != null) {
+				for (Pool pool : pools) {
+					// Set the new priority to the pool with the given name.
+					if (pool.getName().equals(poolName)) {
+						LOGGER.info("Changing pool {} priority from {} to {}.", pool.getName(), pool.getPriority(), newPriority);
+						pool.setPriority(newPriority);
+					} else if (pool.getPriority() >= newPriority) {
+						// And move the priority of pools with lower or
+						// equals priority
+						pool.setPriority(pool.getPriority() + 1);
+					}
+				}
+			}
+			Collections.sort(pools);
+		}
+		rebindAllWorkerConnections();
+	}
+
+	/**
+	 * Disable/Enable the pool with the given name
+	 * 
+	 * @param poolName
+	 * @param isEnabled
+	 * @throws NoPoolAvailableException
+	 */
+	public void setPoolEnabled(String poolName, boolean isEnabled) throws NoPoolAvailableException, Exception {
+		Pool pool = getPool(poolName);
+		if (pool == null) {
+			throw new NoPoolAvailableException("Pool with name " + poolName + " is not found");
+		}
+
+		if (pool.isEnabled() != isEnabled) {
+			LOGGER.info("Set pool {} {}", pool.getName(), isEnabled ? "enabled" : "disabled");
+			pool.setEnabled(isEnabled);
+		}
 	}
 
 	/**
@@ -493,6 +549,31 @@ public class StratumProxyManager {
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * Return all pools managed by this manager.
+	 * 
+	 * @return
+	 */
+	public List<Pool> getPools() {
+		List<Pool> result = new ArrayList<>();
+		synchronized (pools) {
+			result.addAll(pools);
+		}
+		return result;
+	}
+
+	/**
+	 * Return the number of worker connections on the pool with the given name.
+	 * 
+	 * @param poolName
+	 * @return
+	 */
+	public int getNumberOfWorkerConnectionsOnPool(String poolName) {
+		Pool pool = getPool(poolName);
+		List<WorkerConnection> connections = poolWorkerConnections.get(pool);
+		return connections == null ? 0 : connections.size();
 	}
 
 }

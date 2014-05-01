@@ -5,12 +5,14 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +48,7 @@ public class Pool implements Comparable<Pool> {
 	private String extranonce1;
 	private Integer extranonce2Size;
 
+	private Date activeSince;
 	private boolean isActive;
 	private boolean isEnabled;
 
@@ -57,12 +60,16 @@ public class Pool implements Comparable<Pool> {
 	private MiningNotifyNotification currentJob;
 
 	private Timer reconnectTimer;
+	private Timer notifyTimeoutTimer;
 
 	private Boolean isExtranonceSubscribeEnabled = true;
 
 	private Integer numberOfSubmit = 1;
 
 	private Integer priority;
+
+	private AtomicLong acceptedDifficulty;
+	private AtomicLong rejectedDifficulty;
 
 	// Store the callbacks to call when the pool responds to a submit request.
 	private Map<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>> submitCallbacks;
@@ -75,6 +82,9 @@ public class Pool implements Comparable<Pool> {
 		this.password = password;
 		this.isActive = false;
 		this.isEnabled = true;
+
+		acceptedDifficulty = new AtomicLong(0);
+		rejectedDifficulty = new AtomicLong(0);
 
 		this.tails = buildTails();
 		this.submitCallbacks = Collections.synchronizedMap(new HashMap<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>>());
@@ -172,9 +182,14 @@ public class Pool implements Comparable<Pool> {
 	}
 
 	public void processNotify(MiningNotifyNotification notify) {
+		resetNotifyTimeoutTimer();
 		currentJob = notify;
 		manager.onPoolNotify(this, notify);
-		notify.setCleanJobs(true);
+
+		// Set the clean job flag on the current job. Is needed for new workers
+		// coming between 2 notify. They will be notifyed with the current job
+		// and the flag has to be true for them.
+		currentJob.setCleanJobs(true);
 	}
 
 	public void processSetDifficulty(MiningSetDifficultyNotification setDifficulty) {
@@ -216,6 +231,9 @@ public class Pool implements Comparable<Pool> {
 				connection.sendRequest(extranonceRequest);
 			}
 
+			// Start the notify timeout timer
+			resetNotifyTimeoutTimer();
+
 			// And send the authorize request
 			MiningAuthorizeRequest authorizeRequest = new MiningAuthorizeRequest();
 			authorizeRequest.setUsername(username);
@@ -236,6 +254,7 @@ public class Pool implements Comparable<Pool> {
 		if (response.getIsAuthorized()) {
 			LOGGER.info("Pool {} started", getName());
 			this.isActive = true;
+			activeSince = new Date();
 			manager.onPoolStateChange(this);
 		} else {
 			LOGGER.error("Stopping pool {} since user {} is not authorized.", getName(), username);
@@ -244,6 +263,11 @@ public class Pool implements Comparable<Pool> {
 	}
 
 	public void processSubmitResponse(MiningSubmitRequest request, MiningSubmitResponse response) {
+		if (response.getIsAccepted() != null && response.getIsAccepted()) {
+			acceptedDifficulty.addAndGet(getDifficulty());
+		} else {
+			rejectedDifficulty.addAndGet(getDifficulty());
+		}
 		ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse> callback = submitCallbacks.remove(response.getId());
 		callback.onResponseReceived(request, response);
 	}
@@ -326,7 +350,7 @@ public class Pool implements Comparable<Pool> {
 
 	private void retryConnect() {
 		LOGGER.info("Trying reconnect of pool {} in {} ms.", getName(), Constants.DEFAULT_POOL_RECONNECT_DELAY);
-		reconnectTimer = new Timer();
+		reconnectTimer = new Timer("ReconnectTimer-" + getName());
 		reconnectTimer.schedule(new TimerTask() {
 			public void run() {
 				try {
@@ -363,19 +387,43 @@ public class Pool implements Comparable<Pool> {
 		this.priority = priority;
 	}
 
+	public int getNumberOfWorkersConnections() {
+		return manager.getNumberOfWorkerConnectionsOnPool(getName());
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("Pool [host=");
+		builder.append("Pool [name=");
+		builder.append(name);
+		builder.append(", host=");
 		builder.append(host);
 		builder.append(", username=");
 		builder.append(username);
 		builder.append(", password=");
 		builder.append(password);
-		builder.append(", isEnabled=");
-		builder.append(isEnabled);
+		builder.append(", difficulty=");
+		builder.append(difficulty);
+		builder.append(", extranonce1=");
+		builder.append(extranonce1);
+		builder.append(", extranonce2Size=");
+		builder.append(extranonce2Size);
+		builder.append(", activeSince=");
+		builder.append(activeSince);
 		builder.append(", isActive=");
 		builder.append(isActive);
+		builder.append(", isEnabled=");
+		builder.append(isEnabled);
+		builder.append(", isExtranonceSubscribeEnabled=");
+		builder.append(isExtranonceSubscribeEnabled);
+		builder.append(", numberOfSubmit=");
+		builder.append(numberOfSubmit);
+		builder.append(", priority=");
+		builder.append(priority);
+		builder.append(", acceptedDifficulty=");
+		builder.append(acceptedDifficulty);
+		builder.append(", rejectedDifficulty=");
+		builder.append(rejectedDifficulty);
 		builder.append("]");
 		return builder.toString();
 	}
@@ -385,4 +433,40 @@ public class Pool implements Comparable<Pool> {
 		return getPriority().compareTo(o.getPriority());
 	}
 
+	public Long getAcceptedDifficulty() {
+		return acceptedDifficulty.get();
+	}
+
+	public Long getRejectedDifficulty() {
+		return rejectedDifficulty.get();
+	}
+
+	public Date getActiveSince() {
+		return activeSince;
+	}
+
+	public Boolean getIsExtranonceSubscribeEnabled() {
+		return isExtranonceSubscribeEnabled;
+	}
+
+	/**
+	 * Reset the notify timeoutTimer
+	 */
+	private void resetNotifyTimeoutTimer() {
+		if (notifyTimeoutTimer != null) {
+			notifyTimeoutTimer.cancel();
+		}
+
+		notifyTimeoutTimer = new Timer("NotifyTimeoutTimer-" + getName());
+		notifyTimeoutTimer.schedule(new TimerTask() {
+			public void run() {
+				LOGGER.warn("No mining.notify received from pool {} for {} ms. Stopping the pool...", getName(),
+						Constants.DEFAULT_NOTIFY_NOTIFICATION_TIMEOUT);
+				// If we have not received notify notification since DEALY,
+				// stop the pool and try to reconnect.
+				stopPool();
+				retryConnect();
+			}
+		}, Constants.DEFAULT_NOTIFY_NOTIFICATION_TIMEOUT);
+	}
 }

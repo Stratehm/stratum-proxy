@@ -195,7 +195,7 @@ public class WorkerConnection extends StratumConnection {
 	 * @param poolResponse
 	 */
 	public void onPoolSubmitResponse(MiningSubmitRequest workerRequest, MiningSubmitResponse poolResponse) {
-		if (poolResponse.getIsAccepted()) {
+		if (poolResponse.getIsAccepted() != null && poolResponse.getIsAccepted()) {
 			LOGGER.info("Accepted share (diff: {}) from {}@{} on {}. Yeah !!!!", pool != null ? pool.getDifficulty() : "Unknown",
 					workerRequest.getWorkerName(), getConnectionName(), pool.getName());
 		} else {
@@ -225,7 +225,7 @@ public class WorkerConnection extends StratumConnection {
 		} else {
 			// If the extranonce change is not supported by the worker, then
 			// throw an exception
-			throw new ChangeExtranonceNotSupportedException();
+			throw new ChangeExtranonceNotSupportedException("Change extranonce not supported.");
 		}
 	}
 
@@ -318,6 +318,8 @@ public class WorkerConnection extends StratumConnection {
 	 */
 	public void rebindToPool(Pool newPool) throws TooManyWorkersException, ChangeExtranonceNotSupportedException {
 		if (isSetExtranonceNotificationSupported) {
+			LOGGER.info("Rebind connection {} from pool {} to pool {} with setExtranonce notification.", getConnectionName(), pool.getName(),
+					newPool.getName());
 			// Release the old extranonce
 			pool.releaseTail(extranonce1Tail);
 
@@ -331,7 +333,7 @@ public class WorkerConnection extends StratumConnection {
 
 		} else {
 			// If set extranonce not supported, throw an exception
-			throw new ChangeExtranonceNotSupportedException();
+			throw new ChangeExtranonceNotSupportedException("Change extranonce not supported.");
 		}
 	}
 

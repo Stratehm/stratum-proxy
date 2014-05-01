@@ -21,7 +21,7 @@ public class MiningSubscribeRequest extends JsonRpcRequest {
 	@Override
 	public List<Object> getParams() {
 		ArrayList<Object> params = new ArrayList<Object>();
-		params.add("JStratumProxy");
+		params.add("JStratumProxyByStratehm");
 		return params;
 	}
 

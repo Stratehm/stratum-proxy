@@ -239,7 +239,8 @@ public abstract class StratumConnection {
 			break;
 
 		default:
-			LOGGER.warn("Unknown notification type. methodName: {}, params: {}", notification.getMethod(), notification.getParams());
+			LOGGER.warn("Unknown notification type on connection {}. methodName: {}, params: {}", getConnectionName(), notification.getMethod(),
+					notification.getParams());
 			break;
 		}
 	}
@@ -274,7 +275,8 @@ public abstract class StratumConnection {
 			break;
 
 		default:
-			LOGGER.warn("Unknown response type. methodName: {}, result: {}", request.getMethod(), response.getResult());
+			LOGGER.warn("Unknown response type on connection {}. methodName: {}, result: {}", getConnectionName(), request.getMethod(),
+					response.getResult());
 			break;
 		}
 	}
@@ -305,7 +307,8 @@ public abstract class StratumConnection {
 			break;
 
 		default:
-			LOGGER.warn("Unknown request type. methodName: {}, id: {}, params: {}", request.getMethod(), request.getId(), request.getParams());
+			LOGGER.warn("Unknown request type on connection {}. methodName: {}, id: {}, params: {}", getConnectionName(), request.getMethod(),
+					request.getId(), request.getParams());
 			break;
 		}
 	}

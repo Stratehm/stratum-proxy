@@ -10,6 +10,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.kohsuke.args4j.CmdLineException;
 import org.slf4j.Logger;
@@ -80,6 +81,7 @@ public class Launcher {
 	private static void initRestServices(CommandLineOptions cliParser) {
 		URI baseUri = UriBuilder.fromUri("http://" + cliParser.getRestBindAddress()).port(cliParser.getRestListenPort()).build();
 		ResourceConfig config = new ResourceConfig(ProxyResources.class);
+		config.register(JacksonFeature.class);
 		httpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
 	}
 
