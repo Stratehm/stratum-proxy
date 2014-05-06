@@ -24,6 +24,7 @@ import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.dto.ChangePriorityDTO;
+import strat.mining.stratum.proxy.rest.dto.LogLevel;
 import strat.mining.stratum.proxy.rest.dto.PoolDetailsDTO;
 
 @Path("proxy")
@@ -267,12 +268,13 @@ public class ProxyResources {
 
 	@POST
 	@Path("log/level")
-	public Response changeLogLevel(String logLevel) {
+	public Response changeLogLevel(LogLevel logLevel) {
 		Response response = null;
 
 		try {
-			Level newLevel = getLogLevel(logLevel);
+			Level newLevel = getLogLevel(logLevel.getLogLevel());
 			LogManager.getRootLogger().setLevel(newLevel);
+			LOGGER.info("Changing logLevel to {}", logLevel.getLogLevel());
 			response = Response.status(Response.Status.OK).entity("Done").build();
 		} catch (BadParameterException e) {
 			response = Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();

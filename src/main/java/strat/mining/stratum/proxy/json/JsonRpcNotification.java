@@ -42,4 +42,14 @@ public class JsonRpcNotification {
 		this.params = params;
 	}
 
+	@SuppressWarnings("unchecked")
+	protected <T> T getParamsObjectAtIndex(int index) {
+		T resultObject = null;
+		if (params instanceof List) {
+			List<Object> resultList = (List<Object>) params;
+			resultObject = resultList.size() > index && resultList.get(index) != null ? (T) resultList.get(index) : null;
+		}
+		return resultObject;
+	}
+
 }

@@ -12,6 +12,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strat.mining.stratum.proxy.json.ClientReconnectNotification;
 import strat.mining.stratum.proxy.json.JsonRpcNotification;
 import strat.mining.stratum.proxy.json.JsonRpcRequest;
 import strat.mining.stratum.proxy.json.JsonRpcResponse;
@@ -237,6 +238,10 @@ public abstract class StratumConnection {
 			MiningSetExtranonceNotification setExtranonce = new MiningSetExtranonceNotification(notification);
 			onSetExtranonce(setExtranonce);
 			break;
+		case ClientReconnectNotification.METHOD_NAME:
+			ClientReconnectNotification clientReconnect = new ClientReconnectNotification(notification);
+			onClientReconnect(clientReconnect);
+			break;
 
 		default:
 			LOGGER.warn("Unknown notification type on connection {}. methodName: {}, params: {}", getConnectionName(), notification.getMethod(),
@@ -306,6 +311,14 @@ public abstract class StratumConnection {
 			onExtranonceSubscribeRequest(extranonceSubscribeRequest);
 			break;
 
+		// client.reconnect is a notification, but some pools send it has a
+		// request
+		case ClientReconnectNotification.METHOD_NAME:
+			ClientReconnectNotification clientReconnect = new ClientReconnectNotification();
+			clientReconnect.setParams(request.getParams());
+			onClientReconnect(clientReconnect);
+			break;
+
 		default:
 			LOGGER.warn("Unknown request type on connection {}. methodName: {}, id: {}, params: {}", getConnectionName(), request.getMethod(),
 					request.getId(), request.getParams());
@@ -327,6 +340,11 @@ public abstract class StratumConnection {
 	 * Called when a setExtranonce is received
 	 */
 	protected abstract void onSetExtranonce(MiningSetExtranonceNotification setExtranonce);
+
+	/**
+	 * Called when a clientReconnect is received
+	 */
+	protected abstract void onClientReconnect(ClientReconnectNotification clientReconnect);
 
 	/**
 	 * Called when a authorize request is received

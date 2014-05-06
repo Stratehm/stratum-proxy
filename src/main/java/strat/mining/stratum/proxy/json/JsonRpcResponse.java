@@ -44,9 +44,9 @@ public class JsonRpcResponse {
 	public JsonRpcError getJsonError() {
 		JsonRpcError errorObject = new JsonRpcError();
 		if (error != null) {
-			errorObject.setCode(error.get(0) != null ? (Integer) error.get(0) : null);
-			errorObject.setMessage(error.get(1) != null ? (String) error.get(1) : null);
-			errorObject.setTraceback(error.get(2) != null ? error.get(2) : null);
+			errorObject.setCode(error.size() > 0 && error.get(0) != null ? (Integer) error.get(0) : null);
+			errorObject.setMessage(error.size() > 1 && error.get(1) != null ? (String) error.get(1) : null);
+			errorObject.setTraceback(error.size() > 2 && error.get(2) != null ? error.get(2) : null);
 		}
 		return errorObject;
 	}
@@ -68,5 +68,15 @@ public class JsonRpcResponse {
 
 	public void setResult(Object result) {
 		this.result = result;
+	}
+
+	@SuppressWarnings("unchecked")
+	protected <T> T getResultObjectAtIndex(int index) {
+		T resultObject = null;
+		if (result instanceof List) {
+			List<Object> resultList = (List<Object>) result;
+			resultObject = resultList.size() > index && resultList.get(index) != null ? (T) resultList.get(index) : null;
+		}
+		return resultObject;
 	}
 }

@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
+import strat.mining.stratum.proxy.json.ClientReconnectNotification;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
 import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeRequest;
@@ -32,6 +33,7 @@ import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.json.MiningSubscribeResponse;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
+import strat.mining.stratum.proxy.model.Share;
 
 public class Pool implements Comparable<Pool> {
 
@@ -71,6 +73,8 @@ public class Pool implements Comparable<Pool> {
 	private AtomicLong acceptedDifficulty;
 	private AtomicLong rejectedDifficulty;
 
+	private Deque<Share> lastAcceptedShares;
+
 	// Store the callbacks to call when the pool responds to a submit request.
 	private Map<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>> submitCallbacks;
 
@@ -88,6 +92,7 @@ public class Pool implements Comparable<Pool> {
 
 		this.tails = buildTails();
 		this.submitCallbacks = Collections.synchronizedMap(new HashMap<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>>());
+		this.lastAcceptedShares = new ConcurrentLinkedDeque<Share>();
 	}
 
 	public void startPool(StratumProxyManager manager) throws Exception {
@@ -197,6 +202,27 @@ public class Pool implements Comparable<Pool> {
 		manager.onPoolSetDifficulty(this, setDifficulty);
 	}
 
+	public void processClientReconnect(ClientReconnectNotification clientReconnect) {
+		// If the pool just ask a reconnection (no host specified), just restart
+		// the pool.
+		if (clientReconnect.getHost() == null || clientReconnect.getHost().isEmpty()) {
+			stopPool();
+			try {
+				startPool(manager);
+			} catch (Exception e) {
+				LOGGER.error("Failed to restart the pool {} after a client.reconnect notification.", getName(), e);
+			}
+		} else {
+			LOGGER.warn("Stopping the pool {} after a client.reconnect notification with request host {} and port {}.", getName(),
+					clientReconnect.getHost(), clientReconnect.getPort());
+			// If a new host and a new port is received, then just stop the
+			// pool. (Disable the reconnect feature to another host since an
+			// attack has been spotted on wafflepool where this kind of
+			// notification where used to redirect miners to a mysterious pool)
+			stopPool();
+		}
+	}
+
 	public void processSetExtranonce(MiningSetExtranonceNotification setExtranonce) {
 		extranonce1 = setExtranonce.getExtranonce1();
 
@@ -265,11 +291,35 @@ public class Pool implements Comparable<Pool> {
 	public void processSubmitResponse(MiningSubmitRequest request, MiningSubmitResponse response) {
 		if (response.getIsAccepted() != null && response.getIsAccepted()) {
 			acceptedDifficulty.addAndGet(getDifficulty());
+			updateAcceptedShares(request, response);
 		} else {
 			rejectedDifficulty.addAndGet(getDifficulty());
 		}
 		ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse> callback = submitCallbacks.remove(response.getId());
 		callback.onResponseReceived(request, response);
+	}
+
+	private void updateAcceptedShares(MiningSubmitRequest request, MiningSubmitResponse response) {
+		Share share = new Share();
+		share.setDifficulty(getDifficulty());
+		share.setTime(System.currentTimeMillis());
+		// Add the new share
+		lastAcceptedShares.add(share);
+
+		// Then purge old shares.
+		boolean isDelayReached = false;
+		Share oldShare = lastAcceptedShares.peekFirst();
+		while (!isDelayReached && oldShare != null) {
+			// If the first share is too old, remove it.
+			if (oldShare.getTime() + 300000 < share.getTime()) {
+				lastAcceptedShares.pollFirst();
+			} else {
+				// Else the first share has not been removed, so stop the loop.
+				isDelayReached = true;
+			}
+
+			oldShare = lastAcceptedShares.peekFirst();
+		}
 	}
 
 	/**

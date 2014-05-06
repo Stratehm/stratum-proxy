@@ -5,6 +5,7 @@ import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strat.mining.stratum.proxy.json.ClientReconnectNotification;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
 import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeRequest;
@@ -57,6 +58,11 @@ public class PoolConnection extends StratumConnection {
 	@Override
 	protected void onSetExtranonce(MiningSetExtranonceNotification setExtranonce) {
 		pool.processSetExtranonce(setExtranonce);
+	}
+
+	@Override
+	protected void onClientReconnect(ClientReconnectNotification clientReconnect) {
+		pool.processClientReconnect(clientReconnect);
 	}
 
 	@Override

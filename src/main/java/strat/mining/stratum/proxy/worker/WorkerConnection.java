@@ -16,6 +16,7 @@ import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
+import strat.mining.stratum.proxy.json.ClientReconnectNotification;
 import strat.mining.stratum.proxy.json.JsonRpcError;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
@@ -98,6 +99,11 @@ public class WorkerConnection extends StratumConnection {
 	}
 
 	@Override
+	protected void onClientReconnect(ClientReconnectNotification clientReconnect) {
+		// Do nothing, should never happen
+	}
+
+	@Override
 	protected void onAuthorizeRequest(MiningAuthorizeRequest request) {
 		MiningAuthorizeResponse response = new MiningAuthorizeResponse();
 		response.setId(request.getId());
@@ -119,7 +125,9 @@ public class WorkerConnection extends StratumConnection {
 	@Override
 	protected void onSubscribeRequest(MiningSubscribeRequest request) {
 		// Once the subscribe request is received, cancel the timeout timer.
-		subscribeTimeoutTimer.cancel();
+		if (subscribeTimeoutTimer != null) {
+			subscribeTimeoutTimer.cancel();
+		}
 
 		JsonRpcError error = null;
 		try {

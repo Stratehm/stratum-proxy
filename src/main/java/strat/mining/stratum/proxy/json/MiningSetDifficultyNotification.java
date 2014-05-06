@@ -44,7 +44,7 @@ public class MiningSetDifficultyNotification extends JsonRpcNotification {
 	public void setParams(List<Object> params) {
 		super.setParams(params);
 		if (params != null) {
-			difficulty = ((Number) params.get(0)).intValue();
+			difficulty = ((Number) getParamsObjectAtIndex(0)).intValue();
 		}
 	}
 

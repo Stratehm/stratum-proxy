@@ -128,20 +128,19 @@ public class MiningNotifyNotification extends JsonRpcNotification {
 		return super.getParams();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void setParams(List<Object> params) {
 		super.setParams(params);
 		if (params != null) {
-			jobId = (String) params.get(0);
-			previousHash = (String) params.get(1);
-			coinbase1 = (String) params.get(2);
-			coinbase2 = (String) params.get(3);
-			merkleBranches = (List<String>) params.get(4);
-			bitcoinVersion = (String) params.get(5);
-			networkDifficultyBits = (String) params.get(6);
-			currentNTime = (String) params.get(7);
-			cleanJobs = (Boolean) params.get(8);
+			jobId = getParamsObjectAtIndex(0);
+			previousHash = getParamsObjectAtIndex(1);
+			coinbase1 = getParamsObjectAtIndex(2);
+			coinbase2 = getParamsObjectAtIndex(3);
+			merkleBranches = getParamsObjectAtIndex(4);
+			bitcoinVersion = getParamsObjectAtIndex(5);
+			networkDifficultyBits = getParamsObjectAtIndex(6);
+			currentNTime = getParamsObjectAtIndex(7);
+			cleanJobs = getParamsObjectAtIndex(8);
 		}
 	}
 }

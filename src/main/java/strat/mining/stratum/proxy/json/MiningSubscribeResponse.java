@@ -60,16 +60,13 @@ public class MiningSubscribeResponse extends JsonRpcResponse {
 		return super.getResult();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void setResult(Object result) {
 		super.setResult(result);
 		if (result != null) {
-			List<Object> resultList = (List<Object>) result;
-			subscriptionDetails = (List<Object>) resultList.get(0);
-			extranonce1 = (String) resultList.get(1);
-			extranonce2Size = (Integer) resultList.get(2);
+			subscriptionDetails = getResultObjectAtIndex(0);
+			extranonce1 = getResultObjectAtIndex(1);
+			extranonce2Size = getResultObjectAtIndex(2);
 		}
 	}
-
 }
