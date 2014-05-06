@@ -26,6 +26,7 @@ import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.dto.ChangePriorityDTO;
 import strat.mining.stratum.proxy.rest.dto.LogLevel;
 import strat.mining.stratum.proxy.rest.dto.PoolDetailsDTO;
+import strat.mining.stratum.proxy.rest.dto.PoolName;
 
 @Path("proxy")
 @Produces("application/json")
@@ -210,11 +211,19 @@ public class ProxyResources {
 	 */
 	@POST
 	@Path("pool/disable")
-	public Response stopPool() {
+	public Response disablePool(PoolName poolName) {
 
 		Response response = null;
 
-		response = Response.status(Response.Status.NOT_IMPLEMENTED).entity("Not implemented").build();
+		try {
+			stratumProxyManager.setPoolEnabled(poolName.getPoolName(), false);
+
+			response = Response.status(Response.Status.OK).entity("Done").build();
+		} catch (NoPoolAvailableException e) {
+			response = Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+		} catch (Exception e) {
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Failed to start the pool. " + e.getMessage()).build();
+		}
 
 		return response;
 	}
@@ -226,12 +235,12 @@ public class ProxyResources {
 	 */
 	@POST
 	@Path("pool/enable")
-	public Response startPool(String poolName) {
+	public Response enablePool(PoolName poolName) {
 
 		Response response = null;
 
 		try {
-			stratumProxyManager.setPoolEnabled(poolName, true);
+			stratumProxyManager.setPoolEnabled(poolName.getPoolName(), true);
 
 			response = Response.status(Response.Status.OK).entity("Done").build();
 		} catch (NoPoolAvailableException e) {
