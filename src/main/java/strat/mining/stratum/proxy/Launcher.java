@@ -58,16 +58,18 @@ public class Launcher {
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
-				LOGGER.info("User requested shutdown... Gracefuly kill all connections...");
-				if (stratumProxyManager != null) {
-					stratumProxyManager.stopListeningIncomingConnections();
-					stratumProxyManager.stopPools();
-					stratumProxyManager.closeAllWorkerConnections();
+				if (LOGGER != null) {
+					LOGGER.info("User requested shutdown... Gracefuly kill all connections...");
+					if (stratumProxyManager != null) {
+						stratumProxyManager.stopListeningIncomingConnections();
+						stratumProxyManager.stopPools();
+						stratumProxyManager.closeAllWorkerConnections();
+					}
+					if (httpServer != null) {
+						httpServer.shutdownNow();
+					}
+					LOGGER.info("Shutdown !");
 				}
-				if (httpServer != null) {
-					httpServer.shutdownNow();
-				}
-				LOGGER.info("Shutdown !");
 			}
 		});
 
@@ -198,7 +200,7 @@ public class Launcher {
 				try {
 					Manifest manifest = new Manifest(new URL(manifestPath).openStream());
 					Attributes attr = manifest.getMainAttributes();
-					version = attr.getValue("Manifest-Version");
+					version = attr.getValue("Implementation-Version");
 				} catch (IOException e) {
 					// Do nothing, just return Unknown as version
 				}
