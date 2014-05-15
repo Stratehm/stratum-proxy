@@ -110,6 +110,7 @@ public class PoolConnection extends StratumConnection {
 	protected void onGetVersionRequest(ClientGetVersionRequest request) {
 		LOGGER.debug("Pool {} reply to GetVersion request.", pool.getName());
 		ClientGetVersionResponse response = new ClientGetVersionResponse();
+		response.setId(request.getId());
 		response.setVersion(Launcher.getVersion());
 		sendResponse(response);
 	}
