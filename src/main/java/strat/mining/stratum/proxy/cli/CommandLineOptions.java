@@ -85,6 +85,12 @@ public class CommandLineOptions {
 	@Option(name = "--help", usage = "Print this help.", handler = BooleanOptionHandler.class)
 	private boolean isHelpRequested;
 
+	@Option(name = "--pool-connection-retry-delay", usage = "Delay in seconds before retry to connect to an inactive pool. (5 seconds by default)")
+	private Integer poolConnectionRetryDelay = Constants.DEFAULT_POOL_CONNECTION_RETRY_DELAY;
+
+	@Option(name = "--pool-reconnect-stability-period", usage = "Delay in seconds before declaring the pool as stable and workers could be moved on this pool. (30 seconds by default)")
+	private Integer poolReconnectStabilityPeriod = Constants.DEFAULT_POOL_RECONNECTION_STABILITY_PERIOD;;
+
 	private List<Pool> pools;
 
 	public CommandLineOptions() {
@@ -131,6 +137,8 @@ public class CommandLineOptions {
 					pool.setExtranonceSubscribeEnabled(isExtranonceSubscribe);
 					pool.setNumberOfSubmit(numberOfSubmit);
 					pool.setPriority(index);
+					pool.setConnectionRetryDelay(poolConnectionRetryDelay);
+					pool.setReconnectStabilityPeriod(poolReconnectStabilityPeriod);
 					pools.add(pool);
 
 					index++;
@@ -180,4 +188,9 @@ public class CommandLineOptions {
 	public boolean isHelpRequested() {
 		return isHelpRequested;
 	}
+
+	public Integer getPoolConnectionRetryDelay() {
+		return poolConnectionRetryDelay;
+	}
+
 }

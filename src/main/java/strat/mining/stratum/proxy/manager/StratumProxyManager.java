@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -293,29 +292,16 @@ public class StratumProxyManager {
 		if (connections == null) {
 			LOGGER.debug("No worker connections on pool {}. Do not send setExtranonce.", pool.getName());
 		} else {
-			// Use an external list to store connection that should be
-			// closed to avoid concurrent modification exception during
-			// iteration over the connection list (since if we close a
-			// connection, the same thread remove the connection during
-			// the iteration).
-			List<WorkerConnection> connectionsToDisconnect = new ArrayList<WorkerConnection>();
 			synchronized (connections) {
 				for (WorkerConnection connection : connections) {
 					try {
 						connection.onPoolExtranonceChange();
 					} catch (ChangeExtranonceNotSupportedException e) {
-						connectionsToDisconnect.add(connection);
+						connection.close();
+						onWorkerDisconnection(connection, new Exception("The workerConnection " + connection.getConnectionName()
+								+ " does not support setExtranonce notification."));
 					}
 				}
-			}
-
-			// Once all connections are notified, close and remove all
-			// connections that does not support the extranonce change on the
-			// fly
-			for (WorkerConnection workerConnection : connectionsToDisconnect) {
-				workerConnection.close();
-				onWorkerDisconnection(workerConnection, new Exception("The workerConnection " + workerConnection.getConnectionName()
-						+ " does not support setExtranonce notification."));
 			}
 		}
 	}
@@ -365,7 +351,7 @@ public class StratumProxyManager {
 		Pool result = null;
 		synchronized (pools) {
 			for (Pool pool : pools) {
-				if (pool.isActive() && pool.isEnabled()) {
+				if (pool.isActive() && pool.isEnabled() && pool.isStable()) {
 					result = pool;
 					break;
 				}
@@ -409,11 +395,20 @@ public class StratumProxyManager {
 	public void onPoolStateChange(Pool pool) {
 		if (pool.isActive()) {
 			LOGGER.warn("Pool {} is UP.", pool.getName());
-			rebindAllWorkerConnections();
 		} else {
 			LOGGER.warn("Pool {} is DOWN. Moving connections to another one.", pool.getName());
 			switchPoolConnections(pool);
 		}
+	}
+
+	/**
+	 * Called when a pool is now stable.
+	 * 
+	 * @param pool
+	 */
+	public void onPoolStable(Pool pool) {
+		LOGGER.warn("Pool {} is STABLE.", pool.getName());
+		rebindAllWorkerConnections();
 	}
 
 	/**
@@ -441,30 +436,16 @@ public class StratumProxyManager {
 
 				List<WorkerConnection> connections = poolWorkerConnections.get(pool);
 				if (connections != null) {
-					// Use an external map to store connection that should be
-					// closed to avoid concurrent modification exception during
-					// iteration over the connection list (since if we close a
-					// connection, the same thread remove the connection during
-					// the iteration).
-					Map<WorkerConnection, Throwable> connectionToClose = new HashMap<WorkerConnection, Throwable>();
-					List<WorkerConnection> tempConnectionsList = null;
 					synchronized (connections) {
-						tempConnectionsList = new ArrayList<>(connections);
-					}
-
-					for (WorkerConnection connection : tempConnectionsList) {
-						try {
-							switchPoolForConnection(connection);
-						} catch (Exception e) {
-							// If an exception occurs, close the
-							// connection
-							connectionToClose.put(connection, e);
+						for (WorkerConnection connection : connections) {
+							try {
+								switchPoolForConnection(connection);
+							} catch (Exception e) {
+								// If an exception occurs, close the
+								// connection
+								onWorkerDisconnection(connection, e);
+							}
 						}
-					}
-
-					for (Entry<WorkerConnection, Throwable> entry : connectionToClose.entrySet()) {
-						entry.getKey().close();
-						onWorkerDisconnection(entry.getKey(), entry.getValue());
 					}
 				}
 			}

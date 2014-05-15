@@ -350,6 +350,7 @@ public class ProxyResources {
 		result.setHost(pool.getHost());
 		result.setIsActive(pool.isActive());
 		result.setIsEnabled(pool.isEnabled());
+		result.setIsStable(pool.isStable());
 		result.setName(pool.getName());
 		result.setNumberOfWorkerConnections(pool.getNumberOfWorkersConnections());
 		result.setPassword(pool.getPassword());

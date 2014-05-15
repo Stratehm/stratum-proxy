@@ -29,6 +29,7 @@ public class PoolDetailsDTO {
 	private String password;
 	private Boolean isActive;
 	private Boolean isEnabled;
+	private Boolean isStable;
 	private String isActiveSince;
 
 	private String difficulty;
@@ -91,6 +92,14 @@ public class PoolDetailsDTO {
 
 	public void setIsEnabled(Boolean isEnabled) {
 		this.isEnabled = isEnabled;
+	}
+
+	public Boolean getIsStable() {
+		return isStable;
+	}
+
+	public void setIsStable(Boolean isStable) {
+		this.isStable = isStable;
 	}
 
 	public String getDifficulty() {

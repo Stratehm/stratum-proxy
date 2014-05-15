@@ -72,6 +72,7 @@ public class Pool implements Comparable<Pool> {
 	private Date activeSince;
 	private boolean isActive;
 	private boolean isEnabled;
+	private boolean isStable;
 
 	// Contains all available tails in Hexa format.
 	private Deque<String> tails;
@@ -82,6 +83,7 @@ public class Pool implements Comparable<Pool> {
 
 	private Timer reconnectTimer;
 	private Timer notifyTimeoutTimer;
+	private Timer stabilityTestTimer;
 
 	private Boolean isExtranonceSubscribeEnabled = true;
 
@@ -94,6 +96,9 @@ public class Pool implements Comparable<Pool> {
 
 	private Deque<Share> lastAcceptedShares;
 
+	private Integer connectionRetryDelay = Constants.DEFAULT_POOL_CONNECTION_RETRY_DELAY;
+	private Integer reconnectStabilityPeriod = Constants.DEFAULT_POOL_RECONNECTION_STABILITY_PERIOD;
+
 	// Store the callbacks to call when the pool responds to a submit request.
 	private Map<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>> submitCallbacks;
 
@@ -105,6 +110,7 @@ public class Pool implements Comparable<Pool> {
 		this.password = password;
 		this.isActive = false;
 		this.isEnabled = true;
+		this.isStable = true;
 
 		acceptedDifficulty = new AtomicDouble(0);
 		rejectedDifficulty = new AtomicDouble(0);
@@ -143,7 +149,10 @@ public class Pool implements Comparable<Pool> {
 
 	public void stopPool() {
 		if (connection != null) {
+			cancelTimers();
+
 			isActive = false;
+			isStable = false;
 			manager.onPoolStateChange(this);
 			LOGGER.info("Stopping pool {}...", getName());
 			connection.close();
@@ -199,6 +208,10 @@ public class Pool implements Comparable<Pool> {
 
 	public boolean isActive() {
 		return isActive;
+	}
+
+	public boolean isStable() {
+		return isStable;
 	}
 
 	public Double getDifficulty() {
@@ -305,6 +318,7 @@ public class Pool implements Comparable<Pool> {
 			LOGGER.info("Pool {} started", getName());
 			this.isActive = true;
 			activeSince = new Date();
+			testStability();
 			manager.onPoolStateChange(this);
 		} else {
 			LOGGER.error("Stopping pool {} since user {} is not authorized.", getName(), username);
@@ -424,7 +438,7 @@ public class Pool implements Comparable<Pool> {
 	}
 
 	private void retryConnect() {
-		LOGGER.info("Trying reconnect of pool {} in {} ms.", getName(), Constants.DEFAULT_POOL_RECONNECT_DELAY);
+		LOGGER.info("Trying reconnect of pool {} in {} seconds.", getName(), connectionRetryDelay);
 		reconnectTimer = new Timer("ReconnectTimer-" + getName());
 		reconnectTimer.schedule(new TimerTask() {
 			public void run() {
@@ -435,7 +449,7 @@ public class Pool implements Comparable<Pool> {
 					LOGGER.error("Failed to restart the pool {}.", getName(), e);
 				}
 			}
-		}, Constants.DEFAULT_POOL_RECONNECT_DELAY);
+		}, connectionRetryDelay * 1000);
 	}
 
 	public Boolean isExtranonceSubscribeEnabled() {
@@ -524,12 +538,21 @@ public class Pool implements Comparable<Pool> {
 		return isExtranonceSubscribeEnabled;
 	}
 
+	public void setConnectionRetryDelay(Integer connectionRetryDelay) {
+		this.connectionRetryDelay = connectionRetryDelay;
+	}
+
+	public void setReconnectStabilityPeriod(Integer reconnectStabilityPeriod) {
+		this.reconnectStabilityPeriod = reconnectStabilityPeriod;
+	}
+
 	/**
 	 * Reset the notify timeoutTimer
 	 */
 	private void resetNotifyTimeoutTimer() {
 		if (notifyTimeoutTimer != null) {
 			notifyTimeoutTimer.cancel();
+			notifyTimeoutTimer = null;
 		}
 
 		notifyTimeoutTimer = new Timer("NotifyTimeoutTimer-" + getName());
@@ -543,5 +566,40 @@ public class Pool implements Comparable<Pool> {
 				retryConnect();
 			}
 		}, Constants.DEFAULT_NOTIFY_NOTIFICATION_TIMEOUT);
+	}
+
+	/**
+	 * Start a timer which call the onPoolStable manager function if no
+	 * disconnection happens before its timeout.
+	 */
+	private void testStability() {
+		if (stabilityTestTimer != null) {
+			stabilityTestTimer.cancel();
+			stabilityTestTimer = null;
+		}
+
+		stabilityTestTimer = new Timer();
+		stabilityTestTimer.schedule(new TimerTask() {
+			public void run() {
+				manager.onPoolStable(Pool.this);
+			}
+		}, reconnectStabilityPeriod * 1000);
+	}
+
+	private void cancelTimers() {
+		if (stabilityTestTimer != null) {
+			stabilityTestTimer.cancel();
+			stabilityTestTimer = null;
+		}
+
+		if (reconnectTimer != null) {
+			reconnectTimer.cancel();
+			reconnectTimer = null;
+		}
+
+		if (notifyTimeoutTimer != null) {
+			notifyTimeoutTimer.cancel();
+			notifyTimeoutTimer = null;
+		}
 	}
 }
