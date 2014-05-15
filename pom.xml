@@ -5,6 +5,20 @@
 	<artifactId>stratum-proxy</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>stratum-proxy</name>
+	<url>https://github.com/Stratehm/stratum-proxy</url>
+
+	<licenses>
+		<license>
+			<name>GNU General Public License, Version 3.0</name>
+			<url>http://www.gnu.org/licenses/gpl-3.0.html</url>
+			<distribution>manual</distribution>
+		</license>
+	</licenses>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
 
 	<dependencies>
 
@@ -38,7 +52,7 @@
 		<dependency>
 			<groupId>args4j</groupId>
 			<artifactId>args4j</artifactId>
-			<version>2.0.26</version>
+			<version>2.0.28</version>
 		</dependency>
 
 		<!-- Logging -->
@@ -106,12 +120,14 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
 				<configuration>
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib/</classpathPrefix>
 							<mainClass>strat.mining.stratum.proxy.Launcher</mainClass>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 						</manifest>
 					</archive>
 				</configuration>
@@ -127,8 +143,26 @@
 					<header>headerGPLv3Template.txt</header>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<descriptors>
+						<descriptor>assembly.xml</descriptor>
+					</descriptors>
+					<finalName>stratum-proxy-${project.version}</finalName>
+					<appendAssemblyId>false</appendAssemblyId>
+				</configuration>
+				<executions>
+					<execution>
+						<id>zip-package</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
-
 	</build>
-
 </project>

@@ -20,7 +20,10 @@ package strat.mining.stratum.proxy;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
 import java.util.List;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -70,17 +73,25 @@ public class Launcher {
 		try {
 			cliParser.parseArguments(args);
 
-			// Initialize the logging system
-			initLogging(cliParser);
+			if (cliParser.isHelpRequested()) {
+				cliParser.printUsage();
+			} else if (cliParser.isVersionRequested()) {
+				String version = "stratum-proxy by Stratehm. GPLv3 Licence. Version " + getVersion();
+				System.out.println(version);
+			} else {
 
-			// Initialize the proxy manager
-			initProxyManager(cliParser);
+				// Initialize the logging system
+				initLogging(cliParser);
 
-			// Initialize the rest services
-			initRestServices(cliParser);
+				// Initialize the proxy manager
+				initProxyManager(cliParser);
 
-			// Wait the end of the program
-			waitInfinite();
+				// Initialize the rest services
+				initRestServices(cliParser);
+
+				// Wait the end of the program
+				waitInfinite();
+			}
 
 		} catch (CmdLineException e) {
 			LOGGER.error("Failed to parse arguments.", e);
@@ -164,5 +175,32 @@ public class Launcher {
 	 */
 	public static StratumProxyManager getStratumProxyManager() {
 		return stratumProxyManager;
+	}
+
+	/**
+	 * Return the version of the program
+	 * 
+	 * @return
+	 */
+	public static String getVersion() {
+		String version = "Unknown";
+
+		Class<Launcher> clazz = Launcher.class;
+		String className = clazz.getSimpleName() + ".class";
+		String classPath = clazz.getResource(className).toString();
+		if (classPath.startsWith("jar")) {
+			// Class not from JAR
+			String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + "/META-INF/MANIFEST.MF";
+
+			try {
+				Manifest manifest = new Manifest(new URL(manifestPath).openStream());
+				Attributes attr = manifest.getMainAttributes();
+				version = attr.getValue("Manifest-Version");
+			} catch (IOException e) {
+				// Do nothing, just return Unknown as version
+			}
+		}
+
+		return version;
 	}
 }

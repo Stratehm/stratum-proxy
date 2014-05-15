@@ -69,6 +69,8 @@ public class StratumProxyManager {
 
 	private Map<Pool, List<WorkerConnection>> poolWorkerConnections;
 
+	private boolean closeRequested = false;
+
 	public StratumProxyManager(List<Pool> pools) {
 		this.pools = Collections.synchronizedList(new ArrayList<Pool>(pools));
 		this.workerConnections = Collections.synchronizedList(new ArrayList<WorkerConnection>());
@@ -132,7 +134,12 @@ public class StratumProxyManager {
 						WorkerConnection workerConnection = new WorkerConnection(incomingConnectionSocket, StratumProxyManager.this);
 						workerConnection.startReading();
 					} catch (Exception e) {
-						LOGGER.error("Error on the server socket {}.", serverSocket.getLocalSocketAddress(), e);
+						// Do not log the error if a close has been requested
+						// (as the error is expected ans is part of the shutdown
+						// process)
+						if (!closeRequested) {
+							LOGGER.error("Error on the server socket {}.", serverSocket.getLocalSocketAddress(), e);
+						}
 					}
 				}
 
@@ -150,6 +157,7 @@ public class StratumProxyManager {
 		if (serverSocket != null) {
 			LOGGER.info("Closing the server socket on {}.", serverSocket.getLocalSocketAddress());
 			try {
+				closeRequested = true;
 				serverSocket.close();
 			} catch (Exception e) {
 				LOGGER.error("Failed to close serverSocket on {}.", serverSocket.getLocalSocketAddress(), e);

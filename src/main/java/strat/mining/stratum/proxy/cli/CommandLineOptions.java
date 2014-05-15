@@ -26,6 +26,7 @@ import org.apache.log4j.Level;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.kohsuke.args4j.spi.BooleanOptionHandler;
 import org.kohsuke.args4j.spi.FileOptionHandler;
 import org.kohsuke.args4j.spi.StringArrayOptionHandler;
 
@@ -42,41 +43,47 @@ public class CommandLineOptions {
 
 	private CmdLineParser parser;
 
-	@Option(name = "-n", aliases = { "--pool-names" }, usage = "Names of the pools. Space separated. (Default to host)")
+	@Option(name = "-n", aliases = { "--pool-names" }, usage = "Names of the pools. Space separated. (Default to host)", handler = StringArrayOptionHandler.class, metaVar = "name1 [name2] [name3]...")
 	private List<String> poolNames;
 
-	@Option(name = "-h", aliases = { "--pool-hosts" }, usage = "Hosts of the stratum servers (only the host, not the protocol), space separated", handler = StringArrayOptionHandler.class)
+	@Option(name = "-h", aliases = { "--pool-hosts" }, usage = "Hosts of the stratum servers (only the host, not the protocol), space separated", handler = StringArrayOptionHandler.class, metaVar = "host1 [host2] [host3]...")
 	private List<String> poolHosts;
 
-	@Option(name = "-u", aliases = { "--pool-users" }, usage = "User names used to connect to the servers (WARN: my BTC donation address by default), space separated", handler = StringArrayOptionHandler.class)
+	@Option(name = "-u", aliases = { "--pool-users" }, usage = "User names used to connect to the servers (unknown by default), space separated", handler = StringArrayOptionHandler.class, metaVar = "user1 [user2] [user3]...")
 	private List<String> poolUsers;
 
-	@Option(name = "-p", aliases = { "--pool-passwords" }, usage = "Passwords used for the users (x by default), space separated", handler = StringArrayOptionHandler.class)
+	@Option(name = "-p", aliases = { "--pool-passwords" }, usage = "Passwords used for the users (x by default), space separated", handler = StringArrayOptionHandler.class, metaVar = "pass1 [pass2] [pass3]...")
 	private List<String> poolPasswords;
 
-	@Option(name = "--set-extranonce-subscribe", usage = "Enable/Disable the extranonce subscribe request on pool (default to true), space separated.", handler = BooleanArrayOptionHandler.class)
+	@Option(name = "--set-extranonce-subscribe", usage = "Enable/Disable the extranonce subscribe request on pool (default to true), space separated.", handler = BooleanArrayOptionHandler.class, metaVar = "boolean1 [boolean2] [boolean3]...")
 	private List<Boolean> isExtranonceSubscribeEnabled;
 
-	@Option(name = "--log-directory", usage = "The directory where logs will be written", handler = FileOptionHandler.class)
+	@Option(name = "--log-directory", usage = "The directory where logs will be written", handler = FileOptionHandler.class, metaVar = "directory")
 	private File logDirectory;
 
-	@Option(name = "--log-level", usage = "The level of log: OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE. Default is INFO", handler = LogLevelOptionHandler.class)
+	@Option(name = "--log-level", usage = "The level of log: OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE. Default is INFO", handler = LogLevelOptionHandler.class, metaVar = "LEVEL")
 	private Level logLevel;
 
-	@Option(name = "--stratum-listen-port", usage = "The port number to listen incoming connections. (3333 by default)")
+	@Option(name = "--stratum-listen-port", usage = "The port number to listen incoming connections. (3333 by default)", metaVar = "portNumber")
 	private Integer stratumListeningPort = Constants.DEFAULT_STRATUM_LISTENING_PORT;
 
-	@Option(name = "--stratum-listen-address", usage = "The address to bind to listen incoming connections. (0.0.0.0 by default)")
+	@Option(name = "--stratum-listen-address", usage = "The address to bind to listen incoming connections. (0.0.0.0 by default)", metaVar = "ipAddress")
 	private String stratumBindAddress;
 
-	@Option(name = "--number-of-submit", usage = "The number of submit for each share. (Only for debug use)")
+	@Option(name = "--number-of-submit", usage = "The number of submit for each share. (Only for debug use)", metaVar = "number")
 	private Integer numberOfSubmit = 1;
 
-	@Option(name = "--rest-listen-port", usage = "The port number to listen REST requests. (8888 by default)")
+	@Option(name = "--rest-listen-port", usage = "The port number to listen REST requests. (8888 by default)", metaVar = "portNumber")
 	private Integer restListenPort = Constants.DEFAULT_REST_LISTENING_PORT;
 
-	@Option(name = "--rest-listen-address", usage = "The address to bind to listen incoming connections. (0.0.0.0 by default)")
+	@Option(name = "--rest-listen-address", usage = "The address to bind to listen REST requests. (0.0.0.0 by default)", metaVar = "ipAddress")
 	private String restBindAddress = Constants.DEFAULT_REST_LISTENING_ADDRESS;
+
+	@Option(name = "--version", usage = "Print the version.", handler = BooleanOptionHandler.class)
+	private boolean isVersionRequested;
+
+	@Option(name = "--help", usage = "Print this help.", handler = BooleanOptionHandler.class)
+	private boolean isHelpRequested;
 
 	private List<Pool> pools;
 
@@ -166,4 +173,11 @@ public class CommandLineOptions {
 		return logLevel;
 	}
 
+	public boolean isVersionRequested() {
+		return isVersionRequested;
+	}
+
+	public boolean isHelpRequested() {
+		return isHelpRequested;
+	}
 }

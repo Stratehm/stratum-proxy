@@ -1,0 +1,20 @@
+<assembly>
+	<id>zip-package</id>
+	<formats>
+		<format>zip</format>
+	</formats>
+	<includeBaseDirectory>true</includeBaseDirectory>
+	<dependencySets>
+		<dependencySet>
+			<outputDirectory>/lib</outputDirectory>
+		</dependencySet>
+	</dependencySets>
+	<files>
+		<file>
+			<source>${project.build.directory}/stratum-proxy-${project.version}.jar
+			</source>
+			<outputDirectory>/</outputDirectory>
+			<destName>stratum-proxy.jar</destName>
+		</file>
+	</files>
+</assembly>
