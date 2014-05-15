@@ -439,18 +439,22 @@ public class Pool implements Comparable<Pool> {
 	}
 
 	private void retryConnect() {
-		LOGGER.info("Trying reconnect of pool {} in {} seconds.", getName(), connectionRetryDelay);
-		reconnectTimer = new Timer("ReconnectTimer-" + getName());
-		reconnectTimer.schedule(new TimerTask() {
-			public void run() {
-				try {
-					LOGGER.info("Trying reconnect of pool {}...", getName());
-					startPool(manager);
-				} catch (Exception e) {
-					LOGGER.error("Failed to restart the pool {}.", getName(), e);
+		if (connectionRetryDelay > 0) {
+			LOGGER.info("Trying reconnect of pool {} in {} seconds.", getName(), connectionRetryDelay);
+			reconnectTimer = new Timer("ReconnectTimer-" + getName());
+			reconnectTimer.schedule(new TimerTask() {
+				public void run() {
+					try {
+						LOGGER.info("Trying reconnect of pool {}...", getName());
+						startPool(manager);
+					} catch (Exception e) {
+						LOGGER.error("Failed to restart the pool {}.", getName(), e);
+					}
 				}
-			}
-		}, connectionRetryDelay * 1000);
+			}, connectionRetryDelay * 1000);
+		} else {
+			LOGGER.warn("Do not try to reconnect pool {} since --pool-connection-retry-delay is {}.", getName(), connectionRetryDelay);
+		}
 	}
 
 	public Boolean isExtranonceSubscribeEnabled() {
@@ -555,21 +559,23 @@ public class Pool implements Comparable<Pool> {
 	 * Reset the notify timeoutTimer
 	 */
 	private void resetNotifyTimeoutTimer() {
-		if (notifyTimeoutTimer != null) {
-			notifyTimeoutTimer.cancel();
-			notifyTimeoutTimer = null;
-		}
-
-		notifyTimeoutTimer = new Timer("NotifyTimeoutTimer-" + getName());
-		notifyTimeoutTimer.schedule(new TimerTask() {
-			public void run() {
-				LOGGER.warn("No mining.notify received from pool {} for {} ms. Stopping the pool...", getName(), noNotifyTimeout);
-				// If we have not received notify notification since DEALY,
-				// stop the pool and try to reconnect.
-				stopPool();
-				retryConnect();
+		if (noNotifyTimeout > 0) {
+			if (notifyTimeoutTimer != null) {
+				notifyTimeoutTimer.cancel();
+				notifyTimeoutTimer = null;
 			}
-		}, noNotifyTimeout * 1000);
+
+			notifyTimeoutTimer = new Timer("NotifyTimeoutTimer-" + getName());
+			notifyTimeoutTimer.schedule(new TimerTask() {
+				public void run() {
+					LOGGER.warn("No mining.notify received from pool {} for {} ms. Stopping the pool...", getName(), noNotifyTimeout);
+					// If we have not received notify notification since DEALY,
+					// stop the pool and try to reconnect.
+					stopPool();
+					retryConnect();
+				}
+			}, noNotifyTimeout * 1000);
+		}
 	}
 
 	/**
@@ -577,20 +583,33 @@ public class Pool implements Comparable<Pool> {
 	 * disconnection happens before its timeout.
 	 */
 	private void testStability() {
-		if (stabilityTestTimer != null) {
-			stabilityTestTimer.cancel();
-			stabilityTestTimer = null;
-		}
-
-		stabilityTestTimer = new Timer();
-		stabilityTestTimer.schedule(new TimerTask() {
-			public void run() {
-				if (!isStable) {
-					isStable = true;
-					manager.onPoolStable(Pool.this);
-				}
+		if (reconnectStabilityPeriod > 0) {
+			LOGGER.info("Testing stability of pool {} for {} seconds.", getName(), reconnectStabilityPeriod);
+			if (stabilityTestTimer != null) {
+				stabilityTestTimer.cancel();
+				stabilityTestTimer = null;
 			}
-		}, reconnectStabilityPeriod * 1000);
+
+			stabilityTestTimer = new Timer();
+			stabilityTestTimer.schedule(new TimerTask() {
+				public void run() {
+					setStable();
+				}
+			}, reconnectStabilityPeriod * 1000);
+		} else {
+			LOGGER.info("Pool {} declared as stable since no stability test period configured", getName());
+			setStable();
+		}
+	}
+
+	/**
+	 * Mark the pool as stable
+	 */
+	private void setStable() {
+		if (!isStable) {
+			isStable = true;
+			manager.onPoolStable(this);
+		}
 	}
 
 	/**
