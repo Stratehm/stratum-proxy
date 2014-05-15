@@ -581,11 +581,17 @@ public class Pool implements Comparable<Pool> {
 		stabilityTestTimer = new Timer();
 		stabilityTestTimer.schedule(new TimerTask() {
 			public void run() {
-				manager.onPoolStable(Pool.this);
+				if (!isStable) {
+					isStable = true;
+					manager.onPoolStable(Pool.this);
+				}
 			}
 		}, reconnectStabilityPeriod * 1000);
 	}
 
+	/**
+	 * Cancel all active timers
+	 */
 	private void cancelTimers() {
 		if (stabilityTestTimer != null) {
 			stabilityTestTimer.cancel();

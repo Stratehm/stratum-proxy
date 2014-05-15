@@ -52,6 +52,8 @@ public class Launcher {
 
 	private static HttpServer httpServer;
 
+	private static String version;
+
 	public static void main(String[] args) {
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -183,21 +185,23 @@ public class Launcher {
 	 * @return
 	 */
 	public static String getVersion() {
-		String version = "Unknown";
+		if (version == null) {
+			version = "Unknown";
 
-		Class<Launcher> clazz = Launcher.class;
-		String className = clazz.getSimpleName() + ".class";
-		String classPath = clazz.getResource(className).toString();
-		if (classPath.startsWith("jar")) {
-			// Class not from JAR
-			String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + "/META-INF/MANIFEST.MF";
+			Class<Launcher> clazz = Launcher.class;
+			String className = clazz.getSimpleName() + ".class";
+			String classPath = clazz.getResource(className).toString();
+			if (classPath.startsWith("jar")) {
+				// Class not from JAR
+				String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + "/META-INF/MANIFEST.MF";
 
-			try {
-				Manifest manifest = new Manifest(new URL(manifestPath).openStream());
-				Attributes attr = manifest.getMainAttributes();
-				version = attr.getValue("Manifest-Version");
-			} catch (IOException e) {
-				// Do nothing, just return Unknown as version
+				try {
+					Manifest manifest = new Manifest(new URL(manifestPath).openStream());
+					Attributes attr = manifest.getMainAttributes();
+					version = attr.getValue("Manifest-Version");
+				} catch (IOException e) {
+					// Do nothing, just return Unknown as version
+				}
 			}
 		}
 

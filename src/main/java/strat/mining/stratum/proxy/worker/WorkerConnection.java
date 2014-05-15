@@ -34,6 +34,8 @@ import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
+import strat.mining.stratum.proxy.json.ClientGetVersionRequest;
+import strat.mining.stratum.proxy.json.ClientGetVersionResponse;
 import strat.mining.stratum.proxy.json.ClientReconnectNotification;
 import strat.mining.stratum.proxy.json.JsonRpcError;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
@@ -214,6 +216,11 @@ public class WorkerConnection extends StratumConnection {
 		this.isSetExtranonceNotificationSupported = true;
 	}
 
+	@Override
+	protected void onGetVersionRequest(ClientGetVersionRequest request) {
+		LOGGER.warn("Worker {} send a GetVersion request. This should not happen.", getConnectionName());
+	}
+
 	/**
 	 * Called when the pool has answered to a submit request.
 	 * 
@@ -273,6 +280,11 @@ public class WorkerConnection extends StratumConnection {
 	@Override
 	protected void onExtranonceSubscribeResponse(MiningExtranonceSubscribeRequest request, MiningExtranonceSubscribeResponse response) {
 		LOGGER.warn("Worker {} send an Extranonce subscribe response. This should not happen.", getConnectionName());
+	}
+
+	@Override
+	protected void onGetVersionResponse(ClientGetVersionRequest request, ClientGetVersionResponse response) {
+		// Nothing to do...yet.
 	}
 
 	/**

@@ -30,6 +30,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strat.mining.stratum.proxy.json.ClientGetVersionRequest;
+import strat.mining.stratum.proxy.json.ClientGetVersionResponse;
 import strat.mining.stratum.proxy.json.ClientReconnectNotification;
 import strat.mining.stratum.proxy.json.JsonRpcNotification;
 import strat.mining.stratum.proxy.json.JsonRpcRequest;
@@ -297,6 +299,12 @@ public abstract class StratumConnection {
 			onExtranonceSubscribeResponse(subscribeExtranonceRequest, subscribeExtranonceResponse);
 			break;
 
+		case ClientGetVersionRequest.METHOD_NAME:
+			ClientGetVersionRequest getVersionRequest = new ClientGetVersionRequest(request);
+			ClientGetVersionResponse getVersionResponse = new ClientGetVersionResponse(response);
+			onGetVersionResponse(getVersionRequest, getVersionResponse);
+			break;
+
 		default:
 			LOGGER.warn("Unknown response type on connection {}. methodName: {}, result: {}", getConnectionName(), request.getMethod(),
 					response.getResult());
@@ -335,6 +343,11 @@ public abstract class StratumConnection {
 			ClientReconnectNotification clientReconnect = new ClientReconnectNotification();
 			clientReconnect.setParams(request.getParams());
 			onClientReconnect(clientReconnect);
+			break;
+
+		case ClientGetVersionRequest.METHOD_NAME:
+			ClientGetVersionRequest getVersionRequest = new ClientGetVersionRequest(request);
+			onGetVersionRequest(getVersionRequest);
 			break;
 
 		default:
@@ -385,6 +398,11 @@ public abstract class StratumConnection {
 	protected abstract void onExtranonceSubscribeRequest(MiningExtranonceSubscribeRequest request);
 
 	/**
+	 * Called when a client getVersion request is received
+	 */
+	protected abstract void onGetVersionRequest(ClientGetVersionRequest request);
+
+	/**
 	 * Called when a extranonce subscribe response is received
 	 */
 	protected abstract void onExtranonceSubscribeResponse(MiningExtranonceSubscribeRequest request, MiningExtranonceSubscribeResponse response);
@@ -403,6 +421,11 @@ public abstract class StratumConnection {
 	 * Called when a submit response is received
 	 */
 	protected abstract void onSubmitResponse(MiningSubmitRequest request, MiningSubmitResponse response);
+
+	/**
+	 * Called when a client getVersion response is received
+	 */
+	protected abstract void onGetVersionResponse(ClientGetVersionRequest request, ClientGetVersionResponse response);
 
 	/**
 	 * Called when a parsing error occurs

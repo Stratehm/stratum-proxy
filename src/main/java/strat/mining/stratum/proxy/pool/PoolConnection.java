@@ -23,6 +23,9 @@ import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strat.mining.stratum.proxy.Launcher;
+import strat.mining.stratum.proxy.json.ClientGetVersionRequest;
+import strat.mining.stratum.proxy.json.ClientGetVersionResponse;
 import strat.mining.stratum.proxy.json.ClientReconnectNotification;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
@@ -104,6 +107,14 @@ public class PoolConnection extends StratumConnection {
 	}
 
 	@Override
+	protected void onGetVersionRequest(ClientGetVersionRequest request) {
+		LOGGER.debug("Pool {} reply to GetVersion request.", pool.getName());
+		ClientGetVersionResponse response = new ClientGetVersionResponse();
+		response.setVersion(Launcher.getVersion());
+		sendResponse(response);
+	}
+
+	@Override
 	protected void onAuthorizeResponse(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
 		pool.processAuthorizeResponse(request, response);
 	}
@@ -123,4 +134,8 @@ public class PoolConnection extends StratumConnection {
 		pool.processSubmitResponse(request, response);
 	}
 
+	@Override
+	protected void onGetVersionResponse(ClientGetVersionRequest request, ClientGetVersionResponse response) {
+		LOGGER.warn("Pool {} received a GetVersion response. This should not happen.", pool.getName());
+	}
 }
