@@ -1,3 +1,21 @@
+/**
+ * stratum-proxy is a proxy supporting the crypto-currency stratum pool mining
+ * protocol.
+ * Copyright (C) 2014  Stratehm (stratehm@hotmail.com)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with multipool-stats-backend. If not, see <http://www.gnu.org/licenses/>.
+ */
 package strat.mining.stratum.proxy.manager;
 
 import java.io.IOException;
@@ -359,14 +377,22 @@ public class StratumProxyManager {
 	 * @param workerConnection
 	 * @param cause
 	 */
-	public void onWorkerDisconnection(WorkerConnection workerConnection, Throwable cause) {
-		List<WorkerConnection> connections = poolWorkerConnections.get(workerConnection.getPool());
-		if (connections != null) {
-			connections.remove(workerConnection);
-		}
-		LOGGER.info("Worker connection {} closed. {} connections active on pool {}. Cause: {}", workerConnection.getConnectionName(),
-				connections == null ? 0 : connections.size(), workerConnection.getPool() != null ? workerConnection.getPool().getName() : "None",
-				cause != null ? cause.getMessage() : "Unknown");
+	public void onWorkerDisconnection(final WorkerConnection workerConnection, final Throwable cause) {
+		// Launch a thread to remove the connection. Done to avoid a concurrent
+		// modification exception which could happen if the disconnection
+		// happens during a connection list iteration.
+		Thread removeThread = new Thread() {
+			public void run() {
+				List<WorkerConnection> connections = poolWorkerConnections.get(workerConnection.getPool());
+				if (connections != null) {
+					connections.remove(workerConnection);
+				}
+				LOGGER.info("Worker connection {} closed. {} connections active on pool {}. Cause: {}", workerConnection.getConnectionName(),
+						connections == null ? 0 : connections.size(), workerConnection.getPool() != null ? workerConnection.getPool().getName()
+								: "None", cause != null ? cause.getMessage() : "Unknown");
+			}
+		};
+		removeThread.start();
 	}
 
 	/**

@@ -1,3 +1,21 @@
+/**
+ * stratum-proxy is a proxy supporting the crypto-currency stratum pool mining
+ * protocol.
+ * Copyright (C) 2014  Stratehm (stratehm@hotmail.com)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with multipool-stats-backend. If not, see <http://www.gnu.org/licenses/>.
+ */
 package strat.mining.stratum.proxy.pool;
 
 import java.io.IOException;
@@ -12,7 +30,6 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +52,8 @@ import strat.mining.stratum.proxy.json.MiningSubscribeResponse;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.model.Share;
 
+import com.google.common.util.concurrent.AtomicDouble;
+
 public class Pool implements Comparable<Pool> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Pool.class);
@@ -46,7 +65,7 @@ public class Pool implements Comparable<Pool> {
 	private String username;
 	private String password;
 
-	private Integer difficulty;
+	private Double difficulty;
 	private String extranonce1;
 	private Integer extranonce2Size;
 
@@ -70,8 +89,8 @@ public class Pool implements Comparable<Pool> {
 
 	private Integer priority;
 
-	private AtomicLong acceptedDifficulty;
-	private AtomicLong rejectedDifficulty;
+	private AtomicDouble acceptedDifficulty;
+	private AtomicDouble rejectedDifficulty;
 
 	private Deque<Share> lastAcceptedShares;
 
@@ -87,8 +106,8 @@ public class Pool implements Comparable<Pool> {
 		this.isActive = false;
 		this.isEnabled = true;
 
-		acceptedDifficulty = new AtomicLong(0);
-		rejectedDifficulty = new AtomicLong(0);
+		acceptedDifficulty = new AtomicDouble(0);
+		rejectedDifficulty = new AtomicDouble(0);
 
 		this.tails = buildTails();
 		this.submitCallbacks = Collections.synchronizedMap(new HashMap<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>>());
@@ -182,7 +201,7 @@ public class Pool implements Comparable<Pool> {
 		return isActive;
 	}
 
-	public Integer getDifficulty() {
+	public Double getDifficulty() {
 		return difficulty;
 	}
 
@@ -206,6 +225,7 @@ public class Pool implements Comparable<Pool> {
 		// If the pool just ask a reconnection (no host specified), just restart
 		// the pool.
 		if (clientReconnect.getHost() == null || clientReconnect.getHost().isEmpty()) {
+			LOGGER.info("Received client.reconnect from pool {}.", getName());
 			stopPool();
 			try {
 				startPool(manager);
@@ -213,13 +233,15 @@ public class Pool implements Comparable<Pool> {
 				LOGGER.error("Failed to restart the pool {} after a client.reconnect notification.", getName(), e);
 			}
 		} else {
-			LOGGER.warn("Stopping the pool {} after a client.reconnect notification with request host {} and port {}.", getName(),
+			LOGGER.warn("Stopping the pool {} after a client.reconnect notification with requested host {} and port {}.", getName(),
 					clientReconnect.getHost(), clientReconnect.getPort());
 			// If a new host and a new port is received, then just stop the
 			// pool. (Disable the reconnect feature to another host since an
 			// attack has been spotted on wafflepool where this kind of
 			// notification where used to redirect miners to a mysterious pool)
 			stopPool();
+
+			retryConnect();
 		}
 	}
 
@@ -232,6 +254,7 @@ public class Pool implements Comparable<Pool> {
 			LOGGER.error("The extranonce2Size for the pool {} is to low. Size: {}, mininum needed {}.", getName(), extranonce2Size,
 					Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1);
 			stopPool();
+			retryConnect();
 		} else {
 			extranonce2Size = setExtranonce.getExtranonce2Size();
 			// If extrnaonce is OK, notify the manager.
@@ -250,6 +273,7 @@ public class Pool implements Comparable<Pool> {
 			LOGGER.error("The extranonce2Size for the pool {} is to low. Size: {}, mininum needed {}.", getName(), extranonce2Size,
 					Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1);
 			stopPool();
+			retryConnect();
 		} else {
 			if (isExtranonceSubscribeEnabled) {
 				// Else try to subscribe to extranonce change notification
@@ -285,6 +309,7 @@ public class Pool implements Comparable<Pool> {
 		} else {
 			LOGGER.error("Stopping pool {} since user {} is not authorized.", getName(), username);
 			stopPool();
+			retryConnect();
 		}
 	}
 
@@ -483,11 +508,11 @@ public class Pool implements Comparable<Pool> {
 		return getPriority().compareTo(o.getPriority());
 	}
 
-	public Long getAcceptedDifficulty() {
+	public Double getAcceptedDifficulty() {
 		return acceptedDifficulty.get();
 	}
 
-	public Long getRejectedDifficulty() {
+	public Double getRejectedDifficulty() {
 		return rejectedDifficulty.get();
 	}
 
