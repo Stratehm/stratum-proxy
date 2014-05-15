@@ -7,9 +7,9 @@ The proxy is is generated as a JAR file called stratum-proxy.jar (contained in t
 To build the package, you must have a JDK installed in version >= 7 and maven 3
 
 ##Packaging
-cd /directory/which/contain/pom.xmlFileOfTheProject
+*cd /directory/which/contain/pom.xmlFileOfTheProject*
 
-mvn clean package
+*mvn clean package*
 
 The package is then present in the "target" directory.
 
@@ -18,11 +18,35 @@ The package is then present in the "target" directory.
 ##Installation
 Only unzip the zip file in a directory and launch the proxy through the following command line:
 
-java -jar stratum-proxy.jar <proxyOptions>
+*java -jar stratum-proxy.jar proxyOptions*
 
 ##Usage
 
+*java -jar stratum-proxy.jar --help*
 
+##API Details
+
+A REST API is available with the following methods. Methods parameters or result are in JSON. By default, the methods can be accessed at the URL http://<hostIp>:8888/proxy/
+
+pool/list: List all the pools.
+ 
+Parameters: *None*
+ 
+Return:
+
+
+pool/priority: Change the priority of a pool
+
+Parameters:
+{"poolName": "nameOfThePool", "priority": 0}
+
+Return:
+
+
+log/level: Change the log level. 
+
+Parameters:
+{"logLevel": "LEVEL"}. Valid levels are FATAL, ERROR, WARN, INFO, DEBUG, TRACE, OFF.
 
 
 
