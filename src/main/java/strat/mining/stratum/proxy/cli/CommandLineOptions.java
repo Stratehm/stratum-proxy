@@ -91,6 +91,9 @@ public class CommandLineOptions {
 	@Option(name = "--pool-reconnect-stability-period", usage = "Delay in seconds before declaring the pool as stable and workers could be moved on this pool. (30 seconds by default)")
 	private Integer poolReconnectStabilityPeriod = Constants.DEFAULT_POOL_RECONNECTION_STABILITY_PERIOD;;
 
+	@Option(name = "--pool-no-notify-timeout", usage = "Delay in seconds to declare a pool as inactive if no mining.notify request received since the last one. (120 seconds by default)")
+	private Integer poolNoNotifyTimeout;
+
 	private List<Pool> pools;
 
 	public CommandLineOptions() {
@@ -139,6 +142,7 @@ public class CommandLineOptions {
 					pool.setPriority(index);
 					pool.setConnectionRetryDelay(poolConnectionRetryDelay);
 					pool.setReconnectStabilityPeriod(poolReconnectStabilityPeriod);
+					pool.setNoNotifyTimeout(poolNoNotifyTimeout);
 					pools.add(pool);
 
 					index++;
@@ -191,6 +195,10 @@ public class CommandLineOptions {
 
 	public Integer getPoolConnectionRetryDelay() {
 		return poolConnectionRetryDelay;
+	}
+
+	public Integer getPoolNoNotifyTimeout() {
+		return poolNoNotifyTimeout;
 	}
 
 }

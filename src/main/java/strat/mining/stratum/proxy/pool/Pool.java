@@ -98,6 +98,7 @@ public class Pool implements Comparable<Pool> {
 
 	private Integer connectionRetryDelay = Constants.DEFAULT_POOL_CONNECTION_RETRY_DELAY;
 	private Integer reconnectStabilityPeriod = Constants.DEFAULT_POOL_RECONNECTION_STABILITY_PERIOD;
+	private Integer noNotifyTimeout = Constants.DEFAULT_NOTIFY_NOTIFICATION_TIMEOUT;
 
 	// Store the callbacks to call when the pool responds to a submit request.
 	private Map<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>> submitCallbacks;
@@ -546,6 +547,10 @@ public class Pool implements Comparable<Pool> {
 		this.reconnectStabilityPeriod = reconnectStabilityPeriod;
 	}
 
+	public void setNoNotifyTimeout(Integer noNotifyTimeout) {
+		this.noNotifyTimeout = noNotifyTimeout;
+	}
+
 	/**
 	 * Reset the notify timeoutTimer
 	 */
@@ -558,14 +563,13 @@ public class Pool implements Comparable<Pool> {
 		notifyTimeoutTimer = new Timer("NotifyTimeoutTimer-" + getName());
 		notifyTimeoutTimer.schedule(new TimerTask() {
 			public void run() {
-				LOGGER.warn("No mining.notify received from pool {} for {} ms. Stopping the pool...", getName(),
-						Constants.DEFAULT_NOTIFY_NOTIFICATION_TIMEOUT);
+				LOGGER.warn("No mining.notify received from pool {} for {} ms. Stopping the pool...", getName(), noNotifyTimeout);
 				// If we have not received notify notification since DEALY,
 				// stop the pool and try to reconnect.
 				stopPool();
 				retryConnect();
 			}
-		}, Constants.DEFAULT_NOTIFY_NOTIFICATION_TIMEOUT);
+		}, noNotifyTimeout * 1000);
 	}
 
 	/**
