@@ -94,6 +94,9 @@ public class CommandLineOptions {
 	@Option(name = "--pool-no-notify-timeout", usage = "Delay in seconds to declare a pool as inactive if no mining.notify request received since the last one. (120 seconds by default). 0 to disable.")
 	private Integer poolNoNotifyTimeout = Constants.DEFAULT_NOTIFY_NOTIFICATION_TIMEOUT;
 
+	@Option(name = "--pool-no-reconnect-different-host", usage = "Do not accept client.reconnect if connection on a different host is requested. Still accept reconnection on another port on the same host. If not set, accept all reconnection requests.", handler = BooleanOptionHandler.class)
+	private boolean isRejectReconnect;
+
 	private List<Pool> pools;
 
 	public CommandLineOptions() {
@@ -143,6 +146,7 @@ public class CommandLineOptions {
 					pool.setConnectionRetryDelay(poolConnectionRetryDelay);
 					pool.setReconnectStabilityPeriod(poolReconnectStabilityPeriod);
 					pool.setNoNotifyTimeout(poolNoNotifyTimeout);
+					pool.setRejectReconnect(isRejectReconnect);
 					pools.add(pool);
 
 					index++;
@@ -199,6 +203,10 @@ public class CommandLineOptions {
 
 	public Integer getPoolNoNotifyTimeout() {
 		return poolNoNotifyTimeout;
+	}
+
+	public boolean isRejectReconnect() {
+		return isRejectReconnect;
 	}
 
 }

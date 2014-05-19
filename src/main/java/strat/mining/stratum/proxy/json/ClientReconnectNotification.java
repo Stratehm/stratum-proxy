@@ -71,7 +71,17 @@ public class ClientReconnectNotification extends JsonRpcNotification {
 		super.setParams(params);
 		if (params != null) {
 			host = getParamsObjectAtIndex(0);
-			port = getParamsObjectAtIndex(1) != null ? ((Number) getParamsObjectAtIndex(1)).intValue() : null;
+			if (getParamsObjectAtIndex(1) != null) {
+				// Some pools send the port as an integer, other as a string.
+				if (getParamsObjectAtIndex(1) instanceof Number) {
+					port = ((Number) getParamsObjectAtIndex(1)).intValue();
+				} else if (getParamsObjectAtIndex(1) instanceof String) {
+					port = Integer.valueOf((String) getParamsObjectAtIndex(1));
+				}
+			} else {
+				port = null;
+			}
+
 		}
 	}
 

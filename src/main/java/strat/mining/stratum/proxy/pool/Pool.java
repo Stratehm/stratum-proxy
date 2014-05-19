@@ -31,6 +31,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
+import javax.ws.rs.core.UriBuilder;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +64,7 @@ public class Pool implements Comparable<Pool> {
 
 	private String name;
 	private String host;
+	private URI uri;
 	private String username;
 	private String password;
 
@@ -100,6 +103,8 @@ public class Pool implements Comparable<Pool> {
 	private Integer reconnectStabilityPeriod = Constants.DEFAULT_POOL_RECONNECTION_STABILITY_PERIOD;
 	private Integer noNotifyTimeout = Constants.DEFAULT_NOTIFY_NOTIFICATION_TIMEOUT;
 
+	private Boolean isRejectReconnect = false;
+
 	// Store the callbacks to call when the pool responds to a submit request.
 	private Map<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>> submitCallbacks;
 
@@ -126,7 +131,10 @@ public class Pool implements Comparable<Pool> {
 			this.manager = manager;
 			if (connection == null) {
 				LOGGER.info("Starting pool {}...", getName());
-				URI uri = new URI("stratum+tcp://" + host);
+				uri = new URI("stratum+tcp://" + host);
+				if (uri.getPort() < 0) {
+					UriBuilder.fromUri(uri).port(Constants.DEFAULT_POOL_PORT);
+				}
 				Socket socket = new Socket();
 				socket.setKeepAlive(true);
 				socket.setTcpNoDelay(true);
@@ -168,6 +176,10 @@ public class Pool implements Comparable<Pool> {
 
 	public String getHost() {
 		return host;
+	}
+
+	public URI getUri() {
+		return uri;
 	}
 
 	public String getUsername() {
@@ -245,17 +257,33 @@ public class Pool implements Comparable<Pool> {
 				startPool(manager);
 			} catch (Exception e) {
 				LOGGER.error("Failed to restart the pool {} after a client.reconnect notification.", getName(), e);
+				retryConnect();
 			}
 		} else {
-			LOGGER.warn("Stopping the pool {} after a client.reconnect notification with requested host {} and port {}.", getName(),
-					clientReconnect.getHost(), clientReconnect.getPort());
-			// If a new host and a new port is received, then just stop the
-			// pool. (Disable the reconnect feature to another host since an
-			// attack has been spotted on wafflepool where this kind of
-			// notification where used to redirect miners to a mysterious pool)
-			stopPool();
-
-			retryConnect();
+			// Build the new requested URI.
+			UriBuilder builder = UriBuilder.fromUri("stratum+tcp://" + clientReconnect.getHost());
+			builder.port(clientReconnect.getPort() != null ? clientReconnect.getPort() : Constants.DEFAULT_POOL_PORT);
+			URI newUri = builder.build();
+			// Reject the reconnect request if the reconnect is on a different
+			// host and isRejectReconnect is true
+			if (isRejectReconnect && !uri.getHost().equalsIgnoreCase(newUri.getHost())) {
+				LOGGER.warn(
+						"Stopping the pool {} after a client.reconnect notification with requested host {} and port {} since option --pool-no-reconnect-different-host is true and host is different.",
+						getName(), clientReconnect.getHost(), clientReconnect.getPort());
+				stopPool();
+				retryConnect();
+			} else {
+				// Else reconnect to the new host/port
+				LOGGER.warn("Reconnect the pool {} to the host {} and port {}.", getName(), newUri.getHost(), newUri.getPort());
+				stopPool();
+				host = newUri.getHost() + ":" + newUri.getPort();
+				try {
+					startPool(manager);
+				} catch (Exception e) {
+					LOGGER.error("Failed to restart the pool {} after a client.reconnect notification.", getName(), e);
+					retryConnect();
+				}
+			}
 		}
 	}
 
@@ -492,6 +520,8 @@ public class Pool implements Comparable<Pool> {
 		builder.append(name);
 		builder.append(", host=");
 		builder.append(host);
+		builder.append(", uri=");
+		builder.append(uri);
 		builder.append(", username=");
 		builder.append(username);
 		builder.append(", password=");
@@ -553,6 +583,10 @@ public class Pool implements Comparable<Pool> {
 
 	public void setNoNotifyTimeout(Integer noNotifyTimeout) {
 		this.noNotifyTimeout = noNotifyTimeout;
+	}
+
+	public void setRejectReconnect(Boolean isRejectReconnect) {
+		this.isRejectReconnect = isRejectReconnect;
 	}
 
 	/**

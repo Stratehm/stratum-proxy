@@ -347,7 +347,11 @@ public class ProxyResources {
 		result.setDifficulty(pool.getDifficulty().toString());
 		result.setExtranonce1(pool.getExtranonce1());
 		result.setExtranonce2Size(pool.getExtranonce2Size());
-		result.setHost(pool.getHost());
+		if (pool.getUri() != null) {
+			result.setHost(pool.getUri().toString());
+		} else {
+			result.setHost(pool.getHost());
+		}
 		result.setIsActive(pool.isActive());
 		result.setIsEnabled(pool.isEnabled());
 		result.setIsStable(pool.isStable());
