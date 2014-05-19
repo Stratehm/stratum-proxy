@@ -443,6 +443,7 @@ public class StratumProxyManager {
 							} catch (Exception e) {
 								// If an exception occurs, close the
 								// connection
+								connection.close();
 								onWorkerDisconnection(connection, e);
 							}
 						}
