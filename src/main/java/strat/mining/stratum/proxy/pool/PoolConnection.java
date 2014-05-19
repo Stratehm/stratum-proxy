@@ -23,7 +23,7 @@ import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import strat.mining.stratum.proxy.Launcher;
+import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.json.ClientGetVersionRequest;
 import strat.mining.stratum.proxy.json.ClientGetVersionResponse;
 import strat.mining.stratum.proxy.json.ClientReconnectNotification;
@@ -111,7 +111,7 @@ public class PoolConnection extends StratumConnection {
 		LOGGER.debug("Pool {} reply to GetVersion request.", pool.getName());
 		ClientGetVersionResponse response = new ClientGetVersionResponse();
 		response.setId(request.getId());
-		response.setVersion(Launcher.getVersion());
+		response.setVersion(Constants.VERSION);
 		sendResponse(response);
 	}
 

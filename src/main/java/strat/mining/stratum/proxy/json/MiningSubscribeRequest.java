@@ -21,7 +21,7 @@ package strat.mining.stratum.proxy.json;
 import java.util.ArrayList;
 import java.util.List;
 
-import strat.mining.stratum.proxy.Launcher;
+import strat.mining.stratum.proxy.constant.Constants;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -41,7 +41,7 @@ public class MiningSubscribeRequest extends JsonRpcRequest {
 	@Override
 	public List<Object> getParams() {
 		ArrayList<Object> params = new ArrayList<Object>();
-		params.add("stratum-proxy-" + Launcher.getVersion());
+		params.add(Constants.VERSION);
 		return params;
 	}
 

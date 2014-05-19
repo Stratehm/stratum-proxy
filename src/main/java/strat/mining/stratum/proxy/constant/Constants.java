@@ -18,6 +18,8 @@
  */
 package strat.mining.stratum.proxy.constant;
 
+import strat.mining.stratum.proxy.Launcher;
+
 public class Constants {
 
 	public static final String DEFAULT_USERNAME = "19wv8FQKv3NkwTdzBCQn1AGsb9ghqBPWXi";
@@ -39,5 +41,7 @@ public class Constants {
 	public static final Integer DEFAULT_EXTRANONCE1_TAIL_SIZE = 1;
 
 	public static final String ERROR_MESSAGE_SUBSCRIBE_EXTRANONCE = "Method 'subscribe' not found for service 'mining.extranonce'";
+
+	public static final String VERSION = "stratehm-stratum-proxy-" + Launcher.getVersion();
 
 }

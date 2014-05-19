@@ -27,6 +27,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +51,8 @@ import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
+
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * Manage connections (Pool and Worker) and build some stats.
@@ -70,11 +77,17 @@ public class StratumProxyManager {
 
 	private boolean closeRequested = false;
 
+	private ExecutorService disconnectExecutor;
+	private ExecutorService switchPoolConnectionsExecutor;
+
 	public StratumProxyManager(List<Pool> pools) {
 		this.pools = Collections.synchronizedList(new ArrayList<Pool>(pools));
 		this.workerConnections = Collections.synchronizedList(new ArrayList<WorkerConnection>());
 		this.users = Collections.synchronizedMap(new HashMap<String, User>());
 		this.poolWorkerConnections = Collections.synchronizedMap(new HashMap<Pool, List<WorkerConnection>>());
+		this.disconnectExecutor = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setNameFormat("onWorkerDisconnectThread-%d").build());
+		this.switchPoolConnectionsExecutor = new ThreadPoolExecutor(10, Integer.MAX_VALUE, 10L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(),
+				new ThreadFactoryBuilder().setNameFormat("SwitchPoolConnectionsThread-%d").build());
 	}
 
 	/**
@@ -375,7 +388,7 @@ public class StratumProxyManager {
 		// Launch a thread to remove the connection. Done to avoid a concurrent
 		// modification exception which could happen if the disconnection
 		// happens during a connection list iteration.
-		Thread removeThread = new Thread() {
+		disconnectExecutor.execute(new Runnable() {
 			public void run() {
 				List<WorkerConnection> connections = poolWorkerConnections.get(workerConnection.getPool());
 				if (connections != null) {
@@ -385,8 +398,7 @@ public class StratumProxyManager {
 						connections == null ? 0 : connections.size(), workerConnection.getPool() != null ? workerConnection.getPool().getName()
 								: "None", cause != null ? cause.getMessage() : "Unknown");
 			}
-		};
-		removeThread.start();
+		});
 	}
 
 	/**
@@ -430,7 +442,7 @@ public class StratumProxyManager {
 	 * @param pool
 	 */
 	private void switchPoolConnections(final Pool pool) {
-		Thread moveWorkersThread = new Thread() {
+		switchPoolConnectionsExecutor.execute(new Runnable() {
 			public void run() {
 				LOGGER.info("Switching all connections of pool {}.", pool.getName());
 
@@ -450,8 +462,7 @@ public class StratumProxyManager {
 					}
 				}
 			}
-		};
-		moveWorkersThread.start();
+		});
 	}
 
 	/**

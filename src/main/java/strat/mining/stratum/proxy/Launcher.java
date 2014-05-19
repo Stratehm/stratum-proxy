@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.cli.CommandLineOptions;
+import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.ProxyResources;
@@ -80,7 +81,7 @@ public class Launcher {
 			if (cliParser.isHelpRequested()) {
 				cliParser.printUsage();
 			} else if (cliParser.isVersionRequested()) {
-				String version = "stratum-proxy by Stratehm. GPLv3 Licence. Version " + getVersion();
+				String version = "stratum-proxy by Stratehm. GPLv3 Licence. Version " + Constants.VERSION;
 				System.out.println(version);
 			} else {
 
