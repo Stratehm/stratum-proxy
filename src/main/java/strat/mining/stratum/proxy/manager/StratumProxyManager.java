@@ -49,6 +49,8 @@ import strat.mining.stratum.proxy.json.MiningSetExtranonceNotification;
 import strat.mining.stratum.proxy.json.MiningSubmitRequest;
 import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
+import strat.mining.stratum.proxy.model.Share;
+import strat.mining.stratum.proxy.model.User;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
 
@@ -204,6 +206,7 @@ public class StratumProxyManager {
 			poolWorkerConnections.put(pool, workerConnections);
 		}
 		workerConnections.add(connection);
+		this.workerConnections.add(connection);
 		LOGGER.info("New WorkerConnection {} subscribed. {} connections active on pool {}.", connection.getConnectionName(),
 				workerConnections.size(), pool.getName());
 
@@ -220,9 +223,11 @@ public class StratumProxyManager {
 		boolean isAuthorized = true;
 		User user = users.get(request.getUsername());
 		if (user == null) {
-			user = new User();
+			user = new User(request.getUsername());
 			users.put(request.getUsername(), user);
 		}
+		user.addConnection(connection);
+
 		return isAuthorized;
 	}
 
@@ -245,13 +250,14 @@ public class StratumProxyManager {
 
 				workerConnection.getPool().submitShare(poolRequest, new ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>() {
 					public void onResponseReceived(MiningSubmitRequest request, MiningSubmitResponse response) {
+						updateShareLists(workerRequest, response, workerConnection);
 						workerConnection.onPoolSubmitResponse(workerRequest, response);
 					}
 				});
 
 			}
 		} else {
-			LOGGER.warn("Share submit from {}@{} dropped since pool {} is inactive.", workerRequest.getWorkerName(),
+			LOGGER.warn("REJECTED share. Share submit from {}@{} dropped since pool {} is inactive.", workerRequest.getWorkerName(),
 					workerConnection.getConnectionName(), workerConnection.getPool());
 
 			// Notify the worker that the target pool is no more active
@@ -260,9 +266,35 @@ public class StratumProxyManager {
 			fakePoolResponse.setIsAccepted(false);
 			JsonRpcError error = new JsonRpcError();
 			error.setCode(JsonRpcError.ErrorCode.UNKNOWN.getCode());
-			error.setMessage("The traget pool is no more active.");
+			error.setMessage("The target pool is no more active.");
 			fakePoolResponse.setErrorRpc(error);
 			workerConnection.onPoolSubmitResponse(workerRequest, fakePoolResponse);
+		}
+	}
+
+	/**
+	 * Update the share lists of all pools, users and worker connections.
+	 * 
+	 * @param request
+	 * @param response
+	 * @param workerConnection
+	 */
+	private void updateShareLists(MiningSubmitRequest request, MiningSubmitResponse response, WorkerConnection workerConnection) {
+		if (workerConnection.getPool() != null) {
+			Share share = new Share();
+			share.setDifficulty(workerConnection.getPool().getDifficulty());
+			share.setTime(System.currentTimeMillis());
+
+			boolean isAccepted = response.getIsAccepted() != null && response.getIsAccepted();
+
+			workerConnection.updateShareLists(share, isAccepted);
+
+			workerConnection.getPool().updateShareLists(share, isAccepted);
+
+			User user = users.get(request.getWorkerName());
+			if (user != null) {
+				user.updateShareLists(share, isAccepted);
+			}
 		}
 	}
 
@@ -604,4 +636,31 @@ public class StratumProxyManager {
 		return connections == null ? 0 : connections.size();
 	}
 
+	/**
+	 * Return a list of all worker connections.
+	 * 
+	 * @return
+	 */
+	public List<WorkerConnection> getWorkerConnections() {
+		List<WorkerConnection> result = new ArrayList<>(workerConnections.size());
+		synchronized (workerConnections) {
+			if (workerConnections != null) {
+				result.addAll(workerConnections);
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Return all authorized users.
+	 * 
+	 * @return
+	 */
+	public List<User> getUsers() {
+		List<User> result = new ArrayList<>(users.size());
+		synchronized (users) {
+			result.addAll(users.values());
+		}
+		return result;
+	}
 }

@@ -1,4 +1,4 @@
-package strat.mining.stratum.proxy.hashrate;
+package strat.mining.stratum.proxy.utils;
 
 import java.util.Deque;
 

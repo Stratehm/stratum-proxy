@@ -16,18 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with multipool-stats-backend. If not, see <http://www.gnu.org/licenses/>.
  */
-package strat.mining.stratum.proxy.manager;
+package strat.mining.stratum.proxy.rest.dto;
 
-/**
- * Represent a user of this proxy
- * 
- * @author Strat
- * 
- */
-public class User {
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-	public User() {
-		// TODO Auto-generated constructor stub
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class PoolNameDTO {
+
+	private String poolName;
+
+	public String getPoolName() {
+		return poolName;
+	}
+
+	public void setPoolName(String poolName) {
+		this.poolName = poolName;
 	}
 
 }

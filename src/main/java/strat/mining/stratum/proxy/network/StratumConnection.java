@@ -447,4 +447,13 @@ public abstract class StratumConnection {
 	public String getConnectionName() {
 		return socket != null ? socket.getRemoteSocketAddress().toString() : "Undefined";
 	}
+
+	/**
+	 * Return true if the connection is established.
+	 * 
+	 * @return
+	 */
+	public boolean isConnected() {
+		return !socket.isClosed() && socket.isConnected();
+	}
 }

@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
-import strat.mining.stratum.proxy.hashrate.HashrateUtils;
 import strat.mining.stratum.proxy.json.ClientReconnectNotification;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
@@ -54,6 +53,7 @@ import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.json.MiningSubscribeResponse;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.model.Share;
+import strat.mining.stratum.proxy.utils.HashrateUtils;
 
 import com.google.common.util.concurrent.AtomicDouble;
 
@@ -362,35 +362,23 @@ public class Pool implements Comparable<Pool> {
 	}
 
 	public void processSubmitResponse(MiningSubmitRequest request, MiningSubmitResponse response) {
-		if (response.getIsAccepted() != null) {
-			if (response.getIsAccepted()) {
-				acceptedDifficulty.addAndGet(getDifficulty());
-			} else {
-				rejectedDifficulty.addAndGet(getDifficulty());
-			}
-
-			updateShareLists(request, response);
-		}
 		ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse> callback = submitCallbacks.remove(response.getId());
 		callback.onResponseReceived(request, response);
 	}
 
 	/**
-	 * Update the share lists to calculate hash rates.
+	 * Update the share lists with the given share. Used to compute the pool
+	 * hashrate.
 	 * 
-	 * @param request
-	 * @param response
+	 * @param share
+	 * @param isAccepted
 	 */
-	private void updateShareLists(MiningSubmitRequest request, MiningSubmitResponse response) {
-		Share share = new Share();
-		share.setDifficulty(getDifficulty());
-		share.setTime(System.currentTimeMillis());
-
-		if (response.getIsAccepted()) {
-			// Add the new share
+	public void updateShareLists(Share share, boolean isAccepted) {
+		if (isAccepted) {
+			acceptedDifficulty.addAndGet(getDifficulty());
 			lastAcceptedShares.add(share);
 		} else {
-			// Add the new share
+			rejectedDifficulty.addAndGet(getDifficulty());
 			lastRejectedShares.add(share);
 		}
 
@@ -406,7 +394,6 @@ public class Pool implements Comparable<Pool> {
 	private void purgeShareLists() {
 		HashrateUtils.purgeShareList(lastAcceptedShares, samplingHashratePeriod);
 		HashrateUtils.purgeShareList(lastRejectedShares, samplingHashratePeriod);
-
 	}
 
 	/**

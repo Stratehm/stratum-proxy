@@ -24,10 +24,8 @@ import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
@@ -40,16 +38,22 @@ import strat.mining.stratum.proxy.Launcher;
 import strat.mining.stratum.proxy.exception.BadParameterException;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
+import strat.mining.stratum.proxy.model.User;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.dto.ChangePriorityDTO;
-import strat.mining.stratum.proxy.rest.dto.LogLevel;
+import strat.mining.stratum.proxy.rest.dto.LogLevelDTO;
 import strat.mining.stratum.proxy.rest.dto.PoolDetailsDTO;
-import strat.mining.stratum.proxy.rest.dto.PoolName;
+import strat.mining.stratum.proxy.rest.dto.PoolNameDTO;
+import strat.mining.stratum.proxy.rest.dto.UserDetailsDTO;
+import strat.mining.stratum.proxy.rest.dto.WorkerConnectionDTO;
+import strat.mining.stratum.proxy.worker.WorkerConnection;
 
 @Path("proxy")
 @Produces("application/json")
 @Consumes("application/json")
 public class ProxyResources {
+
+	private static final String API_DATE_FORMAT = "dd-MM-yy HH:mm:ss Z";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProxyResources.class);
 
@@ -62,12 +66,18 @@ public class ProxyResources {
 	 */
 	@GET
 	@Path("user/list")
-	public Response getUsersList(@HeaderParam("user-agent") String userAgent, @PathParam("exchangePlace") String exchangePlace,
-			@PathParam("currencyCode") String currencyCode) {
+	public Response getUsersList() {
 
-		Response response = null;
+		List<User> users = stratumProxyManager.getUsers();
 
-		response = Response.status(Response.Status.NOT_IMPLEMENTED).entity("Not implemented").build();
+		List<UserDetailsDTO> result = new ArrayList<>();
+		if (users != null) {
+			for (User user : users) {
+				result.add(convertUserToDTO(user));
+			}
+		}
+
+		Response response = Response.status(Response.Status.OK).entity(result).build();
 
 		return response;
 	}
@@ -129,9 +139,16 @@ public class ProxyResources {
 	@Path("connection/list")
 	public Response getConnectionsList() {
 
-		Response response = null;
+		List<WorkerConnection> workerConnections = stratumProxyManager.getWorkerConnections();
 
-		response = Response.status(Response.Status.NOT_IMPLEMENTED).entity("Not implemented").build();
+		List<WorkerConnectionDTO> result = new ArrayList<>();
+		if (workerConnections != null) {
+			for (WorkerConnection connection : workerConnections) {
+				result.add(convertWorkerConnectionToDTO(connection));
+			}
+		}
+
+		Response response = Response.status(Response.Status.OK).entity(result).build();
 
 		return response;
 	}
@@ -229,7 +246,7 @@ public class ProxyResources {
 	 */
 	@POST
 	@Path("pool/disable")
-	public Response disablePool(PoolName poolName) {
+	public Response disablePool(PoolNameDTO poolName) {
 
 		Response response = null;
 
@@ -253,7 +270,7 @@ public class ProxyResources {
 	 */
 	@POST
 	@Path("pool/enable")
-	public Response enablePool(PoolName poolName) {
+	public Response enablePool(PoolNameDTO poolName) {
 
 		Response response = null;
 
@@ -295,7 +312,7 @@ public class ProxyResources {
 
 	@POST
 	@Path("log/level")
-	public Response changeLogLevel(LogLevel logLevel) {
+	public Response changeLogLevel(LogLevelDTO logLevel) {
 		Response response = null;
 
 		try {
@@ -341,7 +358,7 @@ public class ProxyResources {
 	}
 
 	private PoolDetailsDTO convertPoolToDTO(Pool pool) {
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yy HH:mm:ss Z");
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(API_DATE_FORMAT);
 		PoolDetailsDTO result = new PoolDetailsDTO();
 
 		result.setDifficulty(pool.getDifficulty().toString());
@@ -367,6 +384,36 @@ public class ProxyResources {
 		result.setIsExtranonceSubscribeEnabled(pool.isExtranonceSubscribeEnabled());
 		result.setAcceptedHashesPerSeconds(Double.valueOf(pool.getAcceptedHashesPerSeconds()).longValue());
 		result.setRejectedHashesPerSeconds(Double.valueOf(pool.getRejectedHashesPerSeconds()).longValue());
+
+		return result;
+	}
+
+	private WorkerConnectionDTO convertWorkerConnectionToDTO(WorkerConnection connection) {
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(API_DATE_FORMAT);
+		WorkerConnectionDTO result = new WorkerConnectionDTO();
+		result.setAuthorizedUsers(new ArrayList<>(connection.getAuthorizedWorkers()));
+		result.setIsActiveSince(simpleDateFormat.format(connection.getActiveSince()));
+		result.setRemoteHost(connection.getConnectionName());
+		result.setAcceptedHashesPerSeconds(Double.valueOf(connection.getAcceptedHashrate()).longValue());
+		result.setRejectedHashesPerSeconds(Double.valueOf(connection.getRejectedHashrate()).longValue());
+
+		return result;
+	}
+
+	private UserDetailsDTO convertUserToDTO(User user) {
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(API_DATE_FORMAT);
+		UserDetailsDTO result = new UserDetailsDTO();
+		result.setName(user.getName());
+		result.setCreationDate(simpleDateFormat.format(user.getCreationTime()));
+		result.setLastShareSubmitted(user.getLastShareSubmitted() != null ? simpleDateFormat.format(user.getLastShareSubmitted()) : null);
+		result.setAcceptedHashesPerSeconds(Double.valueOf(user.getAcceptedHashrate()).longValue());
+		result.setRejectedHashesPerSeconds(Double.valueOf(user.getRejectedHashrate()).longValue());
+
+		List<WorkerConnectionDTO> connections = new ArrayList<>(user.getWorkerConnections().size());
+		for (WorkerConnection connection : user.getWorkerConnections()) {
+			connections.add(convertWorkerConnectionToDTO(connection));
+		}
+		result.setConnections(connections);
 
 		return result;
 	}

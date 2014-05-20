@@ -21,11 +21,14 @@ package strat.mining.stratum.proxy.worker;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +53,10 @@ import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.json.MiningSubscribeResponse;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
+import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.network.StratumConnection;
 import strat.mining.stratum.proxy.pool.Pool;
+import strat.mining.stratum.proxy.utils.HashrateUtils;
 
 public class WorkerConnection extends StratumConnection {
 
@@ -64,6 +69,8 @@ public class WorkerConnection extends StratumConnection {
 	private Timer subscribeTimeoutTimer;
 	private Integer subscribeReceiveTimeout = Constants.DEFAULT_SUBSCRIBE_RECEIVE_TIMEOUT;
 
+	private Date isActiveSince;
+
 	// The tail is the salt which is added to extranonce1 and which is unique by
 	// connection.
 	private String extranonce1Tail;
@@ -73,10 +80,16 @@ public class WorkerConnection extends StratumConnection {
 
 	private boolean isSetExtranonceNotificationSupported = false;
 
+	private Deque<Share> lastAcceptedShares;
+	private Deque<Share> lastRejectedShares;
+	private Integer samplingHashesPeriod = Constants.DEFAULT_WORKER_CONNECTION_HASHRATE_SAMPLING_PERIOD * 1000;
+
 	public WorkerConnection(Socket socket, StratumProxyManager manager) {
 		super(socket);
 		this.manager = manager;
 		this.authorizedWorkers = Collections.synchronizedSet(new HashSet<String>());
+		lastAcceptedShares = new ConcurrentLinkedDeque<Share>();
+		lastRejectedShares = new ConcurrentLinkedDeque<Share>();
 	}
 
 	@Override
@@ -181,6 +194,7 @@ public class WorkerConnection extends StratumConnection {
 			response.setExtranonce1(pool.getExtranonce1() + extranonce1Tail);
 			response.setExtranonce2Size(extranonce2Size);
 			response.setSubscriptionDetails(getSubscibtionDetails());
+			isActiveSince = new Date();
 		}
 
 		sendResponse(response);
@@ -381,6 +395,59 @@ public class WorkerConnection extends StratumConnection {
 		if (pool != null) {
 			pool.releaseTail(extranonce1Tail);
 		}
+	}
+
+	/**
+	 * Return a read-only set of users that are authorized on this connection.
+	 * 
+	 * @return
+	 */
+	public Set<String> getAuthorizedWorkers() {
+		return Collections.unmodifiableSet(authorizedWorkers);
+	}
+
+	/**
+	 * Return the of accepted hashes per seconds of the user.
+	 * 
+	 * @return
+	 */
+	public double getAcceptedHashrate() {
+		HashrateUtils.purgeShareList(lastAcceptedShares, samplingHashesPeriod);
+		return HashrateUtils.getHashrateFromShareList(lastAcceptedShares, samplingHashesPeriod);
+	}
+
+	/**
+	 * Return the number of rejected hashes per seconds of the user.
+	 * 
+	 * @return
+	 */
+	public double getRejectedHashrate() {
+		HashrateUtils.purgeShareList(lastRejectedShares, samplingHashesPeriod);
+		return HashrateUtils.getHashrateFromShareList(lastRejectedShares, samplingHashesPeriod);
+	}
+
+	/**
+	 * Update the shares lists with the given share to compute hashrate
+	 * 
+	 * @param share
+	 * @param isAccepted
+	 */
+	public void updateShareLists(Share share, boolean isAccepted) {
+		if (isAccepted) {
+			lastAcceptedShares.addLast(share);
+			HashrateUtils.purgeShareList(lastAcceptedShares, samplingHashesPeriod);
+		} else {
+			lastRejectedShares.addLast(share);
+			HashrateUtils.purgeShareList(lastRejectedShares, samplingHashesPeriod);
+		}
+	}
+
+	public void setSamplingHashesPeriod(Integer samplingHashesPeriod) {
+		this.samplingHashesPeriod = samplingHashesPeriod * 1000;
+	}
+
+	public Date getActiveSince() {
+		return isActiveSince;
 	}
 
 }

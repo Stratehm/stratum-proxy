@@ -34,6 +34,10 @@ public class Constants {
 	public static final Integer DEFAULT_NOTIFY_NOTIFICATION_TIMEOUT = 120;
 	public static final Integer DEFAULT_POOL_HASHRATE_SAMPLING_PERIOD = 300;
 
+	public static final Integer DEFAULT_USER_HASHRATE_SAMPLING_PERIOD = 300;
+
+	public static final Integer DEFAULT_WORKER_CONNECTION_HASHRATE_SAMPLING_PERIOD = 300;
+
 	// In milli seconds. The time to wait the subscribe request before closing
 	// the connection.
 	public static final Integer DEFAULT_SUBSCRIBE_RECEIVE_TIMEOUT = 10000;
