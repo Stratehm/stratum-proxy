@@ -426,6 +426,7 @@ public class StratumProxyManager {
 				if (connections != null) {
 					connections.remove(workerConnection);
 				}
+				StratumProxyManager.this.workerConnections.remove(workerConnection);
 				LOGGER.info("Worker connection {} closed. {} connections active on pool {}. Cause: {}", workerConnection.getConnectionName(),
 						connections == null ? 0 : connections.size(), workerConnection.getPool() != null ? workerConnection.getPool().getName()
 								: "None", cause != null ? cause.getMessage() : "Unknown");
