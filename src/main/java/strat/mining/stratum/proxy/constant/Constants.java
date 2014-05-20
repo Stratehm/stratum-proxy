@@ -32,6 +32,7 @@ public class Constants {
 	public static final Integer DEFAULT_POOL_CONNECTION_RETRY_DELAY = 5;
 	public static final Integer DEFAULT_POOL_RECONNECTION_STABILITY_PERIOD = 5;
 	public static final Integer DEFAULT_NOTIFY_NOTIFICATION_TIMEOUT = 120;
+	public static final Integer DEFAULT_POOL_HASHRATE_SAMPLING_PERIOD = 300;
 
 	// In milli seconds. The time to wait the subscribe request before closing
 	// the connection.
@@ -43,5 +44,7 @@ public class Constants {
 	public static final String ERROR_MESSAGE_SUBSCRIBE_EXTRANONCE = "Method 'subscribe' not found for service 'mining.extranonce'";
 
 	public static final String VERSION = "stratehm-stratum-proxy-" + Launcher.getVersion();
+
+	public static double AVERAGE_NUMBER_OF_HASHES_PER_SHARE_AT_DIFFICULTY_ONE = Math.pow(2, 32);
 
 }

@@ -365,6 +365,8 @@ public class ProxyResources {
 		result.setIsActiveSince(simpleDateFormat.format(pool.getActiveSince()));
 		result.setRejectedDifficulty(pool.getRejectedDifficulty());
 		result.setIsExtranonceSubscribeEnabled(pool.isExtranonceSubscribeEnabled());
+		result.setAcceptedHashesPerSeconds(Double.valueOf(pool.getAcceptedHashesPerSeconds()).longValue());
+		result.setRejectedHashesPerSeconds(Double.valueOf(pool.getRejectedHashesPerSeconds()).longValue());
 
 		return result;
 	}

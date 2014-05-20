@@ -46,6 +46,9 @@ public class PoolDetailsDTO {
 
 	private Boolean isExtranonceSubscribeEnabled;
 
+	private Long acceptedHashesPerSeconds;
+	private Long rejectedHashesPerSeconds;
+
 	public String getName() {
 		return name;
 	}
@@ -180,6 +183,22 @@ public class PoolDetailsDTO {
 
 	public void setIsExtranonceSubscribeEnabled(Boolean isExtranonceSubscribeEnabled) {
 		this.isExtranonceSubscribeEnabled = isExtranonceSubscribeEnabled;
+	}
+
+	public Long getAcceptedHashesPerSeconds() {
+		return acceptedHashesPerSeconds;
+	}
+
+	public void setAcceptedHashesPerSeconds(Long acceptedHashesPerSeconds) {
+		this.acceptedHashesPerSeconds = acceptedHashesPerSeconds;
+	}
+
+	public Long getRejectedHashesPerSeconds() {
+		return rejectedHashesPerSeconds;
+	}
+
+	public void setRejectedHashesPerSeconds(Long rejectedHashesPerSeconds) {
+		this.rejectedHashesPerSeconds = rejectedHashesPerSeconds;
 	}
 
 }

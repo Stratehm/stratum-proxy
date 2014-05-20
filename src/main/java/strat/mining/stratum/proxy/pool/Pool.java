@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
+import strat.mining.stratum.proxy.hashrate.HashrateUtils;
 import strat.mining.stratum.proxy.json.ClientReconnectNotification;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
@@ -98,6 +99,9 @@ public class Pool implements Comparable<Pool> {
 	private AtomicDouble rejectedDifficulty;
 
 	private Deque<Share> lastAcceptedShares;
+	private Deque<Share> lastRejectedShares;
+	// Time of sampling shares to calculate hash rate
+	private Integer samplingHashratePeriod = Constants.DEFAULT_POOL_HASHRATE_SAMPLING_PERIOD * 1000;
 
 	private Integer connectionRetryDelay = Constants.DEFAULT_POOL_CONNECTION_RETRY_DELAY;
 	private Integer reconnectStabilityPeriod = Constants.DEFAULT_POOL_RECONNECTION_STABILITY_PERIOD;
@@ -124,6 +128,7 @@ public class Pool implements Comparable<Pool> {
 		this.tails = buildTails();
 		this.submitCallbacks = Collections.synchronizedMap(new HashMap<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>>());
 		this.lastAcceptedShares = new ConcurrentLinkedDeque<Share>();
+		this.lastRejectedShares = new ConcurrentLinkedDeque<Share>();
 	}
 
 	public void startPool(StratumProxyManager manager) throws Exception {
@@ -357,37 +362,51 @@ public class Pool implements Comparable<Pool> {
 	}
 
 	public void processSubmitResponse(MiningSubmitRequest request, MiningSubmitResponse response) {
-		if (response.getIsAccepted() != null && response.getIsAccepted()) {
-			acceptedDifficulty.addAndGet(getDifficulty());
-			updateAcceptedShares(request, response);
-		} else {
-			rejectedDifficulty.addAndGet(getDifficulty());
+		if (response.getIsAccepted() != null) {
+			if (response.getIsAccepted()) {
+				acceptedDifficulty.addAndGet(getDifficulty());
+			} else {
+				rejectedDifficulty.addAndGet(getDifficulty());
+			}
+
+			updateShareLists(request, response);
 		}
 		ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse> callback = submitCallbacks.remove(response.getId());
 		callback.onResponseReceived(request, response);
 	}
 
-	private void updateAcceptedShares(MiningSubmitRequest request, MiningSubmitResponse response) {
+	/**
+	 * Update the share lists to calculate hash rates.
+	 * 
+	 * @param request
+	 * @param response
+	 */
+	private void updateShareLists(MiningSubmitRequest request, MiningSubmitResponse response) {
 		Share share = new Share();
 		share.setDifficulty(getDifficulty());
 		share.setTime(System.currentTimeMillis());
-		// Add the new share
-		lastAcceptedShares.add(share);
 
-		// Then purge old shares.
-		boolean isDelayReached = false;
-		Share oldShare = lastAcceptedShares.peekFirst();
-		while (!isDelayReached && oldShare != null) {
-			// If the first share is too old, remove it.
-			if (oldShare.getTime() + 300000 < share.getTime()) {
-				lastAcceptedShares.pollFirst();
-			} else {
-				// Else the first share has not been removed, so stop the loop.
-				isDelayReached = true;
-			}
-
-			oldShare = lastAcceptedShares.peekFirst();
+		if (response.getIsAccepted()) {
+			// Add the new share
+			lastAcceptedShares.add(share);
+		} else {
+			// Add the new share
+			lastRejectedShares.add(share);
 		}
+
+		purgeShareLists();
+	}
+
+	/**
+	 * Purge all share lists from the old shares.
+	 * 
+	 * @param shareList
+	 * @param share
+	 */
+	private void purgeShareLists() {
+		HashrateUtils.purgeShareList(lastAcceptedShares, samplingHashratePeriod);
+		HashrateUtils.purgeShareList(lastRejectedShares, samplingHashratePeriod);
+
 	}
 
 	/**
@@ -589,6 +608,11 @@ public class Pool implements Comparable<Pool> {
 		this.isRejectReconnect = isRejectReconnect;
 	}
 
+	public void setSamplingHashratePeriod(Integer samplingHashratePeriod) {
+		this.samplingHashratePeriod = samplingHashratePeriod * 1000;
+		purgeShareLists();
+	}
+
 	/**
 	 * Reset the notify timeoutTimer
 	 */
@@ -665,4 +689,13 @@ public class Pool implements Comparable<Pool> {
 			notifyTimeoutTimer = null;
 		}
 	}
+
+	public double getAcceptedHashesPerSeconds() {
+		return HashrateUtils.getHashrateFromShareList(lastAcceptedShares, samplingHashratePeriod);
+	}
+
+	public double getRejectedHashesPerSeconds() {
+		return HashrateUtils.getHashrateFromShareList(lastRejectedShares, samplingHashratePeriod);
+	}
+
 }

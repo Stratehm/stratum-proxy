@@ -97,6 +97,9 @@ public class CommandLineOptions {
 	@Option(name = "--pool-no-reconnect-different-host", usage = "Do not accept client.reconnect if connection on a different host is requested. Still accept reconnection on another port on the same host. If not set, accept all reconnection requests.", handler = BooleanOptionHandler.class)
 	private boolean isRejectReconnect;
 
+	@Option(name = "--pool-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate on pools. (300 seconds by default)")
+	private Integer poolHashrateSamplingPeriod = Constants.DEFAULT_POOL_HASHRATE_SAMPLING_PERIOD;
+
 	private List<Pool> pools;
 
 	public CommandLineOptions() {
@@ -147,6 +150,7 @@ public class CommandLineOptions {
 					pool.setReconnectStabilityPeriod(poolReconnectStabilityPeriod);
 					pool.setNoNotifyTimeout(poolNoNotifyTimeout);
 					pool.setRejectReconnect(isRejectReconnect);
+					pool.setSamplingHashratePeriod(poolHashrateSamplingPeriod);
 					pools.add(pool);
 
 					index++;
