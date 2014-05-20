@@ -189,7 +189,7 @@ public class Launcher {
 	 */
 	public static String getVersion() {
 		if (version == null) {
-			version = "Unknown";
+			version = "Dev";
 
 			Class<Launcher> clazz = Launcher.class;
 			String className = clazz.getSimpleName() + ".class";
