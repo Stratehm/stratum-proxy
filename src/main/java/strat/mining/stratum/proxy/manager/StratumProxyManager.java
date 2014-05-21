@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
+import strat.mining.stratum.proxy.cli.CommandLineOptions;
 import strat.mining.stratum.proxy.exception.BadParameterException;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
@@ -146,6 +147,7 @@ public class StratumProxyManager {
 						LOGGER.info("New connection on {} from {}.", serverSocket.getLocalSocketAddress(),
 								incomingConnectionSocket.getRemoteSocketAddress());
 						WorkerConnection workerConnection = new WorkerConnection(incomingConnectionSocket, StratumProxyManager.this);
+						workerConnection.setSamplingHashesPeriod(CommandLineOptions.getInstance().getConnectionHashrateSamplingPeriod());
 						workerConnection.startReading();
 					} catch (Exception e) {
 						// Do not log the error if a close has been requested
@@ -224,6 +226,7 @@ public class StratumProxyManager {
 		User user = users.get(request.getUsername());
 		if (user == null) {
 			user = new User(request.getUsername());
+			user.setSamplingHashesPeriod(CommandLineOptions.getInstance().getUserHashrateSamplingPeriod());
 			users.put(request.getUsername(), user);
 		}
 		user.addConnection(connection);
@@ -664,4 +667,5 @@ public class StratumProxyManager {
 		}
 		return result;
 	}
+
 }

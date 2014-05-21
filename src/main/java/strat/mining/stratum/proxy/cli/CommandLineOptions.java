@@ -41,6 +41,8 @@ import strat.mining.stratum.proxy.pool.Pool;
  */
 public class CommandLineOptions {
 
+	private static CommandLineOptions instance = new CommandLineOptions();
+
 	private CmdLineParser parser;
 
 	@Option(name = "-n", aliases = { "--pool-names" }, usage = "Names of the pools. Space separated. (Default to host)", handler = StringArrayOptionHandler.class, metaVar = "name1 [name2] [name3]...")
@@ -97,12 +99,25 @@ public class CommandLineOptions {
 	@Option(name = "--pool-no-reconnect-different-host", usage = "Do not accept client.reconnect if connection on a different host is requested. Still accept reconnection on another port on the same host. If not set, accept all reconnection requests.", handler = BooleanOptionHandler.class)
 	private boolean isRejectReconnect;
 
-	@Option(name = "--pool-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate on pools. (300 seconds by default)")
+	@Option(name = "--pool-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate on pools. (600 seconds by default)")
 	private Integer poolHashrateSamplingPeriod = Constants.DEFAULT_POOL_HASHRATE_SAMPLING_PERIOD;
+
+	@Option(name = "--user-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate for connected users. (600 seconds by default)")
+	private Integer userHashrateSamplingPeriod = Constants.DEFAULT_USER_HASHRATE_SAMPLING_PERIOD;
+
+	@Option(name = "--connection-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate on workers conections. (600 seconds by default)")
+	private Integer connectionHashrateSamplingPeriod = Constants.DEFAULT_WORKER_CONNECTION_HASHRATE_SAMPLING_PERIOD;
 
 	private List<Pool> pools;
 
-	public CommandLineOptions() {
+	public static CommandLineOptions getInstance() {
+		if (instance == null) {
+			instance = new CommandLineOptions();
+		}
+		return instance;
+	}
+
+	private CommandLineOptions() {
 		parser = new CmdLineParser(this);
 	}
 
@@ -211,6 +226,14 @@ public class CommandLineOptions {
 
 	public boolean isRejectReconnect() {
 		return isRejectReconnect;
+	}
+
+	public Integer getUserHashrateSamplingPeriod() {
+		return userHashrateSamplingPeriod;
+	}
+
+	public Integer getConnectionHashrateSamplingPeriod() {
+		return connectionHashrateSamplingPeriod;
 	}
 
 }

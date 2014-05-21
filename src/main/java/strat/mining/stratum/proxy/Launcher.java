@@ -74,7 +74,7 @@ public class Launcher {
 			}
 		});
 
-		CommandLineOptions cliParser = new CommandLineOptions();
+		CommandLineOptions cliParser = CommandLineOptions.getInstance();
 		try {
 			cliParser.parseArguments(args);
 
