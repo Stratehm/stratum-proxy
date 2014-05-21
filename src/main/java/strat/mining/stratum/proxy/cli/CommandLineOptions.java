@@ -52,13 +52,13 @@ public class CommandLineOptions {
 	@Option(name = "-n", aliases = { "--pool-names" }, usage = "Names of the pools. Space separated. (Default to host)", handler = StringArrayOptionHandler.class, metaVar = "name1 [name2] [name3]...")
 	private List<String> poolNames;
 
-	@Option(name = "-h", aliases = { "--pool-hosts" }, usage = "Hosts of the stratum servers (only the host, not the protocol), space separated", handler = StringArrayOptionHandler.class, metaVar = "host1 [host2] [host3]...")
+	@Option(name = "-h", aliases = { "--pool-hosts" }, usage = "Hosts of the stratum servers (only the host, not the protocol since only stratum+tcp is supported), space separated. If at least one pool is specified, -u and -p has to be specified too.", handler = StringArrayOptionHandler.class, metaVar = "host1 [host2] [host3]...")
 	private List<String> poolHosts;
 
-	@Option(name = "-u", aliases = { "--pool-users" }, usage = "User names used to connect to the servers (unknown by default), space separated", handler = StringArrayOptionHandler.class, metaVar = "user1 [user2] [user3]...")
+	@Option(name = "-u", aliases = { "--pool-users" }, usage = "User names used to connect to the servers, space separated. If there are more pools than users, the last user will be used for reamining pools.", handler = StringArrayOptionHandler.class, metaVar = "user1 [user2] [user3]...")
 	private List<String> poolUsers;
 
-	@Option(name = "-p", aliases = { "--pool-passwords" }, usage = "Passwords used for the users (x by default), space separated", handler = StringArrayOptionHandler.class, metaVar = "pass1 [pass2] [pass3]...")
+	@Option(name = "-p", aliases = { "--pool-passwords" }, usage = "Passwords used for the users, space separated. If there are more pools than passwords, the last password will be used for reamining pools.", handler = StringArrayOptionHandler.class, metaVar = "pass1 [pass2] [pass3]...")
 	private List<String> poolPasswords;
 
 	@Option(name = "--set-extranonce-subscribe", usage = "Enable/Disable the extranonce subscribe request on pool (default to true), space separated.", handler = BooleanArrayOptionHandler.class, metaVar = "boolean1 [boolean2] [boolean3]...")
@@ -133,53 +133,62 @@ public class CommandLineOptions {
 	 * Return the list of pools given through the command line at startup
 	 * 
 	 * @return
+	 * @throws CmdLineException
 	 */
-	public List<Pool> getPools() {
+	public List<Pool> getPools() throws CmdLineException {
 		if (pools == null) {
 			pools = new ArrayList<Pool>();
 			if (poolHosts != null) {
 				int index = 0;
-				for (String poolHost : poolHosts) {
-					String poolName = poolHost;
-					String username = Constants.DEFAULT_USERNAME;
-					String password = Constants.DEFAULT_PASSWORD;
-					Boolean isExtranonceSubscribe = Boolean.TRUE;
 
-					if (poolNames != null && poolNames.size() > index) {
-						poolName = poolNames.get(index);
+				if (poolHosts.size() > 0 && poolUsers != null && poolUsers.size() > 0 && poolPasswords != null && poolPasswords.size() > 0) {
+
+					for (String poolHost : poolHosts) {
+						String poolName = poolHost;
+						String username = Constants.DEFAULT_USERNAME;
+						String password = Constants.DEFAULT_PASSWORD;
+						Boolean isExtranonceSubscribe = Boolean.TRUE;
+
+						if (poolNames != null && poolNames.size() > index) {
+							poolName = poolNames.get(index);
+						}
+
+						if (poolUsers != null && poolUsers.size() > index) {
+							username = poolUsers.get(index);
+						} else {
+							username = poolUsers.get(poolUsers.size() - 1);
+							getLogger().warn("No user defined for pool {}. Using {}.", poolName, username);
+						}
+
+						if (poolPasswords != null && poolPasswords.size() > index) {
+							password = poolPasswords.get(index);
+						} else {
+							password = poolPasswords.get(poolPasswords.size() - 1);
+							getLogger().warn("No password defined for pool {}. Using {}.", poolName, password);
+						}
+
+						if (isExtranonceSubscribeEnabled != null && isExtranonceSubscribeEnabled.size() > index) {
+							isExtranonceSubscribe = isExtranonceSubscribeEnabled.get(index);
+						}
+
+						Pool pool = new Pool(poolName, poolHost, username, password);
+						pool.setExtranonceSubscribeEnabled(isExtranonceSubscribe);
+						pool.setNumberOfSubmit(numberOfSubmit);
+						pool.setPriority(index);
+						pool.setConnectionRetryDelay(poolConnectionRetryDelay);
+						pool.setReconnectStabilityPeriod(poolReconnectStabilityPeriod);
+						pool.setNoNotifyTimeout(poolNoNotifyTimeout);
+						pool.setRejectReconnect(isRejectReconnect);
+						pool.setSamplingHashratePeriod(poolHashrateSamplingPeriod);
+						pools.add(pool);
+
+						index++;
 					}
-
-					if (poolUsers != null && poolUsers.size() > index) {
-						username = poolUsers.get(index);
-					} else {
-						username = poolUsers.get(poolUsers.size() - 1);
-						getLogger().warn("No user defined for pool {}. Using {}.", poolName, username);
-					}
-
-					if (poolPasswords != null && poolPasswords.size() > index) {
-						password = poolPasswords.get(index);
-					} else {
-						password = poolPasswords.get(poolPasswords.size() - 1);
-						getLogger().warn("No password defined for pool {}. Using {}.", poolName, password);
-					}
-
-					if (isExtranonceSubscribeEnabled != null && isExtranonceSubscribeEnabled.size() > index) {
-						isExtranonceSubscribe = isExtranonceSubscribeEnabled.get(index);
-					}
-
-					Pool pool = new Pool(poolName, poolHost, username, password);
-					pool.setExtranonceSubscribeEnabled(isExtranonceSubscribe);
-					pool.setNumberOfSubmit(numberOfSubmit);
-					pool.setPriority(index);
-					pool.setConnectionRetryDelay(poolConnectionRetryDelay);
-					pool.setReconnectStabilityPeriod(poolReconnectStabilityPeriod);
-					pool.setNoNotifyTimeout(poolNoNotifyTimeout);
-					pool.setRejectReconnect(isRejectReconnect);
-					pool.setSamplingHashratePeriod(poolHashrateSamplingPeriod);
-					pools.add(pool);
-
-					index++;
+				} else {
+					throw new CmdLineException(parser,
+							"At least one user/password (with -u and -p options) has to be provided if a pool host is specified.");
 				}
+
 			}
 		}
 		return pools;

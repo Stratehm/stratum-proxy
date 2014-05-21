@@ -60,8 +60,8 @@ public class Launcher {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
 				if (LOGGER != null) {
-					LOGGER.info("User requested shutdown... Gracefuly kill all connections...");
 					if (stratumProxyManager != null) {
+						LOGGER.info("User requested shutdown... Gracefuly kill all connections...");
 						stratumProxyManager.stopListeningIncomingConnections();
 						stratumProxyManager.stopPools();
 						stratumProxyManager.closeAllWorkerConnections();
@@ -99,7 +99,12 @@ public class Launcher {
 			}
 
 		} catch (CmdLineException e) {
-			LOGGER.error("Failed to parse arguments.", e);
+			if (LOGGER != null) {
+				LOGGER.error("Failed to parse arguments.", e);
+			} else {
+				System.out.println("Failed to start the proxy: ");
+				e.printStackTrace();
+			}
 			cliParser.printUsage();
 		} catch (IOException e1) {
 			LOGGER.error("Failed to start the stratum proxy.", e1);
@@ -124,8 +129,9 @@ public class Launcher {
 	 * 
 	 * @param cliParser
 	 * @throws IOException
+	 * @throws CmdLineException
 	 */
-	private static void initProxyManager(CommandLineOptions cliParser) throws IOException {
+	private static void initProxyManager(CommandLineOptions cliParser) throws IOException, CmdLineException {
 		List<Pool> pools = cliParser.getPools();
 		LOGGER.info("Using pools: {}.", pools);
 
