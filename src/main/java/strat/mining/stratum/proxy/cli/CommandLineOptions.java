@@ -29,6 +29,8 @@ import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.spi.BooleanOptionHandler;
 import org.kohsuke.args4j.spi.FileOptionHandler;
 import org.kohsuke.args4j.spi.StringArrayOptionHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.pool.Pool;
@@ -40,6 +42,8 @@ import strat.mining.stratum.proxy.pool.Pool;
  * 
  */
 public class CommandLineOptions {
+
+	private static Logger LOGGER = null;
 
 	private static CommandLineOptions instance = new CommandLineOptions();
 
@@ -141,19 +145,25 @@ public class CommandLineOptions {
 					String password = Constants.DEFAULT_PASSWORD;
 					Boolean isExtranonceSubscribe = Boolean.TRUE;
 
-					if (poolNames != null && poolNames.size() >= index) {
+					if (poolNames != null && poolNames.size() > index) {
 						poolName = poolNames.get(index);
 					}
 
-					if (poolUsers != null && poolUsers.size() >= index) {
+					if (poolUsers != null && poolUsers.size() > index) {
 						username = poolUsers.get(index);
+					} else {
+						username = poolUsers.get(poolUsers.size() - 1);
+						getLogger().warn("No user defined for pool {}. Using {}.", poolName, username);
 					}
 
-					if (poolPasswords != null && poolPasswords.size() >= index) {
+					if (poolPasswords != null && poolPasswords.size() > index) {
 						password = poolPasswords.get(index);
+					} else {
+						password = poolPasswords.get(poolPasswords.size() - 1);
+						getLogger().warn("No password defined for pool {}. Using {}.", poolName, password);
 					}
 
-					if (isExtranonceSubscribeEnabled != null && isExtranonceSubscribeEnabled.size() >= index) {
+					if (isExtranonceSubscribeEnabled != null && isExtranonceSubscribeEnabled.size() > index) {
 						isExtranonceSubscribe = isExtranonceSubscribeEnabled.get(index);
 					}
 
@@ -234,6 +244,13 @@ public class CommandLineOptions {
 
 	public Integer getConnectionHashrateSamplingPeriod() {
 		return connectionHashrateSamplingPeriod;
+	}
+
+	private static Logger getLogger() {
+		if (LOGGER == null) {
+			LOGGER = LoggerFactory.getLogger(CommandLineOptions.class);
+		}
+		return LOGGER;
 	}
 
 }
