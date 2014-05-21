@@ -31,8 +31,25 @@ A REST API is available with the following methods. Methods parameters or result
 pool/list: List all the pools.
  
 Parameters: *None*
- 
+
 Return:
+Lots of things (name, host, hashrate, extrnaonce info, nb connections, priority, isActive...)
+
+
+user/list: List all the seen users.
+ 
+Parameters: *None*
+
+Return:
+Lots of things (name, hashrate, seen on which connections, first connection time...)
+
+
+connection/list: List all the active workers connection
+ 
+Parameters: *None*
+
+Return:
+Lots of things (remote host, hashrate, active users, connection time...)
 
 
 pool/priority: Change the priority of a pool
@@ -47,6 +64,7 @@ log/level: Change the log level.
 
 Parameters:
 {"logLevel": "LEVEL"}. Valid levels are FATAL, ERROR, WARN, INFO, DEBUG, TRACE, OFF.
+
 
 
 
