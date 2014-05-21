@@ -27,6 +27,7 @@ public class WorkerConnectionDTO {
 	private Long acceptedHashesPerSeconds;
 	private Long rejectedHashesPerSeconds;
 	private String isActiveSince;
+	private String poolName;
 
 	public String getRemoteHost() {
 		return remoteHost;
@@ -66,6 +67,14 @@ public class WorkerConnectionDTO {
 
 	public void setIsActiveSince(String isActiveSince) {
 		this.isActiveSince = isActiveSince;
+	}
+
+	public String getPoolName() {
+		return poolName;
+	}
+
+	public void setPoolName(String poolName) {
+		this.poolName = poolName;
 	}
 
 }

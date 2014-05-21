@@ -396,6 +396,7 @@ public class ProxyResources {
 		result.setRemoteHost(connection.getConnectionName());
 		result.setAcceptedHashesPerSeconds(Double.valueOf(connection.getAcceptedHashrate()).longValue());
 		result.setRejectedHashesPerSeconds(Double.valueOf(connection.getRejectedHashrate()).longValue());
+		result.setPoolName(connection.getPool().getName());
 
 		return result;
 	}
@@ -404,7 +405,7 @@ public class ProxyResources {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(API_DATE_FORMAT);
 		UserDetailsDTO result = new UserDetailsDTO();
 		result.setName(user.getName());
-		result.setCreationDate(simpleDateFormat.format(user.getCreationTime()));
+		result.setFirstConnectionDate(simpleDateFormat.format(user.getCreationTime()));
 		result.setLastShareSubmitted(user.getLastShareSubmitted() != null ? simpleDateFormat.format(user.getLastShareSubmitted()) : null);
 		result.setAcceptedHashesPerSeconds(Double.valueOf(user.getAcceptedHashrate()).longValue());
 		result.setRejectedHashesPerSeconds(Double.valueOf(user.getRejectedHashrate()).longValue());

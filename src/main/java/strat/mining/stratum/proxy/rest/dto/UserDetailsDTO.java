@@ -23,7 +23,7 @@ import java.util.List;
 public class UserDetailsDTO {
 
 	private String name;
-	private String creationDate;
+	private String firstConnectionDate;
 	private String lastShareSubmitted;
 	private Long acceptedHashesPerSeconds;
 	private Long rejectedHashesPerSeconds;
@@ -37,12 +37,12 @@ public class UserDetailsDTO {
 		this.name = name;
 	}
 
-	public String getCreationDate() {
-		return creationDate;
+	public String getFirstConnectionDate() {
+		return firstConnectionDate;
 	}
 
-	public void setCreationDate(String creationDate) {
-		this.creationDate = creationDate;
+	public void setFirstConnectionDate(String firstConnectionDate) {
+		this.firstConnectionDate = firstConnectionDate;
 	}
 
 	public Long getAcceptedHashesPerSeconds() {
