@@ -166,7 +166,7 @@ public class WorkerConnection extends StratumConnection {
 		try {
 			pool = manager.onSubscribeRequest(this, request);
 		} catch (NoPoolAvailableException e) {
-			LOGGER.error("No pool available for the connection {}. Sending error and close the connection.", getConnectionName(), e);
+			LOGGER.error("No pool available for the connection {}. Sending error and close the connection.", getConnectionName());
 			error = new JsonRpcError();
 			error.setCode(JsonRpcError.ErrorCode.UNKNOWN.getCode());
 			error.setMessage("No pool available on this proxy.");
