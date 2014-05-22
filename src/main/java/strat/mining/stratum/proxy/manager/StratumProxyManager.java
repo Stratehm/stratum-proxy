@@ -463,7 +463,7 @@ public class StratumProxyManager {
 	 * Rebind all the workers connection to the pool with highest priority.
 	 */
 	public void rebindAllWorkerConnections() {
-		LOGGER.info("Rebind all worker connections.");
+		LOGGER.info("Rebind all worker connections if needed.");
 		synchronized (pools) {
 			// For each pools, rebind the connections
 			for (Pool pool : pools) {
@@ -480,10 +480,9 @@ public class StratumProxyManager {
 	private void switchPoolConnections(final Pool pool) {
 		switchPoolConnectionsExecutor.execute(new Runnable() {
 			public void run() {
-				LOGGER.info("Switching all connections of pool {}.", pool.getName());
-
 				List<WorkerConnection> connections = poolWorkerConnections.get(pool);
-				if (connections != null) {
+				if (connections != null && connections.size() > 0) {
+					LOGGER.info("Switching all connections of pool {}.", pool.getName());
 					synchronized (connections) {
 						for (WorkerConnection connection : connections) {
 							try {
