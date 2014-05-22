@@ -1,4 +1,6 @@
-#Initial Packaging Process
+#Packaging (Not mandatory)
+
+You can directly use a release (https://github.com/Stratehm/stratum-proxy/releases) and go to the Installation and Usage section.
 
 The packaging of the application is done through Maven and will generate a ZIP which contains the program and all its dependencies.
 
@@ -33,9 +35,9 @@ java -jar stratum-proxy.jar --help
 
 ##API Details
 
-A REST API is available with the following methods. Methods parameters or result are in JSON. By default, the methods can be accessed at the URL http://<hostIp>:8888/proxy/. 
+A REST API is available. Methods parameters or result are in JSON. By default, the methods can be accessed at the URL http://hostIp:8888/proxy/. 
 
-The Content-Type of HTTP request have to be application/json, else a 415 Unsupported Media Type error may be returned.
+The Content-Type of HTTP requests has to be application/json, else a 415 Unsupported Media Type error may be returned.
 
 Here after is the API methods description:
 
