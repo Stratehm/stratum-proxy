@@ -22,16 +22,22 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +47,7 @@ import strat.mining.stratum.proxy.cli.CommandLineOptions;
 import strat.mining.stratum.proxy.exception.BadParameterException;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
+import strat.mining.stratum.proxy.exception.PoolStartException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.JsonRpcError;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
@@ -53,6 +60,7 @@ import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.model.User;
 import strat.mining.stratum.proxy.pool.Pool;
+import strat.mining.stratum.proxy.rest.dto.AddPoolDTO;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -445,7 +453,14 @@ public class StratumProxyManager {
 			LOGGER.warn("Pool {} is UP.", pool.getName());
 		} else {
 			LOGGER.warn("Pool {} is DOWN. Moving connections to another one.", pool.getName());
-			switchPoolConnections(pool);
+			Future<?> switchingFuture = switchPoolConnections(pool);
+			// Wait for the end of connection switch before declaring the pool
+			// has stopped. (Wait 1 seconds max)
+			try {
+				switchingFuture.get(1000, TimeUnit.MILLISECONDS);
+			} catch (InterruptedException | ExecutionException | TimeoutException e) {
+				LOGGER.warn("Pool {} stopped before the end of connection switch.", e);
+			}
 		}
 	}
 
@@ -477,12 +492,12 @@ public class StratumProxyManager {
 	 * 
 	 * @param pool
 	 */
-	private void switchPoolConnections(final Pool pool) {
-		switchPoolConnectionsExecutor.execute(new Runnable() {
+	private Future<?> switchPoolConnections(final Pool pool) {
+		Future<?> future = switchPoolConnectionsExecutor.submit(new Runnable() {
 			public void run() {
 				List<WorkerConnection> connections = poolWorkerConnections.get(pool);
 				if (connections != null && connections.size() > 0) {
-					LOGGER.info("Switching all connections of pool {}.", pool.getName());
+					LOGGER.info("Start switching all connections of pool {} if needed.", pool.getName());
 					synchronized (connections) {
 						for (WorkerConnection connection : connections) {
 							try {
@@ -498,6 +513,7 @@ public class StratumProxyManager {
 				}
 			}
 		});
+		return future;
 	}
 
 	/**
@@ -665,6 +681,120 @@ public class StratumProxyManager {
 			result.addAll(users.values());
 		}
 		return result;
+	}
+
+	/**
+	 * Add the pool described in the given poolDTO
+	 * 
+	 * @param addPoolDTO
+	 * @return
+	 * @throws URISyntaxException
+	 * @throws PoolStartException
+	 * @throws SocketException
+	 */
+	public Pool addPool(AddPoolDTO addPoolDTO) throws BadParameterException, SocketException, PoolStartException, URISyntaxException {
+
+		LOGGER.debug("Trying to add pool {}.", addPoolDTO);
+
+		checkAddPoolParameters(addPoolDTO);
+
+		Pool poolToAdd = new Pool(addPoolDTO.getPoolName(), addPoolDTO.getPoolHost(), addPoolDTO.getUsername(), addPoolDTO.getPassword());
+
+		// By default, does not enable extranonce subscribe.
+		poolToAdd.setExtranonceSubscribeEnabled(addPoolDTO.getEnableExtranonceSubscribe() != null && addPoolDTO.getEnableExtranonceSubscribe());
+
+		// Set by default the priority to the lowest over all pools.
+		int minPriority = getMinimumPoolPriority(addPoolDTO);
+		poolToAdd.setPriority(minPriority + 1);
+		// Add the pool to the pool list
+		pools.add(poolToAdd);
+
+		LOGGER.info("Pool added {}.", addPoolDTO);
+
+		try {
+			// Then if a priority is provided, change it
+			if (addPoolDTO.getPriority() != null) {
+				setPoolPriority(poolToAdd.getName(), addPoolDTO.getPriority());
+			}
+		} catch (NoPoolAvailableException e) {
+			throw new PoolStartException("Failed to set priority of the created pool with name " + poolToAdd.getName()
+					+ ". This should not happen. Surely a BUUUUGGGG !!!!", e);
+		}
+
+		try {
+			poolToAdd.setEnabled(addPoolDTO.getIsEnabled() == null || addPoolDTO.getIsEnabled());
+		} catch (Exception e) {
+			throw new PoolStartException("Failed to enable the created pool with name " + poolToAdd.getName()
+					+ ". This should not happen. Surely a BUUUUGGGG !!!!", e);
+		}
+
+		if (poolToAdd.isEnabled()) {
+			poolToAdd.startPool(this);
+		}
+
+		return poolToAdd;
+	}
+
+	/**
+	 * Remove the pool with the given name.
+	 * 
+	 * @param poolName
+	 * @throws NoPoolAvailableException
+	 */
+	public void removePool(String poolName) throws NoPoolAvailableException {
+		Pool pool = getPool(poolName);
+		if (pool == null) {
+			throw new NoPoolAvailableException("Pool with name " + poolName + " is not found");
+		}
+
+		pool.stopPool();
+		pools.remove(pool);
+		poolWorkerConnections.remove(pool);
+
+		LOGGER.info("Pool {} removed.", poolName);
+	}
+
+	/**
+	 * Return the minimal priority over all pools.
+	 * 
+	 * @param addPoolDTO
+	 * @return
+	 */
+	private int getMinimumPoolPriority(AddPoolDTO addPoolDTO) {
+		int minPriority = 0;
+		if (addPoolDTO.getPriority() == null) {
+			synchronized (pools) {
+				for (Pool pool : pools) {
+					if (pool.getPriority() > minPriority) {
+						minPriority = pool.getPriority();
+					}
+				}
+			}
+		}
+		return minPriority;
+	}
+
+	/**
+	 * Check that all parameters to add the pool are presents and valid.
+	 * 
+	 * @param addPoolDTO
+	 * @throws URISyntaxException
+	 */
+	private void checkAddPoolParameters(AddPoolDTO addPoolDTO) throws BadParameterException, URISyntaxException {
+
+		if (addPoolDTO.getPoolHost() == null || addPoolDTO.getPoolHost().trim().isEmpty()) {
+			throw new BadParameterException("Pool host is empty.");
+		}
+
+		new URI("stratum+tcp://" + addPoolDTO.getPoolHost().trim());
+
+		if (addPoolDTO.getUsername() == null || addPoolDTO.getUsername().trim().isEmpty()) {
+			throw new BadParameterException("Username is empty.");
+		}
+
+		if (addPoolDTO.getPassword() == null || addPoolDTO.getPassword().trim().isEmpty()) {
+			throw new BadParameterException("Password is empty.");
+		}
 	}
 
 }

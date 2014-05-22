@@ -61,6 +61,17 @@ Parameters: None
 Return: [ { "remoteHost": string, "authorizedUsers": [ string, ... ], "acceptedHashesPerSeconds": long, "rejectedHashesPerSeconds": long, "isActiveSince": Date(dd-MM-yy HH:mm:ss Z), "poolName": string }, ... ]
 ```
 
+ * pool/add: (POST) Add a new pool
+```
+Parameters: { "poolName": string (optional=poolHost), "poolHost": string, "username": string, "password": string, "priority": integer (optional=lowestOne), "enableExtranonceSubscribe": boolean (optional=false),  "isEnabled": boolean (optional=true)}
+Return: {"status": string, "message": string}. Returned statuses are DONE, DONE_PARTIALLY (if added but not started) or FAILED.
+```
+
+ * pool/remove: (POST) Remove a pool
+```
+Parameters: { "poolName": string}
+Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
+```
 
  * pool/priority: (POST) Change the priority of a pool
 ```

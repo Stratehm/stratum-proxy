@@ -20,6 +20,9 @@ package strat.mining.stratum.proxy.rest.dto;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserDetailsDTO {
 
 	private String name;

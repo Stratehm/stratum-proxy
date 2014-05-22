@@ -61,7 +61,7 @@ public class CommandLineOptions {
 	@Option(name = "-p", aliases = { "--pool-passwords" }, usage = "Passwords used for the users, space separated. If there are more pools than passwords, the last password will be used for reamining pools.", handler = StringArrayOptionHandler.class, metaVar = "pass1 [pass2] [pass3]...")
 	private List<String> poolPasswords;
 
-	@Option(name = "--set-extranonce-subscribe", usage = "Enable/Disable the extranonce subscribe request on pool (default to true), space separated.", handler = BooleanArrayOptionHandler.class, metaVar = "boolean1 [boolean2] [boolean3]...")
+	@Option(name = "--set-extranonce-subscribe", usage = "Enable/Disable the extranonce subscribe request on pool (default to false), space separated.", handler = BooleanArrayOptionHandler.class, metaVar = "boolean1 [boolean2] [boolean3]...")
 	private List<Boolean> isExtranonceSubscribeEnabled;
 
 	@Option(name = "--log-directory", usage = "The directory where logs will be written", handler = FileOptionHandler.class, metaVar = "directory")

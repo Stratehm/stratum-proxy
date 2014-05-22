@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class StatusDTO {
 
 	public static final String DONE_STATUS = "Done";
+	public static final String PARTIALLY_DONE_STATUS = "PartiallyDone";
 	public static final String FAILED_STATUS = "Failed";
 
 	private String status;

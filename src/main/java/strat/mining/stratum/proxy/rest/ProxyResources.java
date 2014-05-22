@@ -18,6 +18,8 @@
  */
 package strat.mining.stratum.proxy.rest;
 
+import java.net.SocketException;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,9 +39,11 @@ import org.slf4j.LoggerFactory;
 import strat.mining.stratum.proxy.Launcher;
 import strat.mining.stratum.proxy.exception.BadParameterException;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
+import strat.mining.stratum.proxy.exception.PoolStartException;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.model.User;
 import strat.mining.stratum.proxy.pool.Pool;
+import strat.mining.stratum.proxy.rest.dto.AddPoolDTO;
 import strat.mining.stratum.proxy.rest.dto.ChangePriorityDTO;
 import strat.mining.stratum.proxy.rest.dto.LogLevelDTO;
 import strat.mining.stratum.proxy.rest.dto.PoolDetailsDTO;
@@ -215,11 +219,27 @@ public class ProxyResources {
 	 */
 	@POST
 	@Path("pool/add")
-	public Response addPool() {
+	public Response addPool(AddPoolDTO addPoolDTO) {
 
 		Response response = null;
+		StatusDTO status = new StatusDTO();
 
-		response = Response.status(Response.Status.NOT_IMPLEMENTED).entity("Not implemented").build();
+		try {
+			stratumProxyManager.addPool(addPoolDTO);
+
+			status.setStatus(StatusDTO.DONE_STATUS);
+			response = Response.status(Response.Status.OK).entity(status).build();
+		} catch (BadParameterException | SocketException | URISyntaxException e) {
+			status.setStatus(StatusDTO.FAILED_STATUS);
+			status.setMessage("Failed to add the pool. " + e.getMessage());
+			LOGGER.error("Failed to add pool {}.", addPoolDTO, e);
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(status).build();
+		} catch (PoolStartException e) {
+			status.setStatus(StatusDTO.PARTIALLY_DONE_STATUS);
+			status.setMessage("Pool added but not started. " + e.getMessage());
+			LOGGER.error("Failed to start pool {}.", addPoolDTO, e);
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(status).build();
+		}
 
 		return response;
 	}
@@ -231,11 +251,21 @@ public class ProxyResources {
 	 */
 	@POST
 	@Path("pool/remove")
-	public Response removePool() {
+	public Response removePool(PoolNameDTO poolName) {
 
 		Response response = null;
+		StatusDTO status = new StatusDTO();
 
-		response = Response.status(Response.Status.NOT_IMPLEMENTED).entity("Not implemented").build();
+		try {
+			stratumProxyManager.removePool(poolName.getPoolName());
+
+			status.setStatus(StatusDTO.DONE_STATUS);
+			response = Response.status(Response.Status.OK).entity(status).build();
+		} catch (NoPoolAvailableException e) {
+			status.setStatus(StatusDTO.FAILED_STATUS);
+			status.setMessage(e.getMessage());
+			response = Response.status(Response.Status.NOT_FOUND).entity(status).build();
+		}
 
 		return response;
 	}
@@ -385,7 +415,7 @@ public class ProxyResources {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(API_DATE_FORMAT);
 		PoolDetailsDTO result = new PoolDetailsDTO();
 
-		result.setDifficulty(pool.getDifficulty().toString());
+		result.setDifficulty(pool.getDifficulty() != null ? pool.getDifficulty().toString() : null);
 		result.setExtranonce1(pool.getExtranonce1());
 		result.setExtranonce2Size(pool.getExtranonce2Size());
 		if (pool.getUri() != null) {
@@ -403,7 +433,7 @@ public class ProxyResources {
 		result.setWorkerExtranonce2Size(pool.getWorkerExtranonce2Size());
 		result.setPriority(pool.getPriority());
 		result.setAcceptedDifficulty(pool.getAcceptedDifficulty());
-		result.setIsActiveSince(simpleDateFormat.format(pool.getActiveSince()));
+		result.setIsActiveSince(pool.getActiveSince() != null ? simpleDateFormat.format(pool.getActiveSince()) : null);
 		result.setRejectedDifficulty(pool.getRejectedDifficulty());
 		result.setIsExtranonceSubscribeEnabled(pool.isExtranonceSubscribeEnabled());
 		result.setAcceptedHashesPerSeconds(Double.valueOf(pool.getAcceptedHashesPerSeconds()).longValue());

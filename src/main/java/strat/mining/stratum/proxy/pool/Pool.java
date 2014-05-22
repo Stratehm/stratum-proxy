@@ -21,7 +21,9 @@ package strat.mining.stratum.proxy.pool;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
@@ -38,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.constant.Constants;
+import strat.mining.stratum.proxy.exception.PoolStartException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.ClientReconnectNotification;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
@@ -77,6 +80,7 @@ public class Pool implements Comparable<Pool> {
 	private boolean isActive;
 	private boolean isEnabled;
 	private boolean isStable;
+	private boolean isFirstRun;
 
 	// Contains all available tails in Hexa format.
 	private Deque<String> tails;
@@ -89,7 +93,7 @@ public class Pool implements Comparable<Pool> {
 	private Timer notifyTimeoutTimer;
 	private Timer stabilityTestTimer;
 
-	private Boolean isExtranonceSubscribeEnabled = true;
+	private Boolean isExtranonceSubscribeEnabled = false;
 
 	private Integer numberOfSubmit = 1;
 
@@ -120,7 +124,8 @@ public class Pool implements Comparable<Pool> {
 		this.password = password;
 		this.isActive = false;
 		this.isEnabled = true;
-		this.isStable = true;
+		this.isStable = false;
+		this.isFirstRun = true;
 
 		acceptedDifficulty = new AtomicDouble(0);
 		rejectedDifficulty = new AtomicDouble(0);
@@ -131,11 +136,15 @@ public class Pool implements Comparable<Pool> {
 		this.lastRejectedShares = new ConcurrentLinkedDeque<Share>();
 	}
 
-	public void startPool(StratumProxyManager manager) throws Exception {
+	public void startPool(StratumProxyManager manager) throws PoolStartException, URISyntaxException, SocketException {
 		if (manager != null) {
+			if (!isEnabled) {
+				throw new PoolStartException("Do not start the pool " + getName() + " since it is disabled.");
+			}
+
 			this.manager = manager;
 			if (connection == null) {
-				LOGGER.info("Starting pool {}...", getName());
+				LOGGER.debug("Starting pool {}...", getName());
 				uri = new URI("stratum+tcp://" + host);
 				if (uri.getPort() < 0) {
 					UriBuilder.fromUri(uri).port(Constants.DEFAULT_POOL_PORT);
@@ -157,7 +166,7 @@ public class Pool implements Comparable<Pool> {
 				}
 			}
 		} else {
-			throw new Exception("Do not start pool since manager is null.");
+			throw new PoolStartException("Do not start pool " + getName() + " since manager is null.");
 		}
 	}
 
@@ -168,7 +177,7 @@ public class Pool implements Comparable<Pool> {
 			isActive = false;
 			isStable = false;
 			manager.onPoolStateChange(this);
-			LOGGER.info("Stopping pool {}...", getName());
+			LOGGER.debug("Stopping pool {}...", getName());
 			connection.close();
 			connection = null;
 			LOGGER.info("Pool {} stopped.", getName());
@@ -203,9 +212,11 @@ public class Pool implements Comparable<Pool> {
 	 * Enable/Disable the pool. Throw an exception if cannot enable the pool.
 	 * 
 	 * @param isEnabled
+	 * @throws URISyntaxException
+	 * @throws SocketException
 	 * @throws Exception
 	 */
-	public void setEnabled(boolean isEnabled) throws Exception {
+	public void setEnabled(boolean isEnabled) throws PoolStartException, SocketException, URISyntaxException {
 		if (this.isEnabled != isEnabled) {
 			this.isEnabled = isEnabled;
 			if (isEnabled) {
@@ -353,6 +364,7 @@ public class Pool implements Comparable<Pool> {
 			this.isActive = true;
 			activeSince = new Date();
 			testStability();
+			isFirstRun = false;
 			manager.onPoolStateChange(this);
 		} else {
 			LOGGER.error("Stopping pool {} since user {} is not authorized.", getName(), username);
@@ -445,7 +457,7 @@ public class Pool implements Comparable<Pool> {
 	 * @return
 	 */
 	public Integer getWorkerExtranonce2Size() {
-		return extranonce2Size - Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE;
+		return extranonce2Size != null ? extranonce2Size - Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE : 0;
 	}
 
 	private Deque<String> buildTails() {
@@ -521,7 +533,7 @@ public class Pool implements Comparable<Pool> {
 	}
 
 	public int getNumberOfWorkersConnections() {
-		return manager.getNumberOfWorkerConnectionsOnPool(getName());
+		return manager != null ? manager.getNumberOfWorkerConnectionsOnPool(getName()) : 0;
 	}
 
 	@Override
@@ -634,18 +646,23 @@ public class Pool implements Comparable<Pool> {
 	 */
 	private void testStability() {
 		if (reconnectStabilityPeriod > 0) {
-			LOGGER.info("Testing stability of pool {} for {} seconds.", getName(), reconnectStabilityPeriod);
-			if (stabilityTestTimer != null) {
-				stabilityTestTimer.cancel();
-				stabilityTestTimer = null;
-			}
-
-			stabilityTestTimer = new Timer();
-			stabilityTestTimer.schedule(new TimerTask() {
-				public void run() {
-					setStable();
+			if (!isFirstRun) {
+				LOGGER.info("Testing stability of pool {} for {} seconds.", getName(), reconnectStabilityPeriod);
+				if (stabilityTestTimer != null) {
+					stabilityTestTimer.cancel();
+					stabilityTestTimer = null;
 				}
-			}, reconnectStabilityPeriod * 1000);
+
+				stabilityTestTimer = new Timer();
+				stabilityTestTimer.schedule(new TimerTask() {
+					public void run() {
+						setStable();
+					}
+				}, reconnectStabilityPeriod * 1000);
+			} else {
+				LOGGER.debug("Pool {} declared as stable since since first start.", getName());
+				setStable();
+			}
 		} else {
 			LOGGER.info("Pool {} declared as stable since no stability test period configured", getName());
 			setStable();
