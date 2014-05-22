@@ -44,6 +44,7 @@ import strat.mining.stratum.proxy.rest.dto.ChangePriorityDTO;
 import strat.mining.stratum.proxy.rest.dto.LogLevelDTO;
 import strat.mining.stratum.proxy.rest.dto.PoolDetailsDTO;
 import strat.mining.stratum.proxy.rest.dto.PoolNameDTO;
+import strat.mining.stratum.proxy.rest.dto.StatusDTO;
 import strat.mining.stratum.proxy.rest.dto.UserDetailsDTO;
 import strat.mining.stratum.proxy.rest.dto.WorkerConnectionDTO;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
@@ -249,15 +250,21 @@ public class ProxyResources {
 	public Response disablePool(PoolNameDTO poolName) {
 
 		Response response = null;
+		StatusDTO status = new StatusDTO();
 
 		try {
 			stratumProxyManager.setPoolEnabled(poolName.getPoolName(), false);
 
-			response = Response.status(Response.Status.OK).entity("Done").build();
+			status.setStatus(StatusDTO.DONE_STATUS);
+			response = Response.status(Response.Status.OK).entity(status).build();
 		} catch (NoPoolAvailableException e) {
-			response = Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+			status.setStatus(StatusDTO.FAILED_STATUS);
+			status.setMessage(e.getMessage());
+			response = Response.status(Response.Status.NOT_FOUND).entity(status).build();
 		} catch (Exception e) {
-			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Failed to start the pool. " + e.getMessage()).build();
+			status.setStatus(StatusDTO.FAILED_STATUS);
+			status.setMessage("Failed to start the pool. " + e.getMessage());
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(status).build();
 		}
 
 		return response;
@@ -273,15 +280,21 @@ public class ProxyResources {
 	public Response enablePool(PoolNameDTO poolName) {
 
 		Response response = null;
+		StatusDTO status = new StatusDTO();
 
 		try {
 			stratumProxyManager.setPoolEnabled(poolName.getPoolName(), true);
 
-			response = Response.status(Response.Status.OK).entity("Done").build();
+			status.setStatus(StatusDTO.DONE_STATUS);
+			response = Response.status(Response.Status.OK).entity(status).build();
 		} catch (NoPoolAvailableException e) {
-			response = Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+			status.setStatus(StatusDTO.FAILED_STATUS);
+			status.setMessage(e.getMessage());
+			response = Response.status(Response.Status.NOT_FOUND).entity(status).build();
 		} catch (Exception e) {
-			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Failed to start the pool. " + e.getMessage()).build();
+			status.setStatus(StatusDTO.FAILED_STATUS);
+			status.setMessage("Failed to start the pool. " + e.getMessage());
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(status).build();
 		}
 
 		return response;
@@ -297,14 +310,21 @@ public class ProxyResources {
 	public Response setPoolPriority(ChangePriorityDTO parameters) {
 
 		Response response = null;
+		StatusDTO status = new StatusDTO();
 
 		try {
 			stratumProxyManager.setPoolPriority(parameters.getPoolName(), parameters.getPriority());
-			response = Response.status(Response.Status.OK).entity("Done").build();
+
+			status.setStatus(StatusDTO.DONE_STATUS);
+			response = Response.status(Response.Status.OK).entity(status).build();
 		} catch (NoPoolAvailableException e) {
-			response = Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+			status.setStatus(StatusDTO.FAILED_STATUS);
+			status.setMessage(e.getMessage());
+			response = Response.status(Response.Status.NOT_FOUND).entity(status).build();
 		} catch (BadParameterException e) {
-			response = Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+			status.setStatus(StatusDTO.FAILED_STATUS);
+			status.setMessage(e.getMessage());
+			response = Response.status(Response.Status.BAD_REQUEST).entity(status).build();
 		}
 
 		return response;
@@ -314,14 +334,18 @@ public class ProxyResources {
 	@Path("log/level")
 	public Response changeLogLevel(LogLevelDTO logLevel) {
 		Response response = null;
+		StatusDTO status = new StatusDTO();
 
 		try {
 			Level newLevel = getLogLevel(logLevel.getLogLevel());
 			LogManager.getRootLogger().setLevel(newLevel);
 			LOGGER.info("Changing logLevel to {}", logLevel.getLogLevel());
-			response = Response.status(Response.Status.OK).entity("Done").build();
+			status.setStatus(StatusDTO.DONE_STATUS);
+			response = Response.status(Response.Status.OK).entity(status).build();
 		} catch (BadParameterException e) {
-			response = Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+			status.setStatus(StatusDTO.FAILED_STATUS);
+			status.setMessage(e.getMessage());
+			response = Response.status(Response.Status.BAD_REQUEST).entity(status).build();
 		}
 
 		return response;

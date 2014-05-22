@@ -153,7 +153,7 @@ public class Pool implements Comparable<Pool> {
 					connection.sendRequest(request);
 				} catch (IOException e) {
 					LOGGER.warn("Failed to connect the pool {}.", getName());
-					retryConnect();
+					retryConnect(true);
 				}
 			}
 		} else {
@@ -262,7 +262,7 @@ public class Pool implements Comparable<Pool> {
 				startPool(manager);
 			} catch (Exception e) {
 				LOGGER.error("Failed to restart the pool {} after a client.reconnect notification.", getName(), e);
-				retryConnect();
+				retryConnect(true);
 			}
 		} else {
 			// Build the new requested URI.
@@ -276,7 +276,7 @@ public class Pool implements Comparable<Pool> {
 						"Stopping the pool {} after a client.reconnect notification with requested host {} and port {} since option --pool-no-reconnect-different-host is true and host is different.",
 						getName(), clientReconnect.getHost(), clientReconnect.getPort());
 				stopPool();
-				retryConnect();
+				retryConnect(true);
 			} else {
 				// Else reconnect to the new host/port
 				LOGGER.warn("Reconnect the pool {} to the host {} and port {}.", getName(), newUri.getHost(), newUri.getPort());
@@ -286,7 +286,7 @@ public class Pool implements Comparable<Pool> {
 					startPool(manager);
 				} catch (Exception e) {
 					LOGGER.error("Failed to restart the pool {} after a client.reconnect notification.", getName(), e);
-					retryConnect();
+					retryConnect(true);
 				}
 			}
 		}
@@ -301,7 +301,7 @@ public class Pool implements Comparable<Pool> {
 			LOGGER.error("The extranonce2Size for the pool {} is to low. Size: {}, mininum needed {}.", getName(), extranonce2Size,
 					Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1);
 			stopPool();
-			retryConnect();
+			retryConnect(true);
 		} else {
 			extranonce2Size = setExtranonce.getExtranonce2Size();
 			// If extrnaonce is OK, notify the manager.
@@ -320,7 +320,7 @@ public class Pool implements Comparable<Pool> {
 			LOGGER.error("The extranonce2Size for the pool {} is to low. Size: {}, mininum needed {}.", getName(), extranonce2Size,
 					Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1);
 			stopPool();
-			retryConnect();
+			retryConnect(true);
 		} else {
 			if (isExtranonceSubscribeEnabled) {
 				// Else try to subscribe to extranonce change notification
@@ -357,7 +357,7 @@ public class Pool implements Comparable<Pool> {
 		} else {
 			LOGGER.error("Stopping pool {} since user {} is not authorized.", getName(), username);
 			stopPool();
-			retryConnect();
+			retryConnect(true);
 		}
 	}
 
@@ -411,7 +411,7 @@ public class Pool implements Comparable<Pool> {
 		LOGGER.error("Disconnect of pool {}.", this, cause);
 		stopPool();
 
-		retryConnect();
+		retryConnect(true);
 	}
 
 	/**
@@ -472,9 +472,14 @@ public class Pool implements Comparable<Pool> {
 		return currentJob;
 	}
 
-	private void retryConnect() {
+	/**
+	 * If delayFirstRetry is false, the connect retry will happen immediatly
+	 * 
+	 * @param delayFirstRetry
+	 */
+	private void retryConnect(boolean delayFirstRetry) {
 		if (connectionRetryDelay > 0) {
-			LOGGER.info("Trying reconnect of pool {} in {} seconds.", getName(), connectionRetryDelay);
+			LOGGER.info("Trying reconnect of pool {} in {} seconds.", getName(), delayFirstRetry ? connectionRetryDelay * 1000 : 0.001);
 			reconnectTimer = new Timer("ReconnectTimer-" + getName());
 			reconnectTimer.schedule(new TimerTask() {
 				public void run() {
@@ -485,7 +490,7 @@ public class Pool implements Comparable<Pool> {
 						LOGGER.error("Failed to restart the pool {}.", getName(), e);
 					}
 				}
-			}, connectionRetryDelay * 1000);
+			}, delayFirstRetry ? connectionRetryDelay * 1000 : 1);
 		} else {
 			LOGGER.warn("Do not try to reconnect pool {} since --pool-connection-retry-delay is {}.", getName(), connectionRetryDelay);
 		}
@@ -617,7 +622,7 @@ public class Pool implements Comparable<Pool> {
 					// If we have not received notify notification since DEALY,
 					// stop the pool and try to reconnect.
 					stopPool();
-					retryConnect();
+					retryConnect(false);
 				}
 			}, noNotifyTimeout * 1000);
 		}
