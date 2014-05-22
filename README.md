@@ -7,9 +7,12 @@ The proxy is is generated as a JAR file called stratum-proxy.jar (contained in t
 To build the package, you must have a JDK installed in version >= 7 and maven 3
 
 ##Packaging
-*cd /directory/which/contain/pom.xmlFileOfTheProject*
 
-*mvn clean package*
+```sh
+cd /directory/which/contain/pom.xmlFileOfTheProject
+
+mvn clean package
+```
 
 The package is then present in the "target" directory.
 
@@ -18,55 +21,78 @@ The package is then present in the "target" directory.
 ##Installation
 Only unzip the zip file in a directory and launch the proxy through the following command line:
 
-*java -jar stratum-proxy.jar proxyOptions*
+```sh
+java -jar stratum-proxy.jar proxyOptions
+```
 
 ##Usage
 
-*java -jar stratum-proxy.jar --help*
+```sh
+java -jar stratum-proxy.jar --help
+```
 
 ##API Details
 
-A REST API is available with the following methods. Methods parameters or result are in JSON. By default, the methods can be accessed at the URL http://<hostIp>:8888/proxy/
+A REST API is available with the following methods. Methods parameters or result are in JSON. By default, the methods can be accessed at the URL http://<hostIp>:8888/proxy/. 
 
-pool/list: List all the pools.
- 
-Parameters: *None*
+The Content-Type of HTTP request have to be application/json, else a 415 Unsupported Media Type error may be returned.
 
-Return:
-Lots of things (name, host, hashrate, extrnaonce info, nb connections, priority, isActive...)
+Here after is the API methods description:
 
+ * pool/list: (GET) List all the pools.
 
-user/list: List all the seen users.
- 
-Parameters: *None*
+```
+Parameters: None
+Return: [ { "name": string, "host": string, "username": string, "password": string, "isActive": boolean, "isEnabled": boolean, "isStable": boolean, "isActiveSince": Date(dd-MM-yy HH:mm:ss Z), "difficulty": string, "extranonce1": string, "extranonce2Size": integer, "workerExtranonce2Size": integer, "numberOfWorkerConnections": integer, "priority": integer, "acceptedDifficulty": double, "rejectedDifficulty": double, "isExtranonceSubscribeEnabled": boolean, "acceptedHashesPerSeconds": long, "rejectedHashesPerSeconds": long }, ... ]
+```
 
-Return:
-Lots of things (name, hashrate, seen on which connections, first connection time...)
-
-
-connection/list: List all the active workers connection
- 
-Parameters: *None*
-
-Return:
-Lots of things (remote host, hashrate, active users, connection time...)
+ * user/list: (GET) List all the seen users.
+```
+Parameters: None
+Return: [ { "name": string, "firstConnectionDate": Date(dd-MM-yy HH:mm:ss Z), "lastShareSubmitted": Date(dd-MM-yy HH:mm:ss Z), "acceptedHashesPerSeconds": long, "rejectedHashesPerSeconds": long, "connections": [ { "remoteHost": string, "authorizedUsers": [ string, ... ], "acceptedHashesPerSeconds": long, "rejectedHashesPerSeconds": long, "isActiveSince": Date(dd-MM-yy HH:mm:ss Z), "poolName": string }, ... ] } ]
+```
 
 
-pool/priority: Change the priority of a pool
-
-Parameters:
-{"poolName": "nameOfThePool", "priority": 0}
-
-Return:
-
-
-log/level: Change the log level. 
-
-Parameters:
-{"logLevel": "LEVEL"}. Valid levels are FATAL, ERROR, WARN, INFO, DEBUG, TRACE, OFF.
+ * connection/list: (GET) List all the active workers connection
+```
+Parameters: None
+Return: [ { "remoteHost": string, "authorizedUsers": [ string, ... ], "acceptedHashesPerSeconds": long, "rejectedHashesPerSeconds": long, "isActiveSince": Date(dd-MM-yy HH:mm:ss Z), "poolName": string }, ... ]
+```
 
 
+ * pool/priority: (POST) Change the priority of a pool
+```
+Parameters: {"poolName": string, "priority": integer}
+Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
+```
+
+ * pool/disable: (POST) Disable the pool with the given name
+```
+Parameters: {"poolName": string}
+Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
+```
+
+ * pool/enable: (POST) Disable the pool with the given name
+```
+Parameters: {"poolName": string}
+Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
+```
+
+ * log/level: (POST) Change the log level. 
+```
+Parameters: {"logLevel": string}. Valid Levels are FATAL, ERROR, WARN, INFO, DEBUG, TRACE, OFF.
+Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
+```
+
+#License
 
 
-Oh, and if you want make a little donation, you are welcome :)
+GPLv3
+
+
+
+Of course, if you want make a little donation, you are welcome :)
+
 BTC: 19wv8FQKv3NkwTdzBCQn1AGsb9ghqBPWXi
+
+    
