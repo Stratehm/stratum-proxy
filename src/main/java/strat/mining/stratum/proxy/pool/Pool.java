@@ -479,7 +479,7 @@ public class Pool implements Comparable<Pool> {
 	 */
 	private void retryConnect(boolean delayFirstRetry) {
 		if (connectionRetryDelay > 0) {
-			LOGGER.info("Trying reconnect of pool {} in {} seconds.", getName(), delayFirstRetry ? connectionRetryDelay * 1000 : 0.001);
+			LOGGER.info("Trying reconnect of pool {} in {} seconds.", getName(), delayFirstRetry ? connectionRetryDelay : 0.001);
 			reconnectTimer = new Timer("ReconnectTimer-" + getName());
 			reconnectTimer.schedule(new TimerTask() {
 				public void run() {
