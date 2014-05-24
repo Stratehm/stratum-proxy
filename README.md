@@ -97,6 +97,31 @@ Parameters: {"logLevel": string}. Valid Levels are FATAL, ERROR, WARN, INFO, DEB
 Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
 ```
 
+ * user/kick: (POST) Kick all connections of the user 
+```
+Parameters: {"username": string}.
+Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
+```
+
+ * user/ban: (POST) Kick all connections of the user then ban the user until the next proxy restart.
+```
+Parameters: {"username": string}.
+Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
+```
+
+ * user/unban: (POST) Unban the user
+```
+Parameters: {"username": string}.
+Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
+```
+
+ * user/ban/list: (GET) List all banned users
+```
+Parameters: none
+Return: [ string, ... ]. Returned statuses are DONE or FAILED.
+```
+
+
 #License
 
 

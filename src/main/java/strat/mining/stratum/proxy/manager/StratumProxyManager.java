@@ -44,9 +44,12 @@ import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.cli.CommandLineOptions;
+import strat.mining.stratum.proxy.exception.AuthorizationException;
 import strat.mining.stratum.proxy.exception.BadParameterException;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
+import strat.mining.stratum.proxy.exception.NotConnectedException;
+import strat.mining.stratum.proxy.exception.NotFoundException;
 import strat.mining.stratum.proxy.exception.PoolStartException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.JsonRpcError;
@@ -61,6 +64,7 @@ import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.model.User;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.dto.AddPoolDTO;
+import strat.mining.stratum.proxy.rest.dto.UserNameDTO;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -73,7 +77,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  */
 public class StratumProxyManager {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(StratumProxyManager.class);
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(StratumProxyManager.class);
 
 	private ServerSocket serverSocket;
 	private Thread listeningThread;
@@ -91,14 +96,25 @@ public class StratumProxyManager {
 	private ExecutorService disconnectExecutor;
 	private ExecutorService switchPoolConnectionsExecutor;
 
+	private StratumAuthorizationManager stratumAuthorizationManager;
+
 	public StratumProxyManager(List<Pool> pools) {
+		this.stratumAuthorizationManager = new StratumAuthorizationManager();
 		this.pools = Collections.synchronizedList(new ArrayList<Pool>(pools));
-		this.workerConnections = Collections.synchronizedList(new ArrayList<WorkerConnection>());
+		this.workerConnections = Collections
+				.synchronizedList(new ArrayList<WorkerConnection>());
 		this.users = Collections.synchronizedMap(new HashMap<String, User>());
-		this.poolWorkerConnections = Collections.synchronizedMap(new HashMap<Pool, List<WorkerConnection>>());
-		this.disconnectExecutor = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setNameFormat("onWorkerDisconnectThread-%d").build());
-		this.switchPoolConnectionsExecutor = new ThreadPoolExecutor(10, Integer.MAX_VALUE, 10L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(),
-				new ThreadFactoryBuilder().setNameFormat("SwitchPoolConnectionsThread-%d").build());
+		this.poolWorkerConnections = Collections
+				.synchronizedMap(new HashMap<Pool, List<WorkerConnection>>());
+		this.disconnectExecutor = Executors.newFixedThreadPool(
+				1,
+				new ThreadFactoryBuilder().setNameFormat(
+						"onWorkerDisconnectThread-%d").build());
+		this.switchPoolConnectionsExecutor = new ThreadPoolExecutor(10,
+				Integer.MAX_VALUE, 10L, TimeUnit.SECONDS,
+				new SynchronousQueue<Runnable>(), new ThreadFactoryBuilder()
+						.setNameFormat("SwitchPoolConnectionsThread-%d")
+						.build());
 	}
 
 	/**
@@ -135,39 +151,54 @@ public class StratumProxyManager {
 	 * @param port
 	 * @throws IOException
 	 */
-	public void startListeningIncomingConnections(String bindInterface, Integer port) throws IOException {
+	public void startListeningIncomingConnections(String bindInterface,
+			Integer port) throws IOException {
 		if (bindInterface == null) {
 			serverSocket = new ServerSocket(port, 0);
 		} else {
-			serverSocket = new ServerSocket(port, 0, InetAddress.getByName(bindInterface));
+			serverSocket = new ServerSocket(port, 0,
+					InetAddress.getByName(bindInterface));
 		}
-		LOGGER.info("ServerSocket opened on {}.", serverSocket.getLocalSocketAddress());
+		LOGGER.info("ServerSocket opened on {}.",
+				serverSocket.getLocalSocketAddress());
 
 		listeningThread = new Thread() {
 			public void run() {
-				while (!Thread.currentThread().isInterrupted() && !serverSocket.isClosed()) {
+				while (!Thread.currentThread().isInterrupted()
+						&& !serverSocket.isClosed()) {
 					Socket incomingConnectionSocket = null;
 					try {
-						LOGGER.debug("Waiting for incoming connection on {}...", serverSocket.getLocalSocketAddress());
+						LOGGER.debug(
+								"Waiting for incoming connection on {}...",
+								serverSocket.getLocalSocketAddress());
 						incomingConnectionSocket = serverSocket.accept();
 						incomingConnectionSocket.setTcpNoDelay(true);
 						incomingConnectionSocket.setKeepAlive(true);
-						LOGGER.info("New connection on {} from {}.", serverSocket.getLocalSocketAddress(),
-								incomingConnectionSocket.getRemoteSocketAddress());
-						WorkerConnection workerConnection = new WorkerConnection(incomingConnectionSocket, StratumProxyManager.this);
-						workerConnection.setSamplingHashesPeriod(CommandLineOptions.getInstance().getConnectionHashrateSamplingPeriod());
+						LOGGER.info("New connection on {} from {}.",
+								serverSocket.getLocalSocketAddress(),
+								incomingConnectionSocket
+										.getRemoteSocketAddress());
+						WorkerConnection workerConnection = new WorkerConnection(
+								incomingConnectionSocket,
+								StratumProxyManager.this);
+						workerConnection
+								.setSamplingHashesPeriod(CommandLineOptions
+										.getInstance()
+										.getConnectionHashrateSamplingPeriod());
 						workerConnection.startReading();
 					} catch (Exception e) {
 						// Do not log the error if a close has been requested
 						// (as the error is expected ans is part of the shutdown
 						// process)
 						if (!closeRequested) {
-							LOGGER.error("Error on the server socket {}.", serverSocket.getLocalSocketAddress(), e);
+							LOGGER.error("Error on the server socket {}.",
+									serverSocket.getLocalSocketAddress(), e);
 						}
 					}
 				}
 
-				LOGGER.info("Stop to listen incoming connection on {}.", serverSocket.getLocalSocketAddress());
+				LOGGER.info("Stop to listen incoming connection on {}.",
+						serverSocket.getLocalSocketAddress());
 			}
 		};
 
@@ -179,12 +210,14 @@ public class StratumProxyManager {
 	 */
 	public void stopListeningIncomingConnections() {
 		if (serverSocket != null) {
-			LOGGER.info("Closing the server socket on {}.", serverSocket.getLocalSocketAddress());
+			LOGGER.info("Closing the server socket on {}.",
+					serverSocket.getLocalSocketAddress());
 			try {
 				closeRequested = true;
 				serverSocket.close();
 			} catch (Exception e) {
-				LOGGER.error("Failed to close serverSocket on {}.", serverSocket.getLocalSocketAddress(), e);
+				LOGGER.error("Failed to close serverSocket on {}.",
+						serverSocket.getLocalSocketAddress(), e);
 			}
 		}
 	}
@@ -207,18 +240,23 @@ public class StratumProxyManager {
 	 * @param connection
 	 * @param request
 	 */
-	public Pool onSubscribeRequest(WorkerConnection connection, MiningSubscribeRequest request) throws NoPoolAvailableException {
+	public Pool onSubscribeRequest(WorkerConnection connection,
+			MiningSubscribeRequest request) throws NoPoolAvailableException {
 		Pool pool = getHighestPriorityActivePool();
 
-		List<WorkerConnection> workerConnections = poolWorkerConnections.get(pool);
+		List<WorkerConnection> workerConnections = poolWorkerConnections
+				.get(pool);
 		if (workerConnections == null) {
-			workerConnections = Collections.synchronizedList(new ArrayList<WorkerConnection>());
+			workerConnections = Collections
+					.synchronizedList(new ArrayList<WorkerConnection>());
 			poolWorkerConnections.put(pool, workerConnections);
 		}
 		workerConnections.add(connection);
 		this.workerConnections.add(connection);
-		LOGGER.info("New WorkerConnection {} subscribed. {} connections active on pool {}.", connection.getConnectionName(),
-				workerConnections.size(), pool.getName());
+		LOGGER.info(
+				"New WorkerConnection {} subscribed. {} connections active on pool {}.",
+				connection.getConnectionName(), workerConnections.size(),
+				pool.getName());
 
 		return pool;
 	}
@@ -229,17 +267,17 @@ public class StratumProxyManager {
 	 * @param connection
 	 * @param request
 	 */
-	public boolean onAuthorizeRequest(WorkerConnection connection, MiningAuthorizeRequest request) {
-		boolean isAuthorized = true;
+	public void onAuthorizeRequest(WorkerConnection connection,
+			MiningAuthorizeRequest request) throws AuthorizationException {
+		stratumAuthorizationManager.checkAuthorization(connection, request);
 		User user = users.get(request.getUsername());
 		if (user == null) {
 			user = new User(request.getUsername());
-			user.setSamplingHashesPeriod(CommandLineOptions.getInstance().getUserHashrateSamplingPeriod());
+			user.setSamplingHashesPeriod(CommandLineOptions.getInstance()
+					.getUserHashrateSamplingPeriod());
 			users.put(request.getUsername(), user);
 		}
 		user.addConnection(connection);
-
-		return isAuthorized;
 	}
 
 	/**
@@ -249,27 +287,41 @@ public class StratumProxyManager {
 	 * @param workerConnection
 	 * @param workerRequest
 	 */
-	public void onSubmitRequest(final WorkerConnection workerConnection, final MiningSubmitRequest workerRequest) {
-		if (workerConnection.getPool() != null && workerConnection.getPool().isActive()) {
+	public void onSubmitRequest(final WorkerConnection workerConnection,
+			final MiningSubmitRequest workerRequest) {
+		if (workerConnection.getPool() != null
+				&& workerConnection.getPool().isActive()) {
 			for (int i = 0; i < workerConnection.getPool().getNumberOfSubmit(); i++) {
 				MiningSubmitRequest poolRequest = new MiningSubmitRequest();
 				poolRequest.setExtranonce2(workerRequest.getExtranonce2());
 				poolRequest.setJobId(workerRequest.getJobId());
 				poolRequest.setNonce(workerRequest.getNonce());
 				poolRequest.setNtime(workerRequest.getNtime());
-				poolRequest.setWorkerName(workerConnection.getPool().getUsername());
+				poolRequest.setWorkerName(workerConnection.getPool()
+						.getUsername());
 
-				workerConnection.getPool().submitShare(poolRequest, new ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>() {
-					public void onResponseReceived(MiningSubmitRequest request, MiningSubmitResponse response) {
-						updateShareLists(workerRequest, response, workerConnection);
-						workerConnection.onPoolSubmitResponse(workerRequest, response);
-					}
-				});
+				workerConnection
+						.getPool()
+						.submitShare(
+								poolRequest,
+								new ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>() {
+									public void onResponseReceived(
+											MiningSubmitRequest request,
+											MiningSubmitResponse response) {
+										updateShareLists(workerRequest,
+												response, workerConnection);
+										workerConnection.onPoolSubmitResponse(
+												workerRequest, response);
+									}
+								});
 
 			}
 		} else {
-			LOGGER.warn("REJECTED share. Share submit from {}@{} dropped since pool {} is inactive.", workerRequest.getWorkerName(),
-					workerConnection.getConnectionName(), workerConnection.getPool());
+			LOGGER.warn(
+					"REJECTED share. Share submit from {}@{} dropped since pool {} is inactive.",
+					workerRequest.getWorkerName(),
+					workerConnection.getConnectionName(),
+					workerConnection.getPool());
 
 			// Notify the worker that the target pool is no more active
 			MiningSubmitResponse fakePoolResponse = new MiningSubmitResponse();
@@ -279,7 +331,8 @@ public class StratumProxyManager {
 			error.setCode(JsonRpcError.ErrorCode.UNKNOWN.getCode());
 			error.setMessage("The target pool is no more active.");
 			fakePoolResponse.setErrorRpc(error);
-			workerConnection.onPoolSubmitResponse(workerRequest, fakePoolResponse);
+			workerConnection.onPoolSubmitResponse(workerRequest,
+					fakePoolResponse);
 		}
 	}
 
@@ -290,13 +343,15 @@ public class StratumProxyManager {
 	 * @param response
 	 * @param workerConnection
 	 */
-	private void updateShareLists(MiningSubmitRequest request, MiningSubmitResponse response, WorkerConnection workerConnection) {
+	private void updateShareLists(MiningSubmitRequest request,
+			MiningSubmitResponse response, WorkerConnection workerConnection) {
 		if (workerConnection.getPool() != null) {
 			Share share = new Share();
 			share.setDifficulty(workerConnection.getPool().getDifficulty());
 			share.setTime(System.currentTimeMillis());
 
-			boolean isAccepted = response.getIsAccepted() != null && response.getIsAccepted();
+			boolean isAccepted = response.getIsAccepted() != null
+					&& response.getIsAccepted();
 
 			workerConnection.updateShareLists(share, isAccepted);
 
@@ -315,8 +370,10 @@ public class StratumProxyManager {
 	 * @param pool
 	 * @param setDifficulty
 	 */
-	public void onPoolSetDifficulty(Pool pool, MiningSetDifficultyNotification setDifficulty) {
-		LOGGER.info("Set difficulty {} on pool {}.", setDifficulty.getDifficulty(), pool.getName());
+	public void onPoolSetDifficulty(Pool pool,
+			MiningSetDifficultyNotification setDifficulty) {
+		LOGGER.info("Set difficulty {} on pool {}.",
+				setDifficulty.getDifficulty(), pool.getName());
 
 		MiningSetDifficultyNotification notification = new MiningSetDifficultyNotification();
 		notification.setDifficulty(setDifficulty.getDifficulty());
@@ -324,7 +381,9 @@ public class StratumProxyManager {
 		List<WorkerConnection> connections = poolWorkerConnections.get(pool);
 
 		if (connections == null) {
-			LOGGER.debug("No worker connections on pool {}. Do not send setDifficulty.", pool.getName());
+			LOGGER.debug(
+					"No worker connections on pool {}. Do not send setDifficulty.",
+					pool.getName());
 		} else {
 			synchronized (connections) {
 				for (WorkerConnection connection : connections) {
@@ -340,13 +399,16 @@ public class StratumProxyManager {
 	 * @param pool
 	 * @param setExtranonce
 	 */
-	public void onPoolSetExtranonce(Pool pool, MiningSetExtranonceNotification setExtranonce) {
+	public void onPoolSetExtranonce(Pool pool,
+			MiningSetExtranonceNotification setExtranonce) {
 		LOGGER.info("Set the extranonce on pool {}.", pool.getName());
 
 		List<WorkerConnection> connections = poolWorkerConnections.get(pool);
 
 		if (connections == null) {
-			LOGGER.debug("No worker connections on pool {}. Do not send setExtranonce.", pool.getName());
+			LOGGER.debug(
+					"No worker connections on pool {}. Do not send setExtranonce.",
+					pool.getName());
 		} else {
 			synchronized (connections) {
 				for (WorkerConnection connection : connections) {
@@ -354,8 +416,13 @@ public class StratumProxyManager {
 						connection.onPoolExtranonceChange();
 					} catch (ChangeExtranonceNotSupportedException e) {
 						connection.close();
-						onWorkerDisconnection(connection, new Exception("The workerConnection " + connection.getConnectionName()
-								+ " does not support setExtranonce notification."));
+						onWorkerDisconnection(
+								connection,
+								new Exception(
+										"The workerConnection "
+												+ connection
+														.getConnectionName()
+												+ " does not support setExtranonce notification."));
 					}
 				}
 			}
@@ -381,13 +448,16 @@ public class StratumProxyManager {
 		notification.setCurrentNTime(notify.getCurrentNTime());
 		notification.setJobId(notify.getJobId());
 		notification.setMerkleBranches(notify.getMerkleBranches());
-		notification.setNetworkDifficultyBits(notify.getNetworkDifficultyBits());
+		notification
+				.setNetworkDifficultyBits(notify.getNetworkDifficultyBits());
 		notification.setPreviousHash(notify.getPreviousHash());
 
 		List<WorkerConnection> connections = poolWorkerConnections.get(pool);
 
 		if (connections == null) {
-			LOGGER.debug("No worker connections on pool {}. Do not send notify.", pool.getName());
+			LOGGER.debug(
+					"No worker connections on pool {}. Do not send notify.",
+					pool.getName());
 		} else {
 			synchronized (connections) {
 				for (WorkerConnection connection : connections) {
@@ -403,7 +473,8 @@ public class StratumProxyManager {
 	 * @param connection
 	 * @return
 	 */
-	protected Pool getHighestPriorityActivePool() throws NoPoolAvailableException {
+	protected Pool getHighestPriorityActivePool()
+			throws NoPoolAvailableException {
 		Pool result = null;
 		synchronized (pools) {
 			for (Pool pool : pools) {
@@ -427,20 +498,27 @@ public class StratumProxyManager {
 	 * @param workerConnection
 	 * @param cause
 	 */
-	public void onWorkerDisconnection(final WorkerConnection workerConnection, final Throwable cause) {
+	public void onWorkerDisconnection(final WorkerConnection workerConnection,
+			final Throwable cause) {
 		// Launch a thread to remove the connection. Done to avoid a concurrent
 		// modification exception which could happen if the disconnection
 		// happens during a connection list iteration.
 		disconnectExecutor.execute(new Runnable() {
 			public void run() {
-				List<WorkerConnection> connections = poolWorkerConnections.get(workerConnection.getPool());
+				List<WorkerConnection> connections = poolWorkerConnections
+						.get(workerConnection.getPool());
 				if (connections != null) {
 					connections.remove(workerConnection);
 				}
-				StratumProxyManager.this.workerConnections.remove(workerConnection);
-				LOGGER.info("Worker connection {} closed. {} connections active on pool {}. Cause: {}", workerConnection.getConnectionName(),
-						connections == null ? 0 : connections.size(), workerConnection.getPool() != null ? workerConnection.getPool().getName()
-								: "None", cause != null ? cause.getMessage() : "Unknown");
+				StratumProxyManager.this.workerConnections
+						.remove(workerConnection);
+				LOGGER.info(
+						"Worker connection {} closed. {} connections active on pool {}. Cause: {}",
+						workerConnection.getConnectionName(),
+						connections == null ? 0 : connections.size(),
+						workerConnection.getPool() != null ? workerConnection
+								.getPool().getName() : "None",
+						cause != null ? cause.getMessage() : "Unknown");
 			}
 		});
 	}
@@ -452,14 +530,18 @@ public class StratumProxyManager {
 		if (pool.isActive()) {
 			LOGGER.warn("Pool {} is UP.", pool.getName());
 		} else {
-			LOGGER.warn("Pool {} is DOWN. Moving connections to another one.", pool.getName());
+			LOGGER.warn("Pool {} is DOWN. Moving connections to another one.",
+					pool.getName());
 			Future<?> switchingFuture = switchPoolConnections(pool);
 			// Wait for the end of connection switch before declaring the pool
 			// has stopped. (Wait 1 seconds max)
 			try {
 				switchingFuture.get(1000, TimeUnit.MILLISECONDS);
-			} catch (InterruptedException | ExecutionException | TimeoutException e) {
-				LOGGER.warn("Pool {} stopped before the end of connection switch.", e);
+			} catch (InterruptedException | ExecutionException
+					| TimeoutException e) {
+				LOGGER.warn(
+						"Pool {} stopped before the end of connection switch.",
+						e);
 			}
 		}
 	}
@@ -495,9 +577,12 @@ public class StratumProxyManager {
 	private Future<?> switchPoolConnections(final Pool pool) {
 		Future<?> future = switchPoolConnectionsExecutor.submit(new Runnable() {
 			public void run() {
-				List<WorkerConnection> connections = poolWorkerConnections.get(pool);
+				List<WorkerConnection> connections = poolWorkerConnections
+						.get(pool);
 				if (connections != null && connections.size() > 0) {
-					LOGGER.info("Start switching all connections of pool {} if needed.", pool.getName());
+					LOGGER.info(
+							"Start switching all connections of pool {} if needed.",
+							pool.getName());
 					synchronized (connections) {
 						for (WorkerConnection connection : connections) {
 							try {
@@ -522,7 +607,8 @@ public class StratumProxyManager {
 	 * 
 	 * @param connection
 	 */
-	private void switchPoolForConnection(WorkerConnection connection) throws NoPoolAvailableException, TooManyWorkersException,
+	private void switchPoolForConnection(WorkerConnection connection)
+			throws NoPoolAvailableException, TooManyWorkersException,
 			ChangeExtranonceNotSupportedException {
 		// Select the new pool for the connection
 		Pool newPool = selectPool(connection);
@@ -530,7 +616,8 @@ public class StratumProxyManager {
 		// If the old pool is the same as the new pool, do nothing.
 		if (!newPool.equals(connection.getPool())) {
 			// Remove the connection from the old pool connection list.
-			List<WorkerConnection> oldPoolConnections = poolWorkerConnections.get(connection.getPool());
+			List<WorkerConnection> oldPoolConnections = poolWorkerConnections
+					.get(connection.getPool());
 			if (oldPoolConnections != null) {
 				oldPoolConnections.remove(connection);
 			}
@@ -539,7 +626,8 @@ public class StratumProxyManager {
 			connection.rebindToPool(newPool);
 			// And finally add the worker connection to the pool's worker
 			// connections
-			List<WorkerConnection> newPoolConnections = poolWorkerConnections.get(newPool);
+			List<WorkerConnection> newPoolConnections = poolWorkerConnections
+					.get(newPool);
 			newPoolConnections.add(connection);
 		}
 	}
@@ -551,7 +639,8 @@ public class StratumProxyManager {
 	 * @return
 	 * @throws NoPoolAvailableException
 	 */
-	private Pool selectPool(WorkerConnection connection) throws NoPoolAvailableException {
+	private Pool selectPool(WorkerConnection connection)
+			throws NoPoolAvailableException {
 		// TODO to improve. At the moment, just return the first active.
 		return getHighestPriorityActivePool();
 	}
@@ -564,13 +653,16 @@ public class StratumProxyManager {
 	 * @param newPriority
 	 * @throws BadParameterException
 	 */
-	public void setPoolPriority(String poolName, int newPriority) throws NoPoolAvailableException, BadParameterException {
+	public void setPoolPriority(String poolName, int newPriority)
+			throws NoPoolAvailableException, BadParameterException {
 		if (getPool(poolName) == null) {
-			throw new NoPoolAvailableException("Pool with name " + poolName + " not found");
+			throw new NoPoolAvailableException("Pool with name " + poolName
+					+ " not found");
 		}
 
 		if (newPriority < 0) {
-			throw new BadParameterException("The priority has to be higher or equal to 0");
+			throw new BadParameterException(
+					"The priority has to be higher or equal to 0");
 		}
 
 		synchronized (pools) {
@@ -578,7 +670,8 @@ public class StratumProxyManager {
 				for (Pool pool : pools) {
 					// Set the new priority to the pool with the given name.
 					if (pool.getName().equals(poolName)) {
-						LOGGER.info("Changing pool {} priority from {} to {}.", pool.getName(), pool.getPriority(), newPriority);
+						LOGGER.info("Changing pool {} priority from {} to {}.",
+								pool.getName(), pool.getPriority(), newPriority);
 						pool.setPriority(newPriority);
 					} else if (pool.getPriority() >= newPriority) {
 						// And move the priority of pools with lower or
@@ -599,14 +692,17 @@ public class StratumProxyManager {
 	 * @param isEnabled
 	 * @throws NoPoolAvailableException
 	 */
-	public void setPoolEnabled(String poolName, boolean isEnabled) throws NoPoolAvailableException, Exception {
+	public void setPoolEnabled(String poolName, boolean isEnabled)
+			throws NoPoolAvailableException, Exception {
 		Pool pool = getPool(poolName);
 		if (pool == null) {
-			throw new NoPoolAvailableException("Pool with name " + poolName + " is not found");
+			throw new NoPoolAvailableException("Pool with name " + poolName
+					+ " is not found");
 		}
 
 		if (pool.isEnabled() != isEnabled) {
-			LOGGER.info("Set pool {} {}", pool.getName(), isEnabled ? "enabled" : "disabled");
+			LOGGER.info("Set pool {} {}", pool.getName(), isEnabled ? "enabled"
+					: "disabled");
 			pool.setEnabled(isEnabled);
 		}
 	}
@@ -661,7 +757,8 @@ public class StratumProxyManager {
 	 * @return
 	 */
 	public List<WorkerConnection> getWorkerConnections() {
-		List<WorkerConnection> result = new ArrayList<>(workerConnections.size());
+		List<WorkerConnection> result = new ArrayList<>(
+				workerConnections.size());
 		synchronized (workerConnections) {
 			if (workerConnections != null) {
 				result.addAll(workerConnections);
@@ -692,16 +789,21 @@ public class StratumProxyManager {
 	 * @throws PoolStartException
 	 * @throws SocketException
 	 */
-	public Pool addPool(AddPoolDTO addPoolDTO) throws BadParameterException, SocketException, PoolStartException, URISyntaxException {
+	public Pool addPool(AddPoolDTO addPoolDTO) throws BadParameterException,
+			SocketException, PoolStartException, URISyntaxException {
 
 		LOGGER.debug("Trying to add pool {}.", addPoolDTO);
 
 		checkAddPoolParameters(addPoolDTO);
 
-		Pool poolToAdd = new Pool(addPoolDTO.getPoolName(), addPoolDTO.getPoolHost(), addPoolDTO.getUsername(), addPoolDTO.getPassword());
+		Pool poolToAdd = new Pool(addPoolDTO.getPoolName(),
+				addPoolDTO.getPoolHost(), addPoolDTO.getUsername(),
+				addPoolDTO.getPassword());
 
 		// By default, does not enable extranonce subscribe.
-		poolToAdd.setExtranonceSubscribeEnabled(addPoolDTO.getEnableExtranonceSubscribe() != null && addPoolDTO.getEnableExtranonceSubscribe());
+		poolToAdd.setExtranonceSubscribeEnabled(addPoolDTO
+				.getEnableExtranonceSubscribe() != null
+				&& addPoolDTO.getEnableExtranonceSubscribe());
 
 		// Set by default the priority to the lowest over all pools.
 		int minPriority = getMinimumPoolPriority(addPoolDTO);
@@ -717,15 +819,22 @@ public class StratumProxyManager {
 				setPoolPriority(poolToAdd.getName(), addPoolDTO.getPriority());
 			}
 		} catch (NoPoolAvailableException e) {
-			throw new PoolStartException("Failed to set priority of the created pool with name " + poolToAdd.getName()
-					+ ". This should not happen. Surely a BUUUUGGGG !!!!", e);
+			throw new PoolStartException(
+					"Failed to set priority of the created pool with name "
+							+ poolToAdd.getName()
+							+ ". This should not happen. Surely a BUUUUGGGG !!!!",
+					e);
 		}
 
 		try {
-			poolToAdd.setEnabled(addPoolDTO.getIsEnabled() == null || addPoolDTO.getIsEnabled());
+			poolToAdd.setEnabled(addPoolDTO.getIsEnabled() == null
+					|| addPoolDTO.getIsEnabled());
 		} catch (Exception e) {
-			throw new PoolStartException("Failed to enable the created pool with name " + poolToAdd.getName()
-					+ ". This should not happen. Surely a BUUUUGGGG !!!!", e);
+			throw new PoolStartException(
+					"Failed to enable the created pool with name "
+							+ poolToAdd.getName()
+							+ ". This should not happen. Surely a BUUUUGGGG !!!!",
+					e);
 		}
 
 		if (poolToAdd.isEnabled()) {
@@ -744,7 +853,8 @@ public class StratumProxyManager {
 	public void removePool(String poolName) throws NoPoolAvailableException {
 		Pool pool = getPool(poolName);
 		if (pool == null) {
-			throw new NoPoolAvailableException("Pool with name " + poolName + " is not found");
+			throw new NoPoolAvailableException("Pool with name " + poolName
+					+ " is not found");
 		}
 
 		pool.stopPool();
@@ -780,21 +890,99 @@ public class StratumProxyManager {
 	 * @param addPoolDTO
 	 * @throws URISyntaxException
 	 */
-	private void checkAddPoolParameters(AddPoolDTO addPoolDTO) throws BadParameterException, URISyntaxException {
+	private void checkAddPoolParameters(AddPoolDTO addPoolDTO)
+			throws BadParameterException, URISyntaxException {
 
-		if (addPoolDTO.getPoolHost() == null || addPoolDTO.getPoolHost().trim().isEmpty()) {
+		if (addPoolDTO.getPoolHost() == null
+				|| addPoolDTO.getPoolHost().trim().isEmpty()) {
 			throw new BadParameterException("Pool host is empty.");
 		}
 
 		new URI("stratum+tcp://" + addPoolDTO.getPoolHost().trim());
 
-		if (addPoolDTO.getUsername() == null || addPoolDTO.getUsername().trim().isEmpty()) {
+		if (addPoolDTO.getUsername() == null
+				|| addPoolDTO.getUsername().trim().isEmpty()) {
 			throw new BadParameterException("Username is empty.");
 		}
 
-		if (addPoolDTO.getPassword() == null || addPoolDTO.getPassword().trim().isEmpty()) {
+		if (addPoolDTO.getPassword() == null
+				|| addPoolDTO.getPassword().trim().isEmpty()) {
 			throw new BadParameterException("Password is empty.");
 		}
+	}
+
+	/**
+	 * Kick the given user. Kill all the connections where the user has been
+	 * seen.
+	 * 
+	 * @param username
+	 * @throws NotConnectedException
+	 * @throws NotFoundException
+	 */
+	public void kickUser(UserNameDTO username) throws BadParameterException,
+			NotConnectedException, NotFoundException {
+		if (username.getUsername() != null
+				&& !username.getUsername().trim().isEmpty()) {
+			User user = users.get(username.getUsername());
+			if (user != null) {
+				List<WorkerConnection> connections = user
+						.getWorkerConnections();
+				if (connections != null && !connections.isEmpty()) {
+					for (WorkerConnection connection : connections) {
+						connection.close();
+						onWorkerDisconnection(connection,
+								new Exception("Connection closed since user "
+										+ username.getUsername()
+										+ " has been banned."));
+					}
+				} else {
+					throw new NotConnectedException("The user "
+							+ user.getName() + " has no connections.");
+				}
+			} else {
+				throw new NotFoundException("User " + username.getUsername()
+						+ " not found.");
+			}
+		} else {
+			throw new BadParameterException("Invalid username: "
+					+ username.getUsername());
+		}
+	}
+
+	/**
+	 * Ban the given user until the next proxy restart
+	 * 
+	 * @param username
+	 * @throws NotFoundException
+	 * @throws NotConnectedException
+	 */
+	public void banUser(UserNameDTO username) throws BadParameterException,
+			NotFoundException {
+		try {
+			kickUser(username);
+		} catch (NotConnectedException e) {
+			// Nothing to do. We don't mind
+		}
+		stratumAuthorizationManager.banUser(username);
+	}
+
+	/**
+	 * Unban the given user.
+	 * 
+	 * @param username
+	 * @throws NotFoundException
+	 */
+	public void unbanUser(UserNameDTO username) throws NotFoundException {
+		stratumAuthorizationManager.unbanUser(username);
+	}
+
+	/**
+	 * Return the list of banned users.
+	 * 
+	 * @return
+	 */
+	public List<String> getBanedUsers() {
+		return stratumAuthorizationManager.getBannedUsers();
 	}
 
 }
