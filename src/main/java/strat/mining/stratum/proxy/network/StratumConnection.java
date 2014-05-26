@@ -337,17 +337,33 @@ public abstract class StratumConnection {
 			onExtranonceSubscribeRequest(extranonceSubscribeRequest);
 			break;
 
-		// client.reconnect is a notification, but some pools send it has a
-		// request
+		case ClientGetVersionRequest.METHOD_NAME:
+			ClientGetVersionRequest getVersionRequest = new ClientGetVersionRequest(request);
+			onGetVersionRequest(getVersionRequest);
+			break;
+
+		// Following requests are notifications, but some pools does not respect
+		// the stratum protocol and send notifications as requests.
 		case ClientReconnectNotification.METHOD_NAME:
 			ClientReconnectNotification clientReconnect = new ClientReconnectNotification();
 			clientReconnect.setParams(request.getParams());
 			onClientReconnect(clientReconnect);
 			break;
 
-		case ClientGetVersionRequest.METHOD_NAME:
-			ClientGetVersionRequest getVersionRequest = new ClientGetVersionRequest(request);
-			onGetVersionRequest(getVersionRequest);
+		case MiningNotifyNotification.METHOD_NAME:
+			MiningNotifyNotification notify = new MiningNotifyNotification();
+			notify.setParams(request.getParams());
+			onNotify(notify);
+			break;
+		case MiningSetDifficultyNotification.METHOD_NAME:
+			MiningSetDifficultyNotification setDiff = new MiningSetDifficultyNotification();
+			setDiff.setParams(request.getParams());
+			onSetDifficulty(setDiff);
+			break;
+		case MiningSetExtranonceNotification.METHOD_NAME:
+			MiningSetExtranonceNotification setExtranonce = new MiningSetExtranonceNotification();
+			setExtranonce.setParams(request.getParams());
+			onSetExtranonce(setExtranonce);
 			break;
 
 		default:

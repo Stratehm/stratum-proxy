@@ -156,7 +156,7 @@ public class CommandLineOptions {
 						String poolName = poolHost;
 						String username = Constants.DEFAULT_USERNAME;
 						String password = Constants.DEFAULT_PASSWORD;
-						Boolean isExtranonceSubscribe = Boolean.TRUE;
+						Boolean isExtranonceSubscribe = Boolean.FALSE;
 						Boolean isAppendWorkerNames = Boolean.FALSE;
 						String workerNameSeparator = Constants.DEFAULT_WORKER_NAME_SEPARTOR;
 						Boolean useWorkerPassword = Boolean.FALSE;
