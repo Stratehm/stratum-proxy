@@ -24,14 +24,18 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -40,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.constant.Constants;
+import strat.mining.stratum.proxy.exception.AuthorizationException;
 import strat.mining.stratum.proxy.exception.PoolStartException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.ClientReconnectNotification;
@@ -81,6 +86,10 @@ public class Pool implements Comparable<Pool> {
 	private boolean isEnabled;
 	private boolean isStable;
 	private boolean isFirstRun;
+	private boolean isAppendWorkerNames;
+	private boolean isUseWorkerPassword;
+
+	private String workerSeparator;
 
 	// Contains all available tails in Hexa format.
 	private Deque<String> tails;
@@ -116,6 +125,12 @@ public class Pool implements Comparable<Pool> {
 	// Store the callbacks to call when the pool responds to a submit request.
 	private Map<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>> submitCallbacks;
 
+	// Store the callbacks to call when the pool responds to worker authorize
+	// request.
+	private Map<Long, ResponseReceivedCallback<MiningAuthorizeRequest, MiningAuthorizeResponse>> authorizeCallbacks;
+
+	private List<String> authorizedWorkers;
+
 	public Pool(String name, String host, String username, String password) {
 		super();
 		this.name = name == null ? host : name;
@@ -132,8 +147,11 @@ public class Pool implements Comparable<Pool> {
 
 		this.tails = buildTails();
 		this.submitCallbacks = Collections.synchronizedMap(new HashMap<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>>());
+		this.authorizeCallbacks = Collections
+				.synchronizedMap(new HashMap<Long, ResponseReceivedCallback<MiningAuthorizeRequest, MiningAuthorizeResponse>>());
 		this.lastAcceptedShares = new ConcurrentLinkedDeque<Share>();
 		this.lastRejectedShares = new ConcurrentLinkedDeque<Share>();
+		this.authorizedWorkers = Collections.synchronizedList(new ArrayList<String>());
 	}
 
 	public void startPool(StratumProxyManager manager) throws PoolStartException, URISyntaxException, SocketException {
@@ -173,6 +191,7 @@ public class Pool implements Comparable<Pool> {
 	public void stopPool() {
 		if (connection != null) {
 			cancelTimers();
+			authorizedWorkers.clear();
 
 			isActive = false;
 			isStable = false;
@@ -342,11 +361,18 @@ public class Pool implements Comparable<Pool> {
 			// Start the notify timeout timer
 			resetNotifyTimeoutTimer();
 
-			// And send the authorize request
-			MiningAuthorizeRequest authorizeRequest = new MiningAuthorizeRequest();
-			authorizeRequest.setUsername(username);
-			authorizeRequest.setPassword(password);
-			connection.sendRequest(authorizeRequest);
+			// If appendWorkerNames is true, do not try to authorize the pool
+			// username. Workers will be authorized on connection. So, just
+			// declare the pool as active.
+			if (isAppendWorkerNames) {
+				setPoolAsActive();
+			} else {
+				// Send the authorize request if worker names are not appended.
+				MiningAuthorizeRequest authorizeRequest = new MiningAuthorizeRequest();
+				authorizeRequest.setUsername(username);
+				authorizeRequest.setPassword(password);
+				connection.sendRequest(authorizeRequest);
+			}
 		}
 	}
 
@@ -359,18 +385,44 @@ public class Pool implements Comparable<Pool> {
 	}
 
 	public void processAuthorizeResponse(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
-		if (response.getIsAuthorized()) {
-			LOGGER.info("Pool {} started", getName());
-			this.isActive = true;
-			activeSince = new Date();
-			testStability();
-			isFirstRun = false;
-			manager.onPoolStateChange(this);
+		// If the appendWorkerNames is true, the proxy does not request an
+		// authorization with the configuraed pool username but will request
+		// authorization for each newly connected workers.
+		if (isAppendWorkerNames) {
+			ResponseReceivedCallback<MiningAuthorizeRequest, MiningAuthorizeResponse> callback = authorizeCallbacks.get(response.getId());
+			if (response.getIsAuthorized() != null && response.getIsAuthorized()) {
+				// If authorized, add it in the authorized user list.
+				authorizedWorkers.add(request.getUsername());
+			}
+			// Then call the callback.
+			if (callback != null) {
+				callback.onResponseReceived(request, response);
+			} else {
+				LOGGER.warn("Received an unexpected authorize response.", response);
+			}
 		} else {
-			LOGGER.error("Stopping pool {} since user {} is not authorized.", getName(), username);
-			stopPool();
-			retryConnect(true);
+			// If the appendWorkerName is false and the authorization succeed,
+			// then set the pool as started
+			if (response.getIsAuthorized()) {
+				setPoolAsActive();
+			} else {
+				LOGGER.error("Stopping pool {} since user {} is not authorized.", getName(), username);
+				stopPool();
+				retryConnect(true);
+			}
 		}
+	}
+
+	/**
+	 * Set the pool as active.
+	 */
+	private void setPoolAsActive() {
+		LOGGER.info("Pool {} started", getName());
+		this.isActive = true;
+		activeSince = new Date();
+		testStability();
+		isFirstRun = false;
+		manager.onPoolStateChange(this);
 	}
 
 	public void processSubmitResponse(MiningSubmitRequest request, MiningSubmitResponse response) {
@@ -411,12 +463,24 @@ public class Pool implements Comparable<Pool> {
 	/**
 	 * Send a submit request and return the submit response.
 	 * 
-	 * @param request
+	 * @param workerRequest
 	 * @return
 	 */
-	public void submitShare(MiningSubmitRequest request, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse> callback) {
-		submitCallbacks.put(request.getId(), callback);
-		connection.sendRequest(request);
+	public void submitShare(MiningSubmitRequest workerRequest, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse> callback) {
+		MiningSubmitRequest poolRequest = new MiningSubmitRequest();
+		poolRequest.setExtranonce2(workerRequest.getExtranonce2());
+		poolRequest.setJobId(workerRequest.getJobId());
+		poolRequest.setNonce(workerRequest.getNonce());
+		poolRequest.setNtime(workerRequest.getNtime());
+
+		if (isAppendWorkerNames) {
+			poolRequest.setWorkerName(username + workerSeparator + workerRequest.getWorkerName());
+		} else {
+			poolRequest.setWorkerName(username);
+		}
+
+		submitCallbacks.put(poolRequest.getId(), callback);
+		connection.sendRequest(poolRequest);
 	}
 
 	public void onDisconnectWithError(Throwable cause) {
@@ -705,6 +769,79 @@ public class Pool implements Comparable<Pool> {
 
 	public double getRejectedHashesPerSeconds() {
 		return HashrateUtils.getHashrateFromShareList(lastRejectedShares, samplingHashratePeriod);
+	}
+
+	/**
+	 * Authorize the given worker on the pool. Throws an exception if the worker
+	 * is not authorized on the pool. This method blocs until the response is
+	 * received from the pool.
+	 * 
+	 * @param workerRequest
+	 * @param callback
+	 */
+	public void authorizeWorker(MiningAuthorizeRequest workerRequest) throws AuthorizationException {
+		if (isAppendWorkerNames) {
+			String finalUserName = username + workerSeparator + workerRequest.getUsername();
+
+			LOGGER.debug("Authorize worker {} on pool {}.", finalUserName, getName());
+
+			// Create a latch to wait the authorization response.
+			final CountDownLatch responseLatch = new CountDownLatch(1);
+			// Repsonse wrapper used to store the pool response values
+			final MiningAuthorizeResponse poolResponseWrapper = new MiningAuthorizeResponse();
+
+			MiningAuthorizeRequest poolRequest = new MiningAuthorizeRequest();
+			poolRequest.setUsername(finalUserName);
+			poolRequest.setPassword(isUseWorkerPassword ? workerRequest.getPassword() : this.password);
+			// Prepare the callback to call when response is
+			// received.
+			authorizeCallbacks.put(poolRequest.getId(), new ResponseReceivedCallback<MiningAuthorizeRequest, MiningAuthorizeResponse>() {
+				public void onResponseReceived(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
+					// Recopy values to allow blocked thread to access the
+					// response values.
+					poolResponseWrapper.setId(response.getId());
+					poolResponseWrapper.setResult(response.getResult());
+
+					// Unblock the blocked thread.
+					responseLatch.countDown();
+				}
+			});
+
+			// Send the request.
+			connection.sendRequest(poolRequest);
+			// Wait for the response for 5 seconds max.
+			boolean isTimeout = false;
+			try {
+				isTimeout = !responseLatch.await(5, TimeUnit.SECONDS);
+			} catch (InterruptedException e) {
+				LOGGER.info("Interruption on pool {} during authorization for user {}.", getName(), finalUserName);
+				throw new AuthorizationException("Interruption of authorization of user " + finalUserName + " on pool " + getName(), e);
+			}
+
+			if (isTimeout) {
+				LOGGER.warn("Timeout of worker {} authorization on pool {}.", finalUserName, getName());
+				throw new AuthorizationException("Timeout of worker " + finalUserName + "authorization on pool " + getName());
+			}
+
+			// Check the response values
+			if (poolResponseWrapper.getIsAuthorized() == null || !poolResponseWrapper.getIsAuthorized()) {
+				// If the worker is not authorized, throw an exception.
+				throw new AuthorizationException("Worker " + finalUserName + " is not authorized on pool " + getName() + ". Cause: "
+						+ (poolResponseWrapper.getJsonError() != null ? poolResponseWrapper.getJsonError() : "none."));
+			}
+		}
+	}
+
+	public void setAppendWorkerNames(boolean isAppendWorkerNames) {
+		this.isAppendWorkerNames = isAppendWorkerNames;
+	}
+
+	public void setUseWorkerPassword(boolean isUseWorkerPassword) {
+		this.isUseWorkerPassword = isUseWorkerPassword;
+	}
+
+	public void setWorkerSeparator(String workerSeparator) {
+		this.workerSeparator = workerSeparator;
 	}
 
 }

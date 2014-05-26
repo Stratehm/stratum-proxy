@@ -49,6 +49,8 @@ public class Constants {
 
 	public static final String VERSION = "stratehm-stratum-proxy-" + Launcher.getVersion();
 
-	public static double AVERAGE_NUMBER_OF_HASHES_PER_SHARE_AT_DIFFICULTY_ONE = Math.pow(2, 32);
+	public static final double AVERAGE_NUMBER_OF_HASHES_PER_SHARE_AT_DIFFICULTY_ONE = Math.pow(2, 32);
+
+	public static final String DEFAULT_WORKER_NAME_SEPARTOR = ".";
 
 }

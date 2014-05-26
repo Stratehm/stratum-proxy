@@ -23,11 +23,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import strat.mining.stratum.proxy.constant.Constants;
+import strat.mining.stratum.proxy.utils.EquatableWeakReference;
 import strat.mining.stratum.proxy.utils.HashrateUtils;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
 
@@ -41,7 +44,7 @@ public class User {
 
 	private String name;
 
-	private volatile List<WeakReference<WorkerConnection>> seenOnConnections;
+	private volatile Set<WeakReference<WorkerConnection>> seenOnConnections;
 
 	private Deque<Share> lastAcceptedShares;
 	private Deque<Share> lastRejectedShares;
@@ -56,16 +59,17 @@ public class User {
 		creationTime = new Date();
 		lastAcceptedShares = new ConcurrentLinkedDeque<Share>();
 		lastRejectedShares = new ConcurrentLinkedDeque<Share>();
-		seenOnConnections = Collections.synchronizedList(new ArrayList<WeakReference<WorkerConnection>>());
+		seenOnConnections = Collections.synchronizedSet(new HashSet<WeakReference<WorkerConnection>>());
 	}
 
 	/**
-	 * Add a connection where this user has been authorized.
+	 * Add a connection where this user has been authorized. If the connection
+	 * is already present, do nothing.
 	 * 
 	 * @param workerConnection
 	 */
 	public void addConnection(WorkerConnection workerConnection) {
-		seenOnConnections.add(new WeakReference<WorkerConnection>(workerConnection));
+		seenOnConnections.add(new EquatableWeakReference<WorkerConnection>(workerConnection));
 		purgeAndGetConnectionList();
 	}
 

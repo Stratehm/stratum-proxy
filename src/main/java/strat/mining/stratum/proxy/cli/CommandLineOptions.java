@@ -103,6 +103,15 @@ public class CommandLineOptions {
 	@Option(name = "--pool-no-reconnect-different-host", usage = "Do not accept client.reconnect if connection on a different host is requested. Still accept reconnection on another port on the same host. If not set, accept all reconnection requests.", handler = BooleanOptionHandler.class)
 	private boolean isRejectReconnect;
 
+	@Option(name = "--pool-append-worker-names", usage = "Append the worker name to the username configured for the pool to sumbit shares. (false by default) Use --pool-worker-name-separator to specify the separator to use.", handler = BooleanArrayOptionHandler.class, metaVar = "boolean1 [boolean2] [boolean3]...")
+	private List<Boolean> poolsAppendWorkerNames;
+
+	@Option(name = "--pool-worker-name-separator", usage = "Specify the separator to use between the pool username and the worker name. (. by default)", handler = BooleanArrayOptionHandler.class, metaVar = "separator1 [separator2] [separator3]...")
+	private List<String> poolsWorkerNameSeparator;
+
+	@Option(name = "--pool-use-worker-password", usage = "Use the worker password instead of the pool password to authorize workers. (false by default)", handler = BooleanArrayOptionHandler.class, metaVar = "boolean1 [boolean2] [boolean3]...")
+	private List<Boolean> poolsUseWorkerPassword;
+
 	@Option(name = "--pool-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate on pools. (600 seconds by default)")
 	private Integer poolHashrateSamplingPeriod = Constants.DEFAULT_POOL_HASHRATE_SAMPLING_PERIOD;
 
@@ -148,6 +157,9 @@ public class CommandLineOptions {
 						String username = Constants.DEFAULT_USERNAME;
 						String password = Constants.DEFAULT_PASSWORD;
 						Boolean isExtranonceSubscribe = Boolean.TRUE;
+						Boolean isAppendWorkerNames = Boolean.FALSE;
+						String workerNameSeparator = Constants.DEFAULT_WORKER_NAME_SEPARTOR;
+						Boolean useWorkerPassword = Boolean.FALSE;
 
 						if (poolNames != null && poolNames.size() > index) {
 							poolName = poolNames.get(index);
@@ -171,6 +183,18 @@ public class CommandLineOptions {
 							isExtranonceSubscribe = isExtranonceSubscribeEnabled.get(index);
 						}
 
+						if (poolsAppendWorkerNames != null && poolsAppendWorkerNames.size() > index) {
+							isAppendWorkerNames = poolsAppendWorkerNames.get(index);
+						}
+
+						if (poolsUseWorkerPassword != null && poolsUseWorkerPassword.size() > index) {
+							useWorkerPassword = poolsUseWorkerPassword.get(index);
+						}
+
+						if (poolsWorkerNameSeparator != null && poolsWorkerNameSeparator.size() > index) {
+							workerNameSeparator = poolsWorkerNameSeparator.get(index);
+						}
+
 						Pool pool = new Pool(poolName, poolHost, username, password);
 						pool.setExtranonceSubscribeEnabled(isExtranonceSubscribe);
 						pool.setNumberOfSubmit(numberOfSubmit);
@@ -180,6 +204,9 @@ public class CommandLineOptions {
 						pool.setNoNotifyTimeout(poolNoNotifyTimeout);
 						pool.setRejectReconnect(isRejectReconnect);
 						pool.setSamplingHashratePeriod(poolHashrateSamplingPeriod);
+						pool.setAppendWorkerNames(isAppendWorkerNames);
+						pool.setWorkerSeparator(workerNameSeparator);
+						pool.setUseWorkerPassword(useWorkerPassword);
 						pools.add(pool);
 
 						index++;

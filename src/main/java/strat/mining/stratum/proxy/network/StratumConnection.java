@@ -456,4 +456,30 @@ public abstract class StratumConnection {
 	public boolean isConnected() {
 		return !socket.isClosed() && socket.isConnected();
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((socket == null) ? 0 : socket.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		StratumConnection other = (StratumConnection) obj;
+		if (socket == null) {
+			if (other.socket != null)
+				return false;
+		} else if (!socket.toString().equals(other.socket == null ? null : other.socket.toString()))
+			return false;
+		return true;
+	}
+
 }

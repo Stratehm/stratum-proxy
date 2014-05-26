@@ -61,8 +61,7 @@ import strat.mining.stratum.proxy.utils.HashrateUtils;
 
 public class WorkerConnection extends StratumConnection {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(WorkerConnection.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(WorkerConnection.class);
 
 	private Pool pool;
 
@@ -89,8 +88,7 @@ public class WorkerConnection extends StratumConnection {
 	public WorkerConnection(Socket socket, StratumProxyManager manager) {
 		super(socket);
 		this.manager = manager;
-		this.authorizedWorkers = Collections
-				.synchronizedSet(new HashSet<String>());
+		this.authorizedWorkers = Collections.synchronizedSet(new HashSet<String>());
 		lastAcceptedShares = new ConcurrentLinkedDeque<Share>();
 		lastRejectedShares = new ConcurrentLinkedDeque<Share>();
 	}
@@ -101,9 +99,7 @@ public class WorkerConnection extends StratumConnection {
 		subscribeTimeoutTimer = new Timer();
 		subscribeTimeoutTimer.schedule(new TimerTask() {
 			public void run() {
-				LOGGER.warn(
-						"No subscribe request received from {} in {} ms. Closing connection.",
-						getConnectionName(), subscribeReceiveTimeout);
+				LOGGER.warn("No subscribe request received from {} in {} ms. Closing connection.", getConnectionName(), subscribeReceiveTimeout);
 				// Close the connection if subscribe request is not received at
 				// time.
 				close();
@@ -113,9 +109,7 @@ public class WorkerConnection extends StratumConnection {
 
 	@Override
 	protected void onParsingError(String line, Throwable throwable) {
-		LOGGER.error(
-				"Parsing error on worker connection {}. Failed to parse line {}.",
-				getConnectionName(), line, throwable);
+		LOGGER.error("Parsing error on worker connection {}. Failed to parse line {}.", getConnectionName(), line, throwable);
 	}
 
 	@Override
@@ -149,6 +143,7 @@ public class WorkerConnection extends StratumConnection {
 		response.setId(request.getId());
 
 		try {
+			// Throws an exception if the worker is not authorized
 			manager.onAuthorizeRequest(this, request);
 			response.setIsAuthorized(true);
 			authorizedWorkers.add(request.getUsername());
@@ -175,9 +170,7 @@ public class WorkerConnection extends StratumConnection {
 		try {
 			pool = manager.onSubscribeRequest(this, request);
 		} catch (NoPoolAvailableException e) {
-			LOGGER.error(
-					"No pool available for the connection {}. Sending error and close the connection.",
-					getConnectionName());
+			LOGGER.error("No pool available for the connection {}. Sending error and close the connection.", getConnectionName());
 			error = new JsonRpcError();
 			error.setCode(JsonRpcError.ErrorCode.UNKNOWN.getCode());
 			error.setMessage("No pool available on this proxy.");
@@ -188,9 +181,8 @@ public class WorkerConnection extends StratumConnection {
 				extranonce1Tail = pool.getFreeTail();
 				extranonce2Size = pool.getWorkerExtranonce2Size();
 			} catch (TooManyWorkersException e) {
-				LOGGER.error(
-						"Too many connections on pool {} for the connection {}. Sending error and close the connection.",
-						pool.getName(), getConnectionName(), e);
+				LOGGER.error("Too many connections on pool {} for the connection {}. Sending error and close the connection.", pool.getName(),
+						getConnectionName(), e);
 				error = new JsonRpcError();
 				error.setCode(JsonRpcError.ErrorCode.UNKNOWN.getCode());
 				error.setMessage("Too many connection on the pool.");
@@ -238,16 +230,13 @@ public class WorkerConnection extends StratumConnection {
 	}
 
 	@Override
-	protected void onExtranonceSubscribeRequest(
-			MiningExtranonceSubscribeRequest request) {
+	protected void onExtranonceSubscribeRequest(MiningExtranonceSubscribeRequest request) {
 		this.isSetExtranonceNotificationSupported = true;
 	}
 
 	@Override
 	protected void onGetVersionRequest(ClientGetVersionRequest request) {
-		LOGGER.warn(
-				"Worker {} send a GetVersion request. This should not happen.",
-				getConnectionName());
+		LOGGER.warn("Worker {} send a GetVersion request. This should not happen.", getConnectionName());
 	}
 
 	/**
@@ -256,21 +245,13 @@ public class WorkerConnection extends StratumConnection {
 	 * @param workerRequest
 	 * @param poolResponse
 	 */
-	public void onPoolSubmitResponse(MiningSubmitRequest workerRequest,
-			MiningSubmitResponse poolResponse) {
-		if (poolResponse.getIsAccepted() != null
-				&& poolResponse.getIsAccepted()) {
-			LOGGER.info(
-					"Accepted share (diff: {}) from {}@{} on {}. Yeah !!!!",
-					pool != null ? pool.getDifficulty() : "Unknown",
-					workerRequest.getWorkerName(), getConnectionName(),
-					pool.getName());
+	public void onPoolSubmitResponse(MiningSubmitRequest workerRequest, MiningSubmitResponse poolResponse) {
+		if (poolResponse.getIsAccepted() != null && poolResponse.getIsAccepted()) {
+			LOGGER.info("Accepted share (diff: {}) from {}@{} on {}. Yeah !!!!", pool != null ? pool.getDifficulty() : "Unknown",
+					workerRequest.getWorkerName(), getConnectionName(), pool.getName());
 		} else {
-			LOGGER.info(
-					"REJECTED share (diff: {}) from {}@{} on {}. Booo !!!!. Error: {}",
-					pool != null ? pool.getDifficulty() : "Unknown",
-					workerRequest.getWorkerName(), getConnectionName(),
-					pool.getName(), poolResponse.getJsonError());
+			LOGGER.info("REJECTED share (diff: {}) from {}@{} on {}. Booo !!!!. Error: {}", pool != null ? pool.getDifficulty() : "Unknown",
+					workerRequest.getWorkerName(), getConnectionName(), pool.getName(), poolResponse.getJsonError());
 		}
 
 		MiningSubmitResponse workerResponse = new MiningSubmitResponse();
@@ -286,58 +267,41 @@ public class WorkerConnection extends StratumConnection {
 	 * the worker. Throw an exception if the extranonce change is not supported
 	 * on the fly.
 	 */
-	public void onPoolExtranonceChange()
-			throws ChangeExtranonceNotSupportedException {
+	public void onPoolExtranonceChange() throws ChangeExtranonceNotSupportedException {
 		if (isSetExtranonceNotificationSupported) {
 			MiningSetExtranonceNotification extranonceNotif = new MiningSetExtranonceNotification();
-			extranonceNotif.setExtranonce1(pool.getExtranonce1()
-					+ extranonce1Tail);
+			extranonceNotif.setExtranonce1(pool.getExtranonce1() + extranonce1Tail);
 			extranonceNotif.setExtranonce2Size(extranonce2Size);
 			sendNotification(extranonceNotif);
 		} else {
 			// If the extranonce change is not supported by the worker, then
 			// throw an exception
-			throw new ChangeExtranonceNotSupportedException(
-					"Change extranonce not supported.");
+			throw new ChangeExtranonceNotSupportedException("Change extranonce not supported.");
 		}
 	}
 
 	@Override
-	protected void onAuthorizeResponse(MiningAuthorizeRequest request,
-			MiningAuthorizeResponse response) {
-		LOGGER.warn(
-				"Worker {} send an Authorize response. This should not happen.",
-				getConnectionName());
+	protected void onAuthorizeResponse(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
+		LOGGER.warn("Worker {} send an Authorize response. This should not happen.", getConnectionName());
 	}
 
 	@Override
-	protected void onSubscribeResponse(MiningSubscribeRequest request,
-			MiningSubscribeResponse response) {
-		LOGGER.warn(
-				"Worker {} send a Subscribe response. This should not happen.",
-				getConnectionName());
+	protected void onSubscribeResponse(MiningSubscribeRequest request, MiningSubscribeResponse response) {
+		LOGGER.warn("Worker {} send a Subscribe response. This should not happen.", getConnectionName());
 	}
 
 	@Override
-	protected void onSubmitResponse(MiningSubmitRequest request,
-			MiningSubmitResponse response) {
-		LOGGER.warn(
-				"Worker {} send a Submit response. This should not happen.",
-				getConnectionName());
+	protected void onSubmitResponse(MiningSubmitRequest request, MiningSubmitResponse response) {
+		LOGGER.warn("Worker {} send a Submit response. This should not happen.", getConnectionName());
 	}
 
 	@Override
-	protected void onExtranonceSubscribeResponse(
-			MiningExtranonceSubscribeRequest request,
-			MiningExtranonceSubscribeResponse response) {
-		LOGGER.warn(
-				"Worker {} send an Extranonce subscribe response. This should not happen.",
-				getConnectionName());
+	protected void onExtranonceSubscribeResponse(MiningExtranonceSubscribeRequest request, MiningExtranonceSubscribeResponse response) {
+		LOGGER.warn("Worker {} send an Extranonce subscribe response. This should not happen.", getConnectionName());
 	}
 
 	@Override
-	protected void onGetVersionResponse(ClientGetVersionRequest request,
-			ClientGetVersionResponse response) {
+	protected void onGetVersionResponse(ClientGetVersionRequest request, ClientGetVersionResponse response) {
 		// Nothing to do...yet.
 	}
 
@@ -376,8 +340,7 @@ public class WorkerConnection extends StratumConnection {
 		// Send the setExtranonce notif
 		if (isSetExtranonceNotificationSupported) {
 			MiningSetExtranonceNotification extranonceNotif = new MiningSetExtranonceNotification();
-			extranonceNotif.setExtranonce1(pool.getExtranonce1()
-					+ extranonce1Tail);
+			extranonceNotif.setExtranonce1(pool.getExtranonce1() + extranonce1Tail);
 			extranonceNotif.setExtranonce2Size(extranonce2Size);
 			sendNotification(extranonceNotif);
 			LOGGER.debug("Initial extranonce sent to {}.", getConnectionName());
@@ -409,12 +372,10 @@ public class WorkerConnection extends StratumConnection {
 	 * @throws TooManyWorkersException
 	 * @throws ChangeExtranonceNotSupportedException
 	 */
-	public void rebindToPool(Pool newPool) throws TooManyWorkersException,
-			ChangeExtranonceNotSupportedException {
+	public void rebindToPool(Pool newPool) throws TooManyWorkersException, ChangeExtranonceNotSupportedException {
 		if (isSetExtranonceNotificationSupported) {
-			LOGGER.info(
-					"Rebind connection {} from pool {} to pool {} with setExtranonce notification.",
-					getConnectionName(), pool.getName(), newPool.getName());
+			LOGGER.info("Rebind connection {} from pool {} to pool {} with setExtranonce notification.", getConnectionName(), pool.getName(),
+					newPool.getName());
 			// Release the old extranonce
 			pool.releaseTail(extranonce1Tail);
 
@@ -428,8 +389,7 @@ public class WorkerConnection extends StratumConnection {
 
 		} else {
 			// If set extranonce not supported, throw an exception
-			throw new ChangeExtranonceNotSupportedException(
-					"Change extranonce not supported.");
+			throw new ChangeExtranonceNotSupportedException("Change extranonce not supported.");
 		}
 	}
 
@@ -457,8 +417,7 @@ public class WorkerConnection extends StratumConnection {
 	 */
 	public double getAcceptedHashrate() {
 		HashrateUtils.purgeShareList(lastAcceptedShares, samplingHashesPeriod);
-		return HashrateUtils.getHashrateFromShareList(lastAcceptedShares,
-				samplingHashesPeriod);
+		return HashrateUtils.getHashrateFromShareList(lastAcceptedShares, samplingHashesPeriod);
 	}
 
 	/**
@@ -468,8 +427,7 @@ public class WorkerConnection extends StratumConnection {
 	 */
 	public double getRejectedHashrate() {
 		HashrateUtils.purgeShareList(lastRejectedShares, samplingHashesPeriod);
-		return HashrateUtils.getHashrateFromShareList(lastRejectedShares,
-				samplingHashesPeriod);
+		return HashrateUtils.getHashrateFromShareList(lastRejectedShares, samplingHashesPeriod);
 	}
 
 	/**
@@ -481,12 +439,10 @@ public class WorkerConnection extends StratumConnection {
 	public void updateShareLists(Share share, boolean isAccepted) {
 		if (isAccepted) {
 			lastAcceptedShares.addLast(share);
-			HashrateUtils.purgeShareList(lastAcceptedShares,
-					samplingHashesPeriod);
+			HashrateUtils.purgeShareList(lastAcceptedShares, samplingHashesPeriod);
 		} else {
 			lastRejectedShares.addLast(share);
-			HashrateUtils.purgeShareList(lastRejectedShares,
-					samplingHashesPeriod);
+			HashrateUtils.purgeShareList(lastRejectedShares, samplingHashesPeriod);
 		}
 	}
 
