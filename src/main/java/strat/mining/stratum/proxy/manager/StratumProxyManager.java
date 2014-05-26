@@ -30,12 +30,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -92,7 +91,6 @@ public class StratumProxyManager {
 
 	private boolean closeRequested = false;
 
-	private ExecutorService disconnectExecutor;
 	private ExecutorService switchPoolConnectionsExecutor;
 
 	private StratumAuthorizationManager stratumAuthorizationManager;
@@ -103,9 +101,8 @@ public class StratumProxyManager {
 		this.workerConnections = Collections.synchronizedList(new ArrayList<WorkerConnection>());
 		this.users = Collections.synchronizedMap(new HashMap<String, User>());
 		this.poolWorkerConnections = Collections.synchronizedMap(new HashMap<Pool, List<WorkerConnection>>());
-		this.disconnectExecutor = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setNameFormat("onWorkerDisconnectThread-%d").build());
-		this.switchPoolConnectionsExecutor = new ThreadPoolExecutor(10, Integer.MAX_VALUE, 10L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(),
-				new ThreadFactoryBuilder().setNameFormat("SwitchPoolConnectionsThread-%d").build());
+		this.switchPoolConnectionsExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(
+				"SwitchPoolConnectionsThread-%d").build());
 	}
 
 	/**
@@ -219,7 +216,7 @@ public class StratumProxyManager {
 
 		List<WorkerConnection> workerConnections = poolWorkerConnections.get(pool);
 		if (workerConnections == null) {
-			workerConnections = Collections.synchronizedList(new ArrayList<WorkerConnection>());
+			workerConnections = new CopyOnWriteArrayList<WorkerConnection>();
 			poolWorkerConnections.put(pool, workerConnections);
 		}
 		workerConnections.add(connection);
@@ -340,10 +337,8 @@ public class StratumProxyManager {
 		if (connections == null) {
 			LOGGER.debug("No worker connections on pool {}. Do not send setDifficulty.", pool.getName());
 		} else {
-			synchronized (connections) {
-				for (WorkerConnection connection : connections) {
-					connection.sendNotification(notification);
-				}
+			for (WorkerConnection connection : connections) {
+				connection.sendNotification(notification);
 			}
 		}
 	}
@@ -362,15 +357,13 @@ public class StratumProxyManager {
 		if (connections == null) {
 			LOGGER.debug("No worker connections on pool {}. Do not send setExtranonce.", pool.getName());
 		} else {
-			synchronized (connections) {
-				for (WorkerConnection connection : connections) {
-					try {
-						connection.onPoolExtranonceChange();
-					} catch (ChangeExtranonceNotSupportedException e) {
-						connection.close();
-						onWorkerDisconnection(connection, new Exception("The workerConnection " + connection.getConnectionName()
-								+ " does not support setExtranonce notification."));
-					}
+			for (WorkerConnection connection : connections) {
+				try {
+					connection.onPoolExtranonceChange();
+				} catch (ChangeExtranonceNotSupportedException e) {
+					connection.close();
+					onWorkerDisconnection(connection, new Exception("The workerConnection " + connection.getConnectionName()
+							+ " does not support setExtranonce notification."));
 				}
 			}
 		}
@@ -403,10 +396,8 @@ public class StratumProxyManager {
 		if (connections == null) {
 			LOGGER.debug("No worker connections on pool {}. Do not send notify.", pool.getName());
 		} else {
-			synchronized (connections) {
-				for (WorkerConnection connection : connections) {
-					connection.sendNotification(notification);
-				}
+			for (WorkerConnection connection : connections) {
+				connection.sendNotification(notification);
 			}
 		}
 	}
@@ -442,21 +433,14 @@ public class StratumProxyManager {
 	 * @param cause
 	 */
 	public void onWorkerDisconnection(final WorkerConnection workerConnection, final Throwable cause) {
-		// Launch a thread to remove the connection. Done to avoid a concurrent
-		// modification exception which could happen if the disconnection
-		// happens during a connection list iteration.
-		disconnectExecutor.execute(new Runnable() {
-			public void run() {
-				List<WorkerConnection> connections = poolWorkerConnections.get(workerConnection.getPool());
-				if (connections != null) {
-					connections.remove(workerConnection);
-				}
-				StratumProxyManager.this.workerConnections.remove(workerConnection);
-				LOGGER.info("Worker connection {} closed. {} connections active on pool {}. Cause: {}", workerConnection.getConnectionName(),
-						connections == null ? 0 : connections.size(), workerConnection.getPool() != null ? workerConnection.getPool().getName()
-								: "None", cause != null ? cause.getMessage() : "Unknown");
-			}
-		});
+		List<WorkerConnection> connections = poolWorkerConnections.get(workerConnection.getPool());
+		if (connections != null) {
+			connections.remove(workerConnection);
+		}
+		StratumProxyManager.this.workerConnections.remove(workerConnection);
+		LOGGER.info("Worker connection {} closed. {} connections active on pool {}. Cause: {}", workerConnection.getConnectionName(),
+				connections == null ? 0 : connections.size(), workerConnection.getPool() != null ? workerConnection.getPool().getName() : "None",
+				cause != null ? cause.getMessage() : "Unknown");
 	}
 
 	/**
@@ -471,9 +455,9 @@ public class StratumProxyManager {
 			// Wait for the end of connection switch before declaring the pool
 			// has stopped. (Wait 1 seconds max)
 			try {
-				switchingFuture.get(1000, TimeUnit.MILLISECONDS);
+				switchingFuture.get(100000000, TimeUnit.MILLISECONDS);
 			} catch (InterruptedException | ExecutionException | TimeoutException e) {
-				LOGGER.warn("Pool {} stopped before the end of connection switch.", e);
+				LOGGER.warn("Pool {} stopped before the end of connection switch.", pool.getName(), e);
 			}
 		}
 	}
@@ -512,16 +496,14 @@ public class StratumProxyManager {
 				List<WorkerConnection> connections = poolWorkerConnections.get(pool);
 				if (connections != null && connections.size() > 0) {
 					LOGGER.info("Start switching all connections of pool {} if needed.", pool.getName());
-					synchronized (connections) {
-						for (WorkerConnection connection : connections) {
-							try {
-								switchPoolForConnection(connection);
-							} catch (Exception e) {
-								// If an exception occurs, close the
-								// connection
-								connection.close();
-								onWorkerDisconnection(connection, e);
-							}
+					for (WorkerConnection connection : connections) {
+						try {
+							switchPoolForConnection(connection);
+						} catch (Exception e) {
+							// If an exception occurs, close the
+							// connection
+							connection.close();
+							onWorkerDisconnection(connection, e);
 						}
 					}
 				}
@@ -675,7 +657,7 @@ public class StratumProxyManager {
 	 * @return
 	 */
 	public List<WorkerConnection> getWorkerConnections() {
-		List<WorkerConnection> result = new ArrayList<>(workerConnections.size());
+		List<WorkerConnection> result = new ArrayList<WorkerConnection>(workerConnections.size());
 		synchronized (workerConnections) {
 			if (workerConnections != null) {
 				result.addAll(workerConnections);
