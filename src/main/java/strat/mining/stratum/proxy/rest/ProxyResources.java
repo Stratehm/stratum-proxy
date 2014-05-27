@@ -65,11 +65,9 @@ public class ProxyResources {
 
 	private static final String API_DATE_FORMAT = "dd-MM-yy HH:mm:ss Z";
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(ProxyResources.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ProxyResources.class);
 
-	private StratumProxyManager stratumProxyManager = Launcher
-			.getStratumProxyManager();
+	private StratumProxyManager stratumProxyManager = Launcher.getStratumProxyManager();
 
 	/**
 	 * Get the list of connected users
@@ -89,8 +87,7 @@ public class ProxyResources {
 			}
 		}
 
-		Response response = Response.status(Response.Status.OK).entity(result)
-				.build();
+		Response response = Response.status(Response.Status.OK).entity(result).build();
 
 		return response;
 	}
@@ -110,16 +107,13 @@ public class ProxyResources {
 		try {
 			stratumProxyManager.kickUser(username);
 			status.setStatus(StatusDTO.DONE_STATUS);
-		} catch (BadParameterException | NotConnectedException
-				| NotFoundException e) {
+		} catch (BadParameterException | NotConnectedException | NotFoundException e) {
 			LOGGER.error("Failed to kick the user {}.", e);
 			status.setStatus(StatusDTO.FAILED_STATUS);
-			status.setMessage("Failed to kick the user "
-					+ username.getUsername() + ". " + e.getMessage());
+			status.setMessage("Failed to kick the user " + username.getUsername() + ". " + e.getMessage());
 		}
 
-		Response response = Response.status(Response.Status.OK).entity(status)
-				.build();
+		Response response = Response.status(Response.Status.OK).entity(status).build();
 
 		return response;
 	}
@@ -141,12 +135,10 @@ public class ProxyResources {
 		} catch (BadParameterException | NotFoundException e) {
 			LOGGER.error("Failed to ban the user {}.", e);
 			status.setStatus(StatusDTO.FAILED_STATUS);
-			status.setMessage("Failed to ban the user "
-					+ username.getUsername() + ". " + e.getMessage());
+			status.setMessage("Failed to ban the user " + username.getUsername() + ". " + e.getMessage());
 		}
 
-		Response response = Response.status(Response.Status.OK).entity(status)
-				.build();
+		Response response = Response.status(Response.Status.OK).entity(status).build();
 
 		return response;
 	}
@@ -167,12 +159,10 @@ public class ProxyResources {
 		} catch (NotFoundException e) {
 			LOGGER.error("Cannot unban user {}.", username.getUsername(), e);
 			status.setStatus(StatusDTO.FAILED_STATUS);
-			status.setMessage("Cannot unban user " + username.getUsername()
-					+ ". " + e.getMessage());
+			status.setMessage("Cannot unban user " + username.getUsername() + ". " + e.getMessage());
 		}
 
-		Response response = Response.status(Response.Status.OK).entity(status)
-				.build();
+		Response response = Response.status(Response.Status.OK).entity(status).build();
 
 		return response;
 	}
@@ -187,8 +177,7 @@ public class ProxyResources {
 	public Response listBannedUsers() {
 		List<String> banedUsers = stratumProxyManager.getBanedUsers();
 
-		Response response = Response.status(Response.Status.OK)
-				.entity(banedUsers).build();
+		Response response = Response.status(Response.Status.OK).entity(banedUsers).build();
 
 		return response;
 	}
@@ -202,8 +191,7 @@ public class ProxyResources {
 	@Path("connection/list")
 	public Response getConnectionsList() {
 
-		List<WorkerConnection> workerConnections = stratumProxyManager
-				.getWorkerConnections();
+		List<WorkerConnection> workerConnections = stratumProxyManager.getWorkerConnections();
 
 		List<WorkerConnectionDTO> result = new ArrayList<>();
 		if (workerConnections != null) {
@@ -212,8 +200,7 @@ public class ProxyResources {
 			}
 		}
 
-		Response response = Response.status(Response.Status.OK).entity(result)
-				.build();
+		Response response = Response.status(Response.Status.OK).entity(result).build();
 
 		return response;
 	}
@@ -229,8 +216,7 @@ public class ProxyResources {
 
 		Response response = null;
 
-		response = Response.status(Response.Status.NOT_IMPLEMENTED)
-				.entity("Not implemented").build();
+		response = Response.status(Response.Status.NOT_IMPLEMENTED).entity("Not implemented").build();
 
 		return response;
 	}
@@ -244,8 +230,7 @@ public class ProxyResources {
 
 		Response response = null;
 
-		response = Response.status(Response.Status.NOT_IMPLEMENTED)
-				.entity("Not implemented").build();
+		response = Response.status(Response.Status.NOT_IMPLEMENTED).entity("Not implemented").build();
 
 		return response;
 	}
@@ -259,8 +244,7 @@ public class ProxyResources {
 
 		Response response = null;
 
-		response = Response.status(Response.Status.NOT_IMPLEMENTED)
-				.entity("Not implemented").build();
+		response = Response.status(Response.Status.NOT_IMPLEMENTED).entity("Not implemented").build();
 
 		return response;
 	}
@@ -283,8 +267,7 @@ public class ProxyResources {
 			}
 		}
 
-		Response response = Response.status(Response.Status.OK).entity(result)
-				.build();
+		Response response = Response.status(Response.Status.OK).entity(result).build();
 
 		return response;
 
@@ -306,20 +289,17 @@ public class ProxyResources {
 			stratumProxyManager.addPool(addPoolDTO);
 
 			status.setStatus(StatusDTO.DONE_STATUS);
-			response = Response.status(Response.Status.OK).entity(status)
-					.build();
+			response = Response.status(Response.Status.OK).entity(status).build();
 		} catch (BadParameterException | SocketException | URISyntaxException e) {
 			status.setStatus(StatusDTO.FAILED_STATUS);
 			status.setMessage("Failed to add the pool. " + e.getMessage());
 			LOGGER.error("Failed to add pool {}.", addPoolDTO, e);
-			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-					.entity(status).build();
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(status).build();
 		} catch (PoolStartException e) {
 			status.setStatus(StatusDTO.PARTIALLY_DONE_STATUS);
 			status.setMessage("Pool added but not started. " + e.getMessage());
 			LOGGER.error("Failed to start pool {}.", addPoolDTO, e);
-			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-					.entity(status).build();
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(status).build();
 		}
 
 		return response;
@@ -341,13 +321,11 @@ public class ProxyResources {
 			stratumProxyManager.removePool(poolName.getPoolName());
 
 			status.setStatus(StatusDTO.DONE_STATUS);
-			response = Response.status(Response.Status.OK).entity(status)
-					.build();
+			response = Response.status(Response.Status.OK).entity(status).build();
 		} catch (NoPoolAvailableException e) {
 			status.setStatus(StatusDTO.FAILED_STATUS);
 			status.setMessage(e.getMessage());
-			response = Response.status(Response.Status.NOT_FOUND)
-					.entity(status).build();
+			response = Response.status(Response.Status.NOT_FOUND).entity(status).build();
 		}
 
 		return response;
@@ -369,18 +347,15 @@ public class ProxyResources {
 			stratumProxyManager.setPoolEnabled(poolName.getPoolName(), false);
 
 			status.setStatus(StatusDTO.DONE_STATUS);
-			response = Response.status(Response.Status.OK).entity(status)
-					.build();
+			response = Response.status(Response.Status.OK).entity(status).build();
 		} catch (NoPoolAvailableException e) {
 			status.setStatus(StatusDTO.FAILED_STATUS);
 			status.setMessage(e.getMessage());
-			response = Response.status(Response.Status.NOT_FOUND)
-					.entity(status).build();
+			response = Response.status(Response.Status.NOT_FOUND).entity(status).build();
 		} catch (Exception e) {
 			status.setStatus(StatusDTO.FAILED_STATUS);
 			status.setMessage("Failed to start the pool. " + e.getMessage());
-			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-					.entity(status).build();
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(status).build();
 		}
 
 		return response;
@@ -402,18 +377,15 @@ public class ProxyResources {
 			stratumProxyManager.setPoolEnabled(poolName.getPoolName(), true);
 
 			status.setStatus(StatusDTO.DONE_STATUS);
-			response = Response.status(Response.Status.OK).entity(status)
-					.build();
+			response = Response.status(Response.Status.OK).entity(status).build();
 		} catch (NoPoolAvailableException e) {
 			status.setStatus(StatusDTO.FAILED_STATUS);
 			status.setMessage(e.getMessage());
-			response = Response.status(Response.Status.NOT_FOUND)
-					.entity(status).build();
+			response = Response.status(Response.Status.NOT_FOUND).entity(status).build();
 		} catch (Exception e) {
 			status.setStatus(StatusDTO.FAILED_STATUS);
 			status.setMessage("Failed to start the pool. " + e.getMessage());
-			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-					.entity(status).build();
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(status).build();
 		}
 
 		return response;
@@ -432,22 +404,18 @@ public class ProxyResources {
 		StatusDTO status = new StatusDTO();
 
 		try {
-			stratumProxyManager.setPoolPriority(parameters.getPoolName(),
-					parameters.getPriority());
+			stratumProxyManager.setPoolPriority(parameters.getPoolName(), parameters.getPriority());
 
 			status.setStatus(StatusDTO.DONE_STATUS);
-			response = Response.status(Response.Status.OK).entity(status)
-					.build();
+			response = Response.status(Response.Status.OK).entity(status).build();
 		} catch (NoPoolAvailableException e) {
 			status.setStatus(StatusDTO.FAILED_STATUS);
 			status.setMessage(e.getMessage());
-			response = Response.status(Response.Status.NOT_FOUND)
-					.entity(status).build();
+			response = Response.status(Response.Status.NOT_FOUND).entity(status).build();
 		} catch (BadParameterException e) {
 			status.setStatus(StatusDTO.FAILED_STATUS);
 			status.setMessage(e.getMessage());
-			response = Response.status(Response.Status.BAD_REQUEST)
-					.entity(status).build();
+			response = Response.status(Response.Status.BAD_REQUEST).entity(status).build();
 		}
 
 		return response;
@@ -464,13 +432,11 @@ public class ProxyResources {
 			LogManager.getRootLogger().setLevel(newLevel);
 			LOGGER.info("Changing logLevel to {}", logLevel.getLogLevel());
 			status.setStatus(StatusDTO.DONE_STATUS);
-			response = Response.status(Response.Status.OK).entity(status)
-					.build();
+			response = Response.status(Response.Status.OK).entity(status).build();
 		} catch (BadParameterException e) {
 			status.setStatus(StatusDTO.FAILED_STATUS);
 			status.setMessage(e.getMessage());
-			response = Response.status(Response.Status.BAD_REQUEST)
-					.entity(status).build();
+			response = Response.status(Response.Status.BAD_REQUEST).entity(status).build();
 		}
 
 		return response;
@@ -500,22 +466,17 @@ public class ProxyResources {
 		} else if ("OFF".equalsIgnoreCase(logLevel)) {
 			result = Level.OFF;
 		} else {
-			throw new BadParameterException(
-					"Unknown LogLevel "
-							+ logLevel
-							+ ". Valid are: FATAL, ERROR, WARN, INFO, DEBUG, TRACE, OFF");
+			throw new BadParameterException("Unknown LogLevel " + logLevel + ". Valid are: FATAL, ERROR, WARN, INFO, DEBUG, TRACE, OFF");
 		}
 
 		return result;
 	}
 
 	private PoolDetailsDTO convertPoolToDTO(Pool pool) {
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
-				API_DATE_FORMAT);
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(API_DATE_FORMAT);
 		PoolDetailsDTO result = new PoolDetailsDTO();
 
-		result.setDifficulty(pool.getDifficulty() != null ? pool
-				.getDifficulty().toString() : null);
+		result.setDifficulty(pool.getDifficulty() != null ? pool.getDifficulty().toString() : null);
 		result.setExtranonce1(pool.getExtranonce1());
 		result.setExtranonce2Size(pool.getExtranonce2Size());
 		if (pool.getUri() != null) {
@@ -527,61 +488,45 @@ public class ProxyResources {
 		result.setIsEnabled(pool.isEnabled());
 		result.setIsStable(pool.isStable());
 		result.setName(pool.getName());
-		result.setNumberOfWorkerConnections(pool
-				.getNumberOfWorkersConnections());
+		result.setNumberOfWorkerConnections(pool.getNumberOfWorkersConnections());
 		result.setPassword(pool.getPassword());
 		result.setUsername(pool.getUsername());
 		result.setWorkerExtranonce2Size(pool.getWorkerExtranonce2Size());
 		result.setPriority(pool.getPriority());
 		result.setAcceptedDifficulty(pool.getAcceptedDifficulty());
-		result.setIsActiveSince(pool.getActiveSince() != null ? simpleDateFormat
-				.format(pool.getActiveSince()) : null);
+		result.setIsActiveSince(pool.getActiveSince() != null ? simpleDateFormat.format(pool.getActiveSince()) : null);
 		result.setRejectedDifficulty(pool.getRejectedDifficulty());
-		result.setIsExtranonceSubscribeEnabled(pool
-				.isExtranonceSubscribeEnabled());
-		result.setAcceptedHashesPerSeconds(Double.valueOf(
-				pool.getAcceptedHashesPerSeconds()).longValue());
-		result.setRejectedHashesPerSeconds(Double.valueOf(
-				pool.getRejectedHashesPerSeconds()).longValue());
+		result.setIsExtranonceSubscribeEnabled(pool.isExtranonceSubscribeEnabled());
+		result.setAcceptedHashesPerSeconds(Double.valueOf(pool.getAcceptedHashesPerSeconds()).longValue());
+		result.setRejectedHashesPerSeconds(Double.valueOf(pool.getRejectedHashesPerSeconds()).longValue());
 
 		return result;
 	}
 
-	private WorkerConnectionDTO convertWorkerConnectionToDTO(
-			WorkerConnection connection) {
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
-				API_DATE_FORMAT);
+	private WorkerConnectionDTO convertWorkerConnectionToDTO(WorkerConnection connection) {
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(API_DATE_FORMAT);
 		WorkerConnectionDTO result = new WorkerConnectionDTO();
-		result.setAuthorizedUsers(new ArrayList<>(connection
-				.getAuthorizedWorkers()));
-		result.setIsActiveSince(simpleDateFormat.format(connection
-				.getActiveSince()));
+		result.setAuthorizedUsers(new ArrayList<>(connection.getAuthorizedWorkers()));
+		result.setIsActiveSince(simpleDateFormat.format(connection.getActiveSince()));
 		result.setRemoteHost(connection.getConnectionName());
-		result.setAcceptedHashesPerSeconds(Double.valueOf(
-				connection.getAcceptedHashrate()).longValue());
-		result.setRejectedHashesPerSeconds(Double.valueOf(
-				connection.getRejectedHashrate()).longValue());
+		result.setAcceptedHashesPerSeconds(Double.valueOf(connection.getAcceptedHashrate()).longValue());
+		result.setRejectedHashesPerSeconds(Double.valueOf(connection.getRejectedHashrate()).longValue());
 		result.setPoolName(connection.getPool().getName());
+		result.setIsExtranonceNotificationSupported(connection.isSetExtranonceNotificationSupported());
 
 		return result;
 	}
 
 	private UserDetailsDTO convertUserToDTO(User user) {
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
-				API_DATE_FORMAT);
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(API_DATE_FORMAT);
 		UserDetailsDTO result = new UserDetailsDTO();
 		result.setName(user.getName());
-		result.setFirstConnectionDate(simpleDateFormat.format(user
-				.getCreationTime()));
-		result.setLastShareSubmitted(user.getLastShareSubmitted() != null ? simpleDateFormat
-				.format(user.getLastShareSubmitted()) : null);
-		result.setAcceptedHashesPerSeconds(Double.valueOf(
-				user.getAcceptedHashrate()).longValue());
-		result.setRejectedHashesPerSeconds(Double.valueOf(
-				user.getRejectedHashrate()).longValue());
+		result.setFirstConnectionDate(simpleDateFormat.format(user.getCreationTime()));
+		result.setLastShareSubmitted(user.getLastShareSubmitted() != null ? simpleDateFormat.format(user.getLastShareSubmitted()) : null);
+		result.setAcceptedHashesPerSeconds(Double.valueOf(user.getAcceptedHashrate()).longValue());
+		result.setRejectedHashesPerSeconds(Double.valueOf(user.getRejectedHashrate()).longValue());
 
-		List<WorkerConnectionDTO> connections = new ArrayList<>(user
-				.getWorkerConnections().size());
+		List<WorkerConnectionDTO> connections = new ArrayList<>(user.getWorkerConnections().size());
 		for (WorkerConnection connection : user.getWorkerConnections()) {
 			connections.add(convertWorkerConnectionToDTO(connection));
 		}

@@ -454,4 +454,8 @@ public class WorkerConnection extends StratumConnection {
 		return isActiveSince;
 	}
 
+	public boolean isSetExtranonceNotificationSupported() {
+		return isSetExtranonceNotificationSupported;
+	}
+
 }

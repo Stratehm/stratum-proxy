@@ -31,6 +31,7 @@ public class WorkerConnectionDTO {
 	private Long rejectedHashesPerSeconds;
 	private String isActiveSince;
 	private String poolName;
+	private Boolean isExtranonceNotificationSupported;
 
 	public String getRemoteHost() {
 		return remoteHost;
@@ -78,6 +79,14 @@ public class WorkerConnectionDTO {
 
 	public void setPoolName(String poolName) {
 		this.poolName = poolName;
+	}
+
+	public Boolean getIsExtranonceNotificationSupported() {
+		return isExtranonceNotificationSupported;
+	}
+
+	public void setIsExtranonceNotificationSupported(Boolean isExtranonceNotificationSupported) {
+		this.isExtranonceNotificationSupported = isExtranonceNotificationSupported;
 	}
 
 }
