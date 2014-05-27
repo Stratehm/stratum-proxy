@@ -223,7 +223,7 @@ public class CommandLineOptions {
 
 	public File getLogDirectory() {
 		File result = logDirectory;
-		if (result == null || !result.isDirectory() || result.exists()) {
+		if (result == null || !result.isDirectory() || !result.exists()) {
 			System.err.println("Log directory not set or available. Use the tmp OS directory.");
 			result = new File(System.getProperty("java.io.tmpdir"));
 		}
