@@ -21,7 +21,11 @@ The package is then present in the "target" directory.
 #Installation and Usage
 
 ##Installation
-Only unzip the zip file in a directory and launch the proxy through the following command line:
+
+The latest JVM (Java Virtual Machine) can be downloaded here: http://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html
+Install the JVM for your operating system (if not already done)
+
+Then unzip the zip file in a directory and launch the proxy through the following command line:
 
 ```sh
 java -jar stratum-proxy.jar proxyOptions
