@@ -106,7 +106,7 @@ public class CommandLineOptions {
 	@Option(name = "--pool-append-worker-names", usage = "Append the worker name to the username configured for the pool to sumbit shares. (false by default) Use --pool-worker-name-separator to specify the separator to use.", handler = BooleanArrayOptionHandler.class, metaVar = "boolean1 [boolean2] [boolean3]...")
 	private List<Boolean> poolsAppendWorkerNames;
 
-	@Option(name = "--pool-worker-name-separator", usage = "Specify the separator to use between the pool username and the worker name. (. by default)", handler = BooleanArrayOptionHandler.class, metaVar = "separator1 [separator2] [separator3]...")
+	@Option(name = "--pool-worker-name-separator", usage = "Specify the separator to use between the pool username and the worker name. (. by default)", handler = StringArrayOptionHandler.class, metaVar = "separator1 [separator2] [separator3]...")
 	private List<String> poolsWorkerNameSeparator;
 
 	@Option(name = "--pool-use-worker-password", usage = "Use the worker password instead of the pool password to authorize workers. (false by default)", handler = BooleanArrayOptionHandler.class, metaVar = "boolean1 [boolean2] [boolean3]...")
