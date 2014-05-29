@@ -101,6 +101,7 @@ public class Pool implements Comparable<Pool> {
 	private Timer reconnectTimer;
 	private Timer notifyTimeoutTimer;
 	private Timer stabilityTestTimer;
+	private Timer subscribeResponseTimeoutTimer;
 
 	private Boolean isExtranonceSubscribeEnabled = false;
 
@@ -177,6 +178,7 @@ public class Pool implements Comparable<Pool> {
 					connection.startReading();
 
 					MiningSubscribeRequest request = new MiningSubscribeRequest();
+					startSubscribeTimeoutTimer();
 					connection.sendRequest(request);
 				} catch (IOException e) {
 					LOGGER.warn("Failed to connect the pool {}.", getName());
@@ -185,6 +187,30 @@ public class Pool implements Comparable<Pool> {
 			}
 		} else {
 			throw new PoolStartException("Do not start pool " + getName() + " since manager is null.");
+		}
+	}
+
+	/**
+	 * Start the timer which check the subscribe response timeout
+	 */
+	private void startSubscribeTimeoutTimer() {
+		subscribeResponseTimeoutTimer = new Timer("SubscribeTimemoutTimer-" + getName());
+		subscribeResponseTimeoutTimer.schedule(new TimerTask() {
+			public void run() {
+				LOGGER.warn("Subscribe response timeout. Stopping the pool");
+				stopPool();
+				retryConnect(true);
+			}
+		}, 5000);
+	}
+
+	/**
+	 * Stop the timer which check the subscribe response timeout
+	 */
+	private void stopSubscribeTimeoutTimer() {
+		if (subscribeResponseTimeoutTimer != null) {
+			subscribeResponseTimeoutTimer.cancel();
+			subscribeResponseTimeoutTimer = null;
 		}
 	}
 
@@ -562,6 +588,10 @@ public class Pool implements Comparable<Pool> {
 					try {
 						LOGGER.info("Trying reconnect of pool {}...", getName());
 						startPool(manager);
+						if (reconnectTimer != null) {
+							reconnectTimer.cancel();
+							reconnectTimer = null;
+						}
 					} catch (Exception e) {
 						LOGGER.error("Failed to restart the pool {}.", getName(), e);
 					}
@@ -717,10 +747,14 @@ public class Pool implements Comparable<Pool> {
 					stabilityTestTimer = null;
 				}
 
-				stabilityTestTimer = new Timer();
+				stabilityTestTimer = new Timer("StabilityTestTimer-" + getName());
 				stabilityTestTimer.schedule(new TimerTask() {
 					public void run() {
 						setStable();
+						if (stabilityTestTimer != null) {
+							stabilityTestTimer.cancel();
+							stabilityTestTimer = null;
+						}
 					}
 				}, reconnectStabilityPeriod * 1000);
 			} else {
@@ -760,6 +794,11 @@ public class Pool implements Comparable<Pool> {
 		if (notifyTimeoutTimer != null) {
 			notifyTimeoutTimer.cancel();
 			notifyTimeoutTimer = null;
+		}
+
+		if (subscribeResponseTimeoutTimer != null) {
+			subscribeResponseTimeoutTimer.cancel();
+			subscribeResponseTimeoutTimer = null;
 		}
 	}
 
