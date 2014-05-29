@@ -822,51 +822,57 @@ public class Pool implements Comparable<Pool> {
 		if (isAppendWorkerNames) {
 			String finalUserName = username + workerSeparator + workerRequest.getUsername();
 
-			LOGGER.debug("Authorize worker {} on pool {}.", finalUserName, getName());
+			// If the worker is already authorized, do nothing
+			if (authorizedWorkers.contains(finalUserName)) {
+				LOGGER.info("Worker {} already authorized on the pool {}.", finalUserName, getName());
+			} else {
 
-			// Create a latch to wait the authorization response.
-			final CountDownLatch responseLatch = new CountDownLatch(1);
-			// Repsonse wrapper used to store the pool response values
-			final MiningAuthorizeResponse poolResponseWrapper = new MiningAuthorizeResponse();
+				LOGGER.debug("Authorize worker {} on pool {}.", finalUserName, getName());
 
-			MiningAuthorizeRequest poolRequest = new MiningAuthorizeRequest();
-			poolRequest.setUsername(finalUserName);
-			poolRequest.setPassword(isUseWorkerPassword ? workerRequest.getPassword() : this.password);
-			// Prepare the callback to call when response is
-			// received.
-			authorizeCallbacks.put(poolRequest.getId(), new ResponseReceivedCallback<MiningAuthorizeRequest, MiningAuthorizeResponse>() {
-				public void onResponseReceived(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
-					// Recopy values to allow blocked thread to access the
-					// response values.
-					poolResponseWrapper.setId(response.getId());
-					poolResponseWrapper.setResult(response.getResult());
+				// Create a latch to wait the authorization response.
+				final CountDownLatch responseLatch = new CountDownLatch(1);
+				// Repsonse wrapper used to store the pool response values
+				final MiningAuthorizeResponse poolResponseWrapper = new MiningAuthorizeResponse();
 
-					// Unblock the blocked thread.
-					responseLatch.countDown();
+				MiningAuthorizeRequest poolRequest = new MiningAuthorizeRequest();
+				poolRequest.setUsername(finalUserName);
+				poolRequest.setPassword(isUseWorkerPassword ? workerRequest.getPassword() : this.password);
+				// Prepare the callback to call when response is
+				// received.
+				authorizeCallbacks.put(poolRequest.getId(), new ResponseReceivedCallback<MiningAuthorizeRequest, MiningAuthorizeResponse>() {
+					public void onResponseReceived(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
+						// Recopy values to allow blocked thread to access the
+						// response values.
+						poolResponseWrapper.setId(response.getId());
+						poolResponseWrapper.setResult(response.getResult());
+
+						// Unblock the blocked thread.
+						responseLatch.countDown();
+					}
+				});
+
+				// Send the request.
+				connection.sendRequest(poolRequest);
+				// Wait for the response for 5 seconds max.
+				boolean isTimeout = false;
+				try {
+					isTimeout = !responseLatch.await(5, TimeUnit.SECONDS);
+				} catch (InterruptedException e) {
+					LOGGER.info("Interruption on pool {} during authorization for user {}.", getName(), finalUserName);
+					throw new AuthorizationException("Interruption of authorization of user " + finalUserName + " on pool " + getName(), e);
 				}
-			});
 
-			// Send the request.
-			connection.sendRequest(poolRequest);
-			// Wait for the response for 5 seconds max.
-			boolean isTimeout = false;
-			try {
-				isTimeout = !responseLatch.await(5, TimeUnit.SECONDS);
-			} catch (InterruptedException e) {
-				LOGGER.info("Interruption on pool {} during authorization for user {}.", getName(), finalUserName);
-				throw new AuthorizationException("Interruption of authorization of user " + finalUserName + " on pool " + getName(), e);
-			}
+				if (isTimeout) {
+					LOGGER.warn("Timeout of worker {} authorization on pool {}.", finalUserName, getName());
+					throw new AuthorizationException("Timeout of worker " + finalUserName + "authorization on pool " + getName());
+				}
 
-			if (isTimeout) {
-				LOGGER.warn("Timeout of worker {} authorization on pool {}.", finalUserName, getName());
-				throw new AuthorizationException("Timeout of worker " + finalUserName + "authorization on pool " + getName());
-			}
-
-			// Check the response values
-			if (poolResponseWrapper.getIsAuthorized() == null || !poolResponseWrapper.getIsAuthorized()) {
-				// If the worker is not authorized, throw an exception.
-				throw new AuthorizationException("Worker " + finalUserName + " is not authorized on pool " + getName() + ". Cause: "
-						+ (poolResponseWrapper.getJsonError() != null ? poolResponseWrapper.getJsonError() : "none."));
+				// Check the response values
+				if (poolResponseWrapper.getIsAuthorized() == null || !poolResponseWrapper.getIsAuthorized()) {
+					// If the worker is not authorized, throw an exception.
+					throw new AuthorizationException("Worker " + finalUserName + " is not authorized on pool " + getName() + ". Cause: "
+							+ (poolResponseWrapper.getJsonError() != null ? poolResponseWrapper.getJsonError() : "none."));
+				}
 			}
 		}
 	}
