@@ -367,6 +367,7 @@ public class Pool implements Comparable<Pool> {
 	}
 
 	public void processSubscribeResponse(MiningSubscribeRequest request, MiningSubscribeResponse response) {
+		stopSubscribeTimeoutTimer();
 		extranonce1 = response.getExtranonce1();
 		extranonce2Size = response.getExtranonce2Size();
 
