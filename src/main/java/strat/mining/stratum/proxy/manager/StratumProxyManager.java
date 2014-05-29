@@ -25,6 +25,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -63,6 +64,8 @@ import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.model.User;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.dto.AddPoolDTO;
+import strat.mining.stratum.proxy.rest.dto.AddressDTO;
+import strat.mining.stratum.proxy.rest.dto.ConnectionIdentifierDTO;
 import strat.mining.stratum.proxy.rest.dto.UserNameDTO;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
 
@@ -98,7 +101,7 @@ public class StratumProxyManager {
 	public StratumProxyManager(List<Pool> pools) {
 		this.stratumAuthorizationManager = new StratumAuthorizationManager();
 		this.pools = Collections.synchronizedList(new ArrayList<Pool>(pools));
-		this.workerConnections = Collections.synchronizedList(new ArrayList<WorkerConnection>());
+		this.workerConnections = new CopyOnWriteArrayList<WorkerConnection>();
 		this.users = Collections.synchronizedMap(new HashMap<String, User>());
 		this.poolWorkerConnections = Collections.synchronizedMap(new HashMap<Pool, List<WorkerConnection>>());
 		this.switchPoolConnectionsExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(
@@ -197,10 +200,8 @@ public class StratumProxyManager {
 	 * Close all existing workerConnections
 	 */
 	public void closeAllWorkerConnections() {
-		synchronized (workerConnections) {
-			for (WorkerConnection connection : workerConnections) {
-				connection.close();
-			}
+		for (WorkerConnection connection : workerConnections) {
+			connection.close();
 		}
 	}
 
@@ -657,13 +658,7 @@ public class StratumProxyManager {
 	 * @return
 	 */
 	public List<WorkerConnection> getWorkerConnections() {
-		List<WorkerConnection> result = new ArrayList<WorkerConnection>(workerConnections.size());
-		synchronized (workerConnections) {
-			if (workerConnections != null) {
-				result.addAll(workerConnections);
-			}
-		}
-		return result;
+		return Collections.unmodifiableList(workerConnections);
 	}
 
 	/**
@@ -808,7 +803,7 @@ public class StratumProxyManager {
 					for (WorkerConnection connection : connections) {
 						connection.close();
 						onWorkerDisconnection(connection, new Exception("Connection closed since user " + username.getUsername()
-								+ " has been banned."));
+								+ " has been kicked."));
 					}
 				} else {
 					throw new NotConnectedException("The user " + user.getName() + " has no connections.");
@@ -828,10 +823,10 @@ public class StratumProxyManager {
 	 * @throws NotFoundException
 	 * @throws NotConnectedException
 	 */
-	public void banUser(UserNameDTO username) throws BadParameterException, NotFoundException {
+	public void banUser(UserNameDTO username) throws BadParameterException {
 		try {
 			kickUser(username);
-		} catch (NotConnectedException e) {
+		} catch (NotConnectedException | NotFoundException e) {
 			// Nothing to do. We don't mind
 		}
 		stratumAuthorizationManager.banUser(username);
@@ -852,8 +847,122 @@ public class StratumProxyManager {
 	 * 
 	 * @return
 	 */
-	public List<String> getBanedUsers() {
+	public List<String> getBannedUsers() {
 		return stratumAuthorizationManager.getBannedUsers();
+	}
+
+	/**
+	 * Kick the connection on the given address and port
+	 * 
+	 * @param connection
+	 * @throws BadParameterException
+	 * @throws NotFoundException
+	 */
+	public void kickConnection(ConnectionIdentifierDTO connection) throws BadParameterException, NotFoundException {
+		InetAddress address = null;
+		try {
+			address = InetAddress.getByName(connection.getAddress());
+		} catch (Exception e) {
+			throw new BadParameterException("Invalid address: " + connection.getAddress() + ". " + e.getMessage(), e);
+		}
+
+		if (connection.getPort() == null || connection.getPort() < 1 || connection.getPort() > 65535) {
+			throw new BadParameterException("Invalid port number: " + connection.getPort());
+		}
+
+		WorkerConnection connectionToKick = null;
+
+		for (WorkerConnection workerConnection : workerConnections) {
+			if (address.equals(workerConnection.getRemoteAddress()) && connection.getPort().equals(workerConnection.getRemotePort())) {
+				connectionToKick = workerConnection;
+				break;
+			}
+		}
+
+		if (connectionToKick == null) {
+			throw new NotFoundException("No connection found with address " + connection.getAddress() + " and port number " + connection.getPort());
+		}
+
+		connectionToKick.close();
+		onWorkerDisconnection(connectionToKick, new Exception("Connection kicked"));
+
+	}
+
+	/**
+	 * Kick all the connections with the given address
+	 * 
+	 * @param address
+	 * @throws NotConnectedException
+	 * @throws NotFoundException
+	 */
+	public void kickAddress(AddressDTO address) throws BadParameterException, NotFoundException {
+		InetAddress inetAddress = null;
+		try {
+			inetAddress = InetAddress.getByName(address.getAddress());
+		} catch (Exception e) {
+			throw new BadParameterException("Invalid address: " + inetAddress.getAddress() + ". " + e.getMessage(), e);
+		}
+
+		List<WorkerConnection> connectionsToKick = new ArrayList<WorkerConnection>();
+
+		for (WorkerConnection workerConnection : workerConnections) {
+			if (inetAddress.equals(workerConnection.getRemoteAddress())) {
+				connectionsToKick.add(workerConnection);
+			}
+		}
+
+		if (connectionsToKick.size() < 1) {
+			throw new NotFoundException("No connection found with address " + inetAddress.getAddress());
+		}
+
+		for (WorkerConnection connectionToKick : connectionsToKick) {
+			connectionToKick.close();
+			onWorkerDisconnection(connectionToKick, new Exception("Connection kicked"));
+		}
+	}
+
+	/**
+	 * Ban the given address until the next proxy restart
+	 * 
+	 * @param address
+	 * @throws NotFoundException
+	 * @throws NotConnectedException
+	 */
+	public void banAddress(AddressDTO address) throws BadParameterException {
+		try {
+			kickAddress(address);
+		} catch (NotFoundException e) {
+			// Nothing to do. We don't mind
+		}
+		try {
+			stratumAuthorizationManager.banAddress(address);
+		} catch (UnknownHostException e) {
+			throw new BadParameterException("Failed to ban address " + address.getAddress() + ". " + e.getMessage());
+		}
+	}
+
+	/**
+	 * Unban the given address.
+	 * 
+	 * @param username
+	 * @throws NotFoundException
+	 * @throws BadParameterException
+	 */
+	public void unbanAddress(AddressDTO address) throws NotFoundException, BadParameterException {
+		try {
+			stratumAuthorizationManager.unbanAddress(address);
+		} catch (UnknownHostException e) {
+			throw new BadParameterException("Failed to unban address " + address.getAddress() + ". " + e.getMessage());
+		}
+	}
+
+	/**
+	 * Return the list of banned addresses.
+	 * 
+	 * @return
+	 */
+	public List<String> getBannedAddresses() {
+		return stratumAuthorizationManager.getBannedAddresses();
 	}
 
 }

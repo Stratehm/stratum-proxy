@@ -46,8 +46,7 @@ public class StratumAuthorizationManager {
 
 	public StratumAuthorizationManager() {
 		bannedUserNames = Collections.synchronizedSet(new HashSet<String>());
-		bannedAddresses = Collections
-				.synchronizedSet(new HashSet<InetAddress>());
+		bannedAddresses = Collections.synchronizedSet(new HashSet<InetAddress>());
 	}
 
 	/**
@@ -58,11 +57,11 @@ public class StratumAuthorizationManager {
 	 * @param password
 	 * 
 	 */
-	public void checkAuthorization(WorkerConnection connection,
-			MiningAuthorizeRequest request) throws AuthorizationException {
+	public void checkAuthorization(WorkerConnection connection, MiningAuthorizeRequest request) throws AuthorizationException {
 		if (bannedUserNames.contains(request.getUsername())) {
-			throw new AuthorizationException("The user "
-					+ request.getUsername() + " is banned.");
+			throw new AuthorizationException("The user " + request.getUsername() + " is banned.");
+		} else if (bannedAddresses.contains(connection.getRemoteAddress())) {
+			throw new AuthorizationException("The address " + connection.getRemoteAddress() + " is banned.");
 		}
 	}
 
@@ -83,8 +82,7 @@ public class StratumAuthorizationManager {
 	 */
 	public void unbanUser(UserNameDTO username) throws NotFoundException {
 		if (!bannedUserNames.remove(username.getUsername())) {
-			throw new NotFoundException("User " + username.getUsername()
-					+ " not banned. Cannot unban.");
+			throw new NotFoundException("User " + username.getUsername() + " not banned. Cannot unban.");
 		}
 	}
 
@@ -121,9 +119,11 @@ public class StratumAuthorizationManager {
 	 * @param username
 	 * @throws UnknownHostException
 	 */
-	public void unbanAddress(AddressDTO address) throws UnknownHostException {
+	public void unbanAddress(AddressDTO address) throws UnknownHostException, NotFoundException {
 		InetAddress inetAddress = InetAddress.getByName(address.getAddress());
-		bannedAddresses.remove(inetAddress);
+		if (!bannedAddresses.remove(inetAddress)) {
+			throw new NotFoundException("Address " + inetAddress.toString() + " not banned. Cannot unban.");
+		}
 	}
 
 	/**
@@ -131,7 +131,7 @@ public class StratumAuthorizationManager {
 	 * 
 	 * @return
 	 */
-	public List<String> getBannedAddress() {
+	public List<String> getBannedAddresses() {
 		List<String> result = new ArrayList<String>();
 		synchronized (bannedAddresses) {
 			for (InetAddress address : bannedAddresses) {

@@ -20,15 +20,15 @@ package strat.mining.stratum.proxy.rest.dto;
 
 public class ConnectionIdentifierDTO {
 
-	private String ipAddress;
+	private String address;
 	private Integer port;
 
-	public String getIpAddress() {
-		return ipAddress;
+	public String getAddress() {
+		return address;
 	}
 
-	public void setIpAddress(String ipAddress) {
-		this.ipAddress = ipAddress;
+	public void setAddress(String address) {
+		this.address = address;
 	}
 
 	public Integer getPort() {

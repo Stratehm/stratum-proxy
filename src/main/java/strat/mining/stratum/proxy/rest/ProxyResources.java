@@ -132,7 +132,7 @@ public class ProxyResources {
 		try {
 			stratumProxyManager.banUser(username);
 			status.setStatus(StatusDTO.DONE_STATUS);
-		} catch (BadParameterException | NotFoundException e) {
+		} catch (BadParameterException e) {
 			LOGGER.error("Failed to ban the user {}.", e);
 			status.setStatus(StatusDTO.FAILED_STATUS);
 			status.setMessage("Failed to ban the user " + username.getUsername() + ". " + e.getMessage());
@@ -175,7 +175,7 @@ public class ProxyResources {
 	@GET
 	@Path("user/ban/list")
 	public Response listBannedUsers() {
-		List<String> banedUsers = stratumProxyManager.getBanedUsers();
+		List<String> banedUsers = stratumProxyManager.getBannedUsers();
 
 		Response response = Response.status(Response.Status.OK).entity(banedUsers).build();
 
@@ -214,9 +214,19 @@ public class ProxyResources {
 	@Path("connection/kick")
 	public Response kickConnection(ConnectionIdentifierDTO connection) {
 
-		Response response = null;
+		StatusDTO status = new StatusDTO();
 
-		response = Response.status(Response.Status.NOT_IMPLEMENTED).entity("Not implemented").build();
+		try {
+			stratumProxyManager.kickConnection(connection);
+			status.setStatus(StatusDTO.DONE_STATUS);
+		} catch (BadParameterException | NotFoundException e) {
+			LOGGER.error("Failed to kick the connection with address {} and port {}.", connection.getAddress(), connection.getPort(), e);
+			status.setStatus(StatusDTO.FAILED_STATUS);
+			status.setMessage("Failed to kick the connection with address " + connection.getAddress() + " and port " + connection.getPort() + ". "
+					+ e.getMessage());
+		}
+
+		Response response = Response.status(Response.Status.OK).entity(status).build();
 
 		return response;
 	}
@@ -225,26 +235,81 @@ public class ProxyResources {
 	 * Ban the given ip address.
 	 */
 	@POST
-	@Path("ip/ban")
-	public Response banIp(AddressDTO ipAddress) {
+	@Path("address/ban")
+	public Response banIp(AddressDTO address) {
 
-		Response response = null;
+		StatusDTO status = new StatusDTO();
 
-		response = Response.status(Response.Status.NOT_IMPLEMENTED).entity("Not implemented").build();
+		try {
+			stratumProxyManager.banAddress(address);
+			status.setStatus(StatusDTO.DONE_STATUS);
+		} catch (BadParameterException e) {
+			LOGGER.error("Failed to ban the user {}.", e);
+			status.setStatus(StatusDTO.FAILED_STATUS);
+			status.setMessage("Failed to ban the address " + address.getAddress() + " connections. " + e.getMessage());
+		}
+
+		Response response = Response.status(Response.Status.OK).entity(status).build();
 
 		return response;
 	}
 
 	/**
-	 * Kick the given ip address.
+	 * Unban the given ip address.
 	 */
 	@POST
-	@Path("ip/kick")
-	public Response kickIp(AddressDTO ipAddress) {
+	@Path("address/unban")
+	public Response unbanAddress(AddressDTO address) {
 
-		Response response = null;
+		StatusDTO status = new StatusDTO();
 
-		response = Response.status(Response.Status.NOT_IMPLEMENTED).entity("Not implemented").build();
+		try {
+			stratumProxyManager.unbanAddress(address);
+			status.setStatus(StatusDTO.DONE_STATUS);
+		} catch (BadParameterException | NotFoundException e) {
+			LOGGER.error("Cannot unban address {}.", address.getAddress(), e);
+			status.setStatus(StatusDTO.FAILED_STATUS);
+			status.setMessage("Cannot unban address " + address.getAddress() + ". " + e.getMessage());
+		}
+
+		Response response = Response.status(Response.Status.OK).entity(status).build();
+
+		return response;
+	}
+
+	/**
+	 * Kick all connections with the given address.
+	 */
+	@POST
+	@Path("address/kick")
+	public Response kickAddress(AddressDTO address) {
+
+		StatusDTO status = new StatusDTO();
+
+		try {
+			stratumProxyManager.kickAddress(address);
+			status.setStatus(StatusDTO.DONE_STATUS);
+		} catch (BadParameterException | NotFoundException e) {
+			LOGGER.error("Failed to kick the connections with address {}", address.getAddress(), e);
+			status.setStatus(StatusDTO.FAILED_STATUS);
+			status.setMessage("Failed to kick the connections with address " + address.getAddress() + ". " + e.getMessage());
+		}
+
+		Response response = Response.status(Response.Status.OK).entity(status).build();
+
+		return response;
+	}
+
+	/**
+	 * List all banned addresses
+	 */
+	@POST
+	@Path("address/ban/list")
+	public Response listBannedAddress(AddressDTO address) {
+
+		List<String> banedAddresses = stratumProxyManager.getBannedAddresses();
+
+		Response response = Response.status(Response.Status.OK).entity(banedAddresses).build();
 
 		return response;
 	}
