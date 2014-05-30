@@ -181,7 +181,8 @@ public class Pool implements Comparable<Pool> {
 					startSubscribeTimeoutTimer();
 					connection.sendRequest(request);
 				} catch (IOException e) {
-					LOGGER.warn("Failed to connect the pool {}.", getName());
+					LOGGER.error("Failed to connect the pool {}.", getName(), e);
+					stopPool();
 					retryConnect(true);
 				}
 			}
