@@ -431,7 +431,7 @@ public class Pool implements Comparable<Pool> {
 		} else {
 			// If the appendWorkerName is false and the authorization succeed,
 			// then set the pool as started
-			if (response.getIsAuthorized()) {
+			if (response.getIsAuthorized() != null && response.getIsAuthorized()) {
 				setPoolAsActive();
 			} else {
 				LOGGER.error("Stopping pool {} since user {} is not authorized.", getName(), username);
