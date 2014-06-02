@@ -67,6 +67,7 @@ import strat.mining.stratum.proxy.rest.dto.AddPoolDTO;
 import strat.mining.stratum.proxy.rest.dto.AddressDTO;
 import strat.mining.stratum.proxy.rest.dto.ConnectionIdentifierDTO;
 import strat.mining.stratum.proxy.rest.dto.UserNameDTO;
+import strat.mining.stratum.proxy.worker.StratumWorkerConnection;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -161,7 +162,7 @@ public class StratumProxyManager {
 						incomingConnectionSocket.setKeepAlive(true);
 						LOGGER.info("New connection on {} from {}.", serverSocket.getLocalSocketAddress(),
 								incomingConnectionSocket.getRemoteSocketAddress());
-						WorkerConnection workerConnection = new WorkerConnection(incomingConnectionSocket, StratumProxyManager.this);
+						StratumWorkerConnection workerConnection = new StratumWorkerConnection(incomingConnectionSocket, StratumProxyManager.this);
 						workerConnection.setSamplingHashesPeriod(CommandLineOptions.getInstance().getConnectionHashrateSamplingPeriod());
 						workerConnection.startReading();
 					} catch (Exception e) {
@@ -339,7 +340,7 @@ public class StratumProxyManager {
 			LOGGER.debug("No worker connections on pool {}. Do not send setDifficulty.", pool.getName());
 		} else {
 			for (WorkerConnection connection : connections) {
-				connection.sendNotification(notification);
+				connection.onPoolDifficultyChanged(notification);
 			}
 		}
 	}
@@ -398,7 +399,7 @@ public class StratumProxyManager {
 			LOGGER.debug("No worker connections on pool {}. Do not send notify.", pool.getName());
 		} else {
 			for (WorkerConnection connection : connections) {
-				connection.sendNotification(notification);
+				connection.onPoolNotify(notification);
 			}
 		}
 	}

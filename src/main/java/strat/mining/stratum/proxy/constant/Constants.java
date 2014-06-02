@@ -52,5 +52,7 @@ public class Constants {
 	public static final double AVERAGE_NUMBER_OF_HASHES_PER_SHARE_AT_DIFFICULTY_ONE = Math.pow(2, 32);
 
 	public static final String DEFAULT_WORKER_NAME_SEPARTOR = ".";
+	public static final String DEFAULT_LONG_POLLING_URL = "/getwork";
+	public static final String DEFAULT_GETWORK_URL = "/getwork/longpolling";
 
 }

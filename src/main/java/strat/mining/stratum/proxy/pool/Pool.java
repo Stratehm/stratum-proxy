@@ -418,7 +418,7 @@ public class Pool implements Comparable<Pool> {
 		// authorization for each newly connected workers.
 		if (isAppendWorkerNames) {
 			ResponseReceivedCallback<MiningAuthorizeRequest, MiningAuthorizeResponse> callback = authorizeCallbacks.get(response.getId());
-			if (isAuthorized(request, response)) {
+			if (response.getIsAuthorized() != null && response.getIsAuthorized()) {
 				// If authorized, add it in the authorized user list.
 				authorizedWorkers.add(request.getUsername());
 			}
@@ -431,7 +431,7 @@ public class Pool implements Comparable<Pool> {
 		} else {
 			// If the appendWorkerName is false and the authorization succeed,
 			// then set the pool as started
-			if (isAuthorized(request, response)) {
+			if (response.getIsAuthorized()) {
 				setPoolAsActive();
 			} else {
 				LOGGER.error("Stopping pool {} since user {} is not authorized.", getName(), username);
@@ -439,24 +439,6 @@ public class Pool implements Comparable<Pool> {
 				retryConnect(true);
 			}
 		}
-	}
-
-	/**
-	 * Return true if the authorize response is positive. Else, return false.
-	 * 
-	 * @param request
-	 * @param response
-	 * @return
-	 */
-	private boolean isAuthorized(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
-		// Check the P2Pool authorization. Authorized if the the result is null
-		// and there is no error.
-		boolean isP2PoolAuthorized = (response.getIsAuthorized() == null && (response.getError() == null || response.getError().isEmpty()));
-
-		// Check if the user is authorized in the response.
-		boolean isAuthorized = isP2PoolAuthorized || (response.getIsAuthorized() != null && response.getIsAuthorized());
-
-		return isAuthorized;
 	}
 
 	/**
