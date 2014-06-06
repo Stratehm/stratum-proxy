@@ -572,7 +572,7 @@ public class Pool implements Comparable<Pool> {
 		return result;
 	}
 
-	public MiningNotifyNotification getCurrentJob() {
+	public MiningNotifyNotification getCurrentStratumJob() {
 		return currentJob;
 	}
 

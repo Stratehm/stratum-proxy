@@ -23,6 +23,7 @@ import strat.mining.stratum.proxy.exception.NoCredentialsException;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.GetworkRequest;
+import strat.mining.stratum.proxy.json.GetworkResponse;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
@@ -49,20 +50,37 @@ public class GetworkRequestHandler extends HttpHandler {
 
 	@Override
 	public void service(Request request, Response response) throws Exception {
-
+		response.setHeader("X-Mining-Extensions", "longpoll");
 		try {
 			setRequestCredentials(request);
 
 			GetworkWorkerConnection workerConnection = getWorkerConnection(request);
-			response.setHeader("X-Long-Polling", Constants.DEFAULT_LONG_POLLING_URL);
 
 			if (request.getRequestURI().equalsIgnoreCase(Constants.DEFAULT_GETWORK_URL)) {
-				// TODO getwork
+				response.setHeader("X-Long-Polling", Constants.DEFAULT_LONG_POLLING_URL);
+				// Basic getwork request
 				GetworkRequest getworkRequest = jsonUnmarshaller.readValue(request.getInputStream(), GetworkRequest.class);
+				// If data are presents, it is a submit request
+				if (getworkRequest.getData() != null) {
+					String errorMesage = workerConnection.submitWork((String) request.getAttribute("username"), getworkRequest.getData());
+					// If there is an error message, the share submit has
+					// failed/been rejected
+					if (errorMesage != null) {
+						response.setHeader("X-Reject-Reason", errorMesage);
+					}
 
-				System.out.println(getworkRequest);
+				} else {
+					// Else it is a getwork request
+					GetworkResponse jsonResponse = new GetworkResponse();
+					jsonResponse.setData(workerConnection.getGetworkData());
+					jsonResponse.setTarget(workerConnection.getGetworkTarget());
+
+					String result = jsonUnmarshaller.writeValueAsString(jsonResponse);
+					response.getOutputBuffer().write(result);
+				}
 			} else {
 				// TODO Long polling
+				// Block on the workerConnection getLongPollData.
 			}
 
 		} catch (NoCredentialsException e) {

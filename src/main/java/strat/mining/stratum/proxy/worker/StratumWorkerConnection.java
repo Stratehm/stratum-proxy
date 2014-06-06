@@ -356,7 +356,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 		}
 
 		// Then send the first job if available.
-		MiningNotifyNotification notify = pool.getCurrentJob();
+		MiningNotifyNotification notify = pool.getCurrentStratumJob();
 		if (notify != null) {
 			sendNotification(notify);
 			LOGGER.debug("Initial job sent to {}.", getConnectionName());

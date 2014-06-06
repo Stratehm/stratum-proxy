@@ -455,9 +455,9 @@ public class StratumProxyManager {
 			LOGGER.warn("Pool {} is DOWN. Moving connections to another one.", pool.getName());
 			Future<?> switchingFuture = switchPoolConnections(pool);
 			// Wait for the end of connection switch before declaring the pool
-			// has stopped. (Wait 1 seconds max)
+			// has stopped. (Wait 100 seconds max)
 			try {
-				switchingFuture.get(100000000, TimeUnit.MILLISECONDS);
+				switchingFuture.get(100000, TimeUnit.MILLISECONDS);
 			} catch (InterruptedException | ExecutionException | TimeoutException e) {
 				LOGGER.warn("Pool {} stopped before the end of connection switch.", pool.getName(), e);
 			}
