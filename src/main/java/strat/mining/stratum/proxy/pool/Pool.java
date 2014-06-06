@@ -31,8 +31,6 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -62,6 +60,8 @@ import strat.mining.stratum.proxy.json.MiningSubscribeResponse;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.utils.HashrateUtils;
+import strat.mining.stratum.proxy.utils.Timer;
+import strat.mining.stratum.proxy.utils.Timer.Task;
 
 import com.google.common.util.concurrent.AtomicDouble;
 
@@ -98,10 +98,10 @@ public class Pool implements Comparable<Pool> {
 
 	private MiningNotifyNotification currentJob;
 
-	private Timer reconnectTimer;
-	private Timer notifyTimeoutTimer;
-	private Timer stabilityTestTimer;
-	private Timer subscribeResponseTimeoutTimer;
+	private Task reconnectTask;
+	private Task notifyTimeoutTask;
+	private Task stabilityTestTask;
+	private Task subscribeResponseTimeoutTask;
 
 	private Boolean isExtranonceSubscribeEnabled = false;
 
@@ -195,23 +195,23 @@ public class Pool implements Comparable<Pool> {
 	 * Start the timer which check the subscribe response timeout
 	 */
 	private void startSubscribeTimeoutTimer() {
-		subscribeResponseTimeoutTimer = new Timer("SubscribeTimemoutTimer-" + getName());
-		subscribeResponseTimeoutTimer.schedule(new TimerTask() {
+		subscribeResponseTimeoutTask = new Timer.Task() {
 			public void run() {
 				LOGGER.warn("Subscribe response timeout. Stopping the pool");
 				stopPool();
 				retryConnect(true);
 			}
-		}, 5000);
+		};
+		Timer.getInstance().schedule(subscribeResponseTimeoutTask, 5000);
 	}
 
 	/**
 	 * Stop the timer which check the subscribe response timeout
 	 */
 	private void stopSubscribeTimeoutTimer() {
-		if (subscribeResponseTimeoutTimer != null) {
-			subscribeResponseTimeoutTimer.cancel();
-			subscribeResponseTimeoutTimer = null;
+		if (subscribeResponseTimeoutTask != null) {
+			subscribeResponseTimeoutTask.cancel();
+			subscribeResponseTimeoutTask = null;
 		}
 	}
 
@@ -418,7 +418,7 @@ public class Pool implements Comparable<Pool> {
 		// authorization for each newly connected workers.
 		if (isAppendWorkerNames) {
 			ResponseReceivedCallback<MiningAuthorizeRequest, MiningAuthorizeResponse> callback = authorizeCallbacks.get(response.getId());
-			if (response.getIsAuthorized() != null && response.getIsAuthorized()) {
+			if (isAuthorized(request, response)) {
 				// If authorized, add it in the authorized user list.
 				authorizedWorkers.add(request.getUsername());
 			}
@@ -431,7 +431,7 @@ public class Pool implements Comparable<Pool> {
 		} else {
 			// If the appendWorkerName is false and the authorization succeed,
 			// then set the pool as started
-			if (response.getIsAuthorized()) {
+			if (isAuthorized(request, response)) {
 				setPoolAsActive();
 			} else {
 				LOGGER.error("Stopping pool {} since user {} is not authorized.", getName(), username);
@@ -439,6 +439,24 @@ public class Pool implements Comparable<Pool> {
 				retryConnect(true);
 			}
 		}
+	}
+
+	/**
+	 * Return true if the authorize response is positive. Else, return false.
+	 * 
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	private boolean isAuthorized(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
+		// Check the P2Pool authorization. Authorized if the the result is null
+		// and there is no error.
+		boolean isP2PoolAuthorized = (response.getIsAuthorized() == null && (response.getError() == null || response.getError().isEmpty()));
+
+		// Check if the user is authorized in the response.
+		boolean isAuthorized = isP2PoolAuthorized || (response.getIsAuthorized() != null && response.getIsAuthorized());
+
+		return isAuthorized;
 	}
 
 	/**
@@ -584,21 +602,21 @@ public class Pool implements Comparable<Pool> {
 	private void retryConnect(boolean delayFirstRetry) {
 		if (connectionRetryDelay > 0) {
 			LOGGER.info("Trying reconnect of pool {} in {} seconds.", getName(), delayFirstRetry ? connectionRetryDelay : 0.001);
-			reconnectTimer = new Timer("ReconnectTimer-" + getName());
-			reconnectTimer.schedule(new TimerTask() {
+			reconnectTask = new Task() {
 				public void run() {
 					try {
 						LOGGER.info("Trying reconnect of pool {}...", getName());
 						startPool(manager);
-						if (reconnectTimer != null) {
-							reconnectTimer.cancel();
-							reconnectTimer = null;
+						if (reconnectTask != null) {
+							reconnectTask.cancel();
+							reconnectTask = null;
 						}
 					} catch (Exception e) {
 						LOGGER.error("Failed to restart the pool {}.", getName(), e);
 					}
 				}
-			}, delayFirstRetry ? connectionRetryDelay * 1000 : 1);
+			};
+			Timer.getInstance().schedule(reconnectTask, delayFirstRetry ? connectionRetryDelay * 1000 : 1);
 		} else {
 			LOGGER.warn("Do not try to reconnect pool {} since --pool-connection-retry-delay is {}.", getName(), connectionRetryDelay);
 		}
@@ -718,13 +736,12 @@ public class Pool implements Comparable<Pool> {
 	 */
 	private void resetNotifyTimeoutTimer() {
 		if (noNotifyTimeout > 0) {
-			if (notifyTimeoutTimer != null) {
-				notifyTimeoutTimer.cancel();
-				notifyTimeoutTimer = null;
+			if (notifyTimeoutTask != null) {
+				notifyTimeoutTask.cancel();
+				notifyTimeoutTask = null;
 			}
 
-			notifyTimeoutTimer = new Timer("NotifyTimeoutTimer-" + getName());
-			notifyTimeoutTimer.schedule(new TimerTask() {
+			notifyTimeoutTask = new Task() {
 				public void run() {
 					LOGGER.warn("No mining.notify received from pool {} for {} ms. Stopping the pool...", getName(), noNotifyTimeout);
 					// If we have not received notify notification since DEALY,
@@ -732,7 +749,8 @@ public class Pool implements Comparable<Pool> {
 					stopPool();
 					retryConnect(false);
 				}
-			}, noNotifyTimeout * 1000);
+			};
+			Timer.getInstance().schedule(notifyTimeoutTask, noNotifyTimeout * 1000);
 		}
 	}
 
@@ -744,21 +762,21 @@ public class Pool implements Comparable<Pool> {
 		if (reconnectStabilityPeriod > 0) {
 			if (!isFirstRun) {
 				LOGGER.info("Testing stability of pool {} for {} seconds.", getName(), reconnectStabilityPeriod);
-				if (stabilityTestTimer != null) {
-					stabilityTestTimer.cancel();
-					stabilityTestTimer = null;
+				if (stabilityTestTask != null) {
+					stabilityTestTask.cancel();
+					stabilityTestTask = null;
 				}
 
-				stabilityTestTimer = new Timer("StabilityTestTimer-" + getName());
-				stabilityTestTimer.schedule(new TimerTask() {
+				stabilityTestTask = new Task() {
 					public void run() {
 						setStable();
-						if (stabilityTestTimer != null) {
-							stabilityTestTimer.cancel();
-							stabilityTestTimer = null;
+						if (stabilityTestTask != null) {
+							stabilityTestTask.cancel();
+							stabilityTestTask = null;
 						}
 					}
-				}, reconnectStabilityPeriod * 1000);
+				};
+				Timer.getInstance().schedule(stabilityTestTask, reconnectStabilityPeriod * 1000);
 			} else {
 				LOGGER.debug("Pool {} declared as stable since since first start.", getName());
 				setStable();
@@ -783,24 +801,24 @@ public class Pool implements Comparable<Pool> {
 	 * Cancel all active timers
 	 */
 	private void cancelTimers() {
-		if (stabilityTestTimer != null) {
-			stabilityTestTimer.cancel();
-			stabilityTestTimer = null;
+		if (stabilityTestTask != null) {
+			stabilityTestTask.cancel();
+			stabilityTestTask = null;
 		}
 
-		if (reconnectTimer != null) {
-			reconnectTimer.cancel();
-			reconnectTimer = null;
+		if (reconnectTask != null) {
+			reconnectTask.cancel();
+			reconnectTask = null;
 		}
 
-		if (notifyTimeoutTimer != null) {
-			notifyTimeoutTimer.cancel();
-			notifyTimeoutTimer = null;
+		if (notifyTimeoutTask != null) {
+			notifyTimeoutTask.cancel();
+			notifyTimeoutTask = null;
 		}
 
-		if (subscribeResponseTimeoutTimer != null) {
-			subscribeResponseTimeoutTimer.cancel();
-			subscribeResponseTimeoutTimer = null;
+		if (subscribeResponseTimeoutTask != null) {
+			subscribeResponseTimeoutTask.cancel();
+			subscribeResponseTimeoutTask = null;
 		}
 	}
 
@@ -890,5 +908,4 @@ public class Pool implements Comparable<Pool> {
 	public void setWorkerSeparator(String workerSeparator) {
 		this.workerSeparator = workerSeparator;
 	}
-
 }

@@ -26,8 +26,6 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.slf4j.Logger;
@@ -58,6 +56,8 @@ import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.network.StratumConnection;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.utils.HashrateUtils;
+import strat.mining.stratum.proxy.utils.Timer;
+import strat.mining.stratum.proxy.utils.Timer.Task;
 
 public class StratumWorkerConnection extends StratumConnection implements WorkerConnection {
 
@@ -67,7 +67,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 
 	private StratumProxyManager manager;
 
-	private Timer subscribeTimeoutTimer;
+	private Task subscribeTimeoutTask;
 	private Integer subscribeReceiveTimeout = Constants.DEFAULT_SUBSCRIBE_RECEIVE_TIMEOUT;
 
 	private Date isActiveSince;
@@ -96,15 +96,15 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 	@Override
 	public void startReading() {
 		super.startReading();
-		subscribeTimeoutTimer = new Timer();
-		subscribeTimeoutTimer.schedule(new TimerTask() {
+		subscribeTimeoutTask = new Task() {
 			public void run() {
 				LOGGER.warn("No subscribe request received from {} in {} ms. Closing connection.", getConnectionName(), subscribeReceiveTimeout);
 				// Close the connection if subscribe request is not received at
 				// time.
 				close();
 			}
-		}, subscribeReceiveTimeout);
+		};
+		Timer.getInstance().schedule(subscribeTimeoutTask, subscribeReceiveTimeout);
 	}
 
 	@Override
@@ -162,8 +162,8 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 	@Override
 	protected void onSubscribeRequest(MiningSubscribeRequest request) {
 		// Once the subscribe request is received, cancel the timeout timer.
-		if (subscribeTimeoutTimer != null) {
-			subscribeTimeoutTimer.cancel();
+		if (subscribeTimeoutTask != null) {
+			subscribeTimeoutTask.cancel();
 		}
 
 		JsonRpcError error = null;
