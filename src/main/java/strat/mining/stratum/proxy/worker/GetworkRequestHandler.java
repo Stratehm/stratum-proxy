@@ -1,5 +1,6 @@
 package strat.mining.stratum.proxy.worker;
 
+import java.io.BufferedReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
@@ -29,6 +30,8 @@ import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class GetworkRequestHandler extends HttpHandler {
@@ -50,18 +53,25 @@ public class GetworkRequestHandler extends HttpHandler {
 
 	@Override
 	public void service(Request request, Response response) throws Exception {
-		response.setHeader("X-Mining-Extensions", "longpoll");
+		// response.setHeader("X-Mining-Extensions", "longpoll");
+
+		String content = null;
 		try {
+			content = new BufferedReader(request.getReader()).readLine();
+			LOGGER.trace("New request from {}: {}", request.getRemoteAddr(), content);
+
 			setRequestCredentials(request);
 
 			GetworkWorkerConnection workerConnection = getWorkerConnection(request);
 
-			if (request.getRequestURI().equalsIgnoreCase(Constants.DEFAULT_GETWORK_URL)) {
-				response.setHeader("X-Long-Polling", Constants.DEFAULT_LONG_POLLING_URL);
+			if (!request.getRequestURI().equalsIgnoreCase(Constants.DEFAULT_GETWORK_LONG_POLLING_URL)) {
+				response.setHeader("X-Long-Polling", Constants.DEFAULT_GETWORK_LONG_POLLING_URL);
 				// Basic getwork request
-				GetworkRequest getworkRequest = jsonUnmarshaller.readValue(request.getInputStream(), GetworkRequest.class);
+				GetworkRequest getworkRequest = jsonUnmarshaller.readValue(content, GetworkRequest.class);
 				// If data are presents, it is a submit request
 				if (getworkRequest.getData() != null) {
+					LOGGER.debug("New getwork submit request from user {}@{}.", request.getAttribute("username"),
+							workerConnection.getConnectionName());
 					String errorMesage = workerConnection.submitWork((String) request.getAttribute("username"), getworkRequest.getData());
 					// If there is an error message, the share submit has
 					// failed/been rejected
@@ -70,25 +80,31 @@ public class GetworkRequestHandler extends HttpHandler {
 					}
 
 				} else {
+					LOGGER.debug("New getwork request from user {}@{}.", request.getAttribute("username"), workerConnection.getConnectionName());
 					// Else it is a getwork request
 					GetworkResponse jsonResponse = new GetworkResponse();
 					jsonResponse.setData(workerConnection.getGetworkData());
 					jsonResponse.setTarget(workerConnection.getGetworkTarget());
 
 					String result = jsonUnmarshaller.writeValueAsString(jsonResponse);
+					LOGGER.debug("Returning response to {}@{}: {}", request.getAttribute("username"), request.getRemoteAddr(), result);
 					response.getOutputBuffer().write(result);
 				}
 			} else {
+				LOGGER.debug("New getwork long-polling request from user {}@{}.", request.getAttribute("username"),
+						workerConnection.getConnectionName());
 				// TODO Long polling
 				// Block on the workerConnection getLongPollData.
 			}
 
 		} catch (NoCredentialsException e) {
-			LOGGER.warn("Request form {} without credentials. Returning 401 Unauthorized.", request.getRemoteAddr());
+			LOGGER.warn("Request from {} without credentials. Returning 401 Unauthorized.", request.getRemoteAddr());
 			response.setHeader(Header.WWWAuthenticate, "Basic realm=\"stratum-proxy\"");
 			response.setStatus(HttpStatus.UNAUTHORIZED_401);
 		} catch (AuthorizationException e) {
 			LOGGER.warn("Authorization failed for getwork request from {}. {}", request.getRemoteAddr(), e.getMessage());
+		} catch (JsonParseException | JsonMappingException e) {
+			LOGGER.error("Unsupported request content from {}: {}", request.getRemoteAddr(), content, e);
 		}
 
 	}
@@ -125,7 +141,7 @@ public class GetworkRequestHandler extends HttpHandler {
 		GetworkWorkerConnection workerConnection = workerConnections.get(address);
 		if (workerConnection == null) {
 			LOGGER.debug("No existing getwork connections for address {}.", request.getRemoteAddr());
-			workerConnection = new GetworkWorkerConnection(address);
+			workerConnection = new GetworkWorkerConnection(address, manager);
 
 			MiningSubscribeRequest subscribeRequest = new MiningSubscribeRequest();
 			Pool pool = manager.onSubscribeRequest(workerConnection, subscribeRequest);

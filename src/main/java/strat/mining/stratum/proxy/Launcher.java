@@ -30,6 +30,7 @@ import javax.ws.rs.core.UriBuilder;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.http.server.ServerConfiguration;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -42,6 +43,7 @@ import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.ProxyResources;
+import strat.mining.stratum.proxy.worker.GetworkRequestHandler;
 
 public class Launcher {
 
@@ -51,7 +53,9 @@ public class Launcher {
 
 	private static StratumProxyManager stratumProxyManager;
 
-	private static HttpServer httpServer;
+	private static HttpServer apiHttpServer;
+
+	private static HttpServer getWorkHttpServer;
 
 	private static String version;
 
@@ -66,8 +70,11 @@ public class Launcher {
 						stratumProxyManager.stopPools();
 						stratumProxyManager.closeAllWorkerConnections();
 					}
-					if (httpServer != null) {
-						httpServer.shutdownNow();
+					if (apiHttpServer != null) {
+						apiHttpServer.shutdownNow();
+					}
+					if (getWorkHttpServer != null) {
+						getWorkHttpServer.shutdownNow();
 					}
 					LOGGER.info("Shutdown !");
 				}
@@ -90,6 +97,9 @@ public class Launcher {
 
 				// Initialize the proxy manager
 				initProxyManager(cliParser);
+
+				// Initialize the Getwork system
+				initGetwork(cliParser);
 
 				// Initialize the rest services
 				initRestServices(cliParser);
@@ -121,7 +131,19 @@ public class Launcher {
 		URI baseUri = UriBuilder.fromUri("http://" + cliParser.getRestBindAddress()).port(cliParser.getRestListenPort()).build();
 		ResourceConfig config = new ResourceConfig(ProxyResources.class);
 		config.register(JacksonFeature.class);
-		httpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
+		apiHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
+	}
+
+	/**
+	 * Initialize the Getwork system.
+	 * 
+	 * @param cliParser
+	 */
+	private static void initGetwork(CommandLineOptions cliParser) {
+		URI baseUri = UriBuilder.fromUri("http://" + cliParser.getGetworkBindAddress()).port(cliParser.getGetworkListenPort()).build();
+		apiHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri);
+		ServerConfiguration serverConfiguration = apiHttpServer.getServerConfiguration();
+		serverConfiguration.addHttpHandler(new GetworkRequestHandler(stratumProxyManager), "/", Constants.DEFAULT_GETWORK_LONG_POLLING_URL);
 	}
 
 	/**
