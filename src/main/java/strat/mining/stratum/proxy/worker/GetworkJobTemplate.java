@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.List;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -178,8 +179,11 @@ public class GetworkJobTemplate {
 		// Build the merkleRoot with the given extranonce2
 		byte[] bigEndianMerkleRootHash = buildMerkleRootHash(extranonce2);
 
-		// Byte swap the merkleRoot with 4-bytes words.
+		// Byte swap the merkleRoot of 4-bytes words.
 		byte[] littleEndianMerkleRootHash = strat.mining.stratum.proxy.utils.ArrayUtils.swapBytes(bigEndianMerkleRootHash, 4);
+
+		// And reverse the order of the 4-bytes words.
+		littleEndianMerkleRootHash = strat.mining.stratum.proxy.utils.ArrayUtils.reverseWords(littleEndianMerkleRootHash, 4);
 
 		// Then build the data
 		byte[] data = buildData(littleEndianMerkleRootHash);
@@ -258,7 +262,7 @@ public class GetworkJobTemplate {
 	 */
 	private void computeTarget(double difficulty, boolean isScrypt) {
 		BigDecimal difficulty1 = isScrypt ? DIFFICULTY_1_TARGET_SCRYPT : DIFFICULTY_1_TARGET;
-		BigDecimal targetNumber = difficulty1.divide(BigDecimal.valueOf(difficulty));
+		BigDecimal targetNumber = difficulty1.divide(BigDecimal.valueOf(difficulty), 0, RoundingMode.HALF_EVEN);
 		byte[] bigEndianTargetBytes = targetNumber.toBigInteger().toByteArray();
 
 		// Build the target on 32 Bytes
@@ -266,6 +270,9 @@ public class GetworkJobTemplate {
 		strat.mining.stratum.proxy.utils.ArrayUtils.copyInto(bigEndianTargetBytes, littleEndianTargetBytes, 32 - bigEndianTargetBytes.length);
 		// Then swap bytes from big-endian to little-endian
 		littleEndianTargetBytes = strat.mining.stratum.proxy.utils.ArrayUtils.swapBytes(littleEndianTargetBytes, 4);
+		// And reverse the order of 4-bytes words (big-endian to little-endian
+		// 256-bits integer)
+		littleEndianTargetBytes = strat.mining.stratum.proxy.utils.ArrayUtils.reverseWords(littleEndianTargetBytes, 4);
 		this.target = HexUtils.convert(littleEndianTargetBytes);
 	}
 }

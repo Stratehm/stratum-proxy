@@ -1,48 +1,114 @@
 package strat.mining.stratum.proxy.json;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonInclude(Include.NON_NULL)
-public class GetworkResponse {
+public class GetworkResponse extends JsonRpcResponse {
 
-	private String midstate;
-	private String data;
-	private String hash1;
-	private String target;
+	private Result result;
 
+	public GetworkResponse() {
+		super();
+		result = new Result();
+	}
+
+	public GetworkResponse(JsonRpcResponse response) {
+		super(response);
+		result = new Result();
+	}
+
+	@JsonIgnore
 	public String getMidstate() {
-		return midstate;
+		return result.midstate;
 	}
 
 	public void setMidstate(String midstate) {
-		this.midstate = midstate;
+		result.midstate = midstate;
 	}
 
+	@JsonIgnore
 	public String getData() {
-		return data;
+		return result.data;
 	}
 
 	public void setData(String data) {
-		this.data = data;
+		result.data = data;
 	}
 
+	@JsonIgnore
 	public String getHash1() {
-		return hash1;
+		return result.hash1;
 	}
 
 	public void setHash1(String hash1) {
-		this.hash1 = hash1;
+		result.hash1 = hash1;
 	}
 
+	@JsonIgnore
 	public String getTarget() {
-		return target;
+		return result.target;
 	}
 
 	public void setTarget(String target) {
-		this.target = target;
+		result.target = target;
+	}
+
+	public Result getResult() {
+		return result;
+	}
+
+	public void setResult(Result result) {
+		this.result = result;
+	}
+
+	/**
+	 * Represent the data of the Getwork response
+	 * 
+	 * @author Strat
+	 * 
+	 */
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	@JsonInclude(Include.NON_NULL)
+	public class Result {
+		private String midstate;
+		private String data;
+		private String hash1;
+		private String target;
+
+		public String getMidstate() {
+			return midstate;
+		}
+
+		public void setMidstate(String midstate) {
+			this.midstate = midstate;
+		}
+
+		public String getData() {
+			return data;
+		}
+
+		public void setData(String data) {
+			this.data = data;
+		}
+
+		public String getHash1() {
+			return hash1;
+		}
+
+		public void setHash1(String hash1) {
+			this.hash1 = hash1;
+		}
+
+		public String getTarget() {
+			return target;
+		}
+
+		public void setTarget(String target) {
+			this.target = target;
+		}
 	}
 
 }

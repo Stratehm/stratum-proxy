@@ -83,6 +83,7 @@ public class GetworkRequestHandler extends HttpHandler {
 					LOGGER.debug("New getwork request from user {}@{}.", request.getAttribute("username"), workerConnection.getConnectionName());
 					// Else it is a getwork request
 					GetworkResponse jsonResponse = new GetworkResponse();
+					jsonResponse.setId(getworkRequest.getId());
 					jsonResponse.setData(workerConnection.getGetworkData());
 					jsonResponse.setTarget(workerConnection.getGetworkTarget());
 
