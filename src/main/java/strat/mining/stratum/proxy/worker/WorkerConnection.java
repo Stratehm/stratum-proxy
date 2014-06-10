@@ -1,5 +1,8 @@
 package strat.mining.stratum.proxy.worker;
 
+import java.util.Date;
+import java.util.Set;
+
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
@@ -95,4 +98,17 @@ public interface WorkerConnection extends Connection {
 	 */
 	public double getAcceptedHashrate();
 
+	/**
+	 * Return a read-only set of users that are authorized on this connection.
+	 * 
+	 * @return
+	 */
+	public Set<String> getAuthorizedWorkers();
+
+	/**
+	 * Return the of activation of this connection
+	 * 
+	 * @return
+	 */
+	public Date getActiveSince();
 }

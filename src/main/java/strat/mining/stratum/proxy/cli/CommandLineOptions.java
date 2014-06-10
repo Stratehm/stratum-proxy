@@ -127,7 +127,7 @@ public class CommandLineOptions {
 	@Option(name = "--connection-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate on workers conections. (600 seconds by default)")
 	private Integer connectionHashrateSamplingPeriod = Constants.DEFAULT_WORKER_CONNECTION_HASHRATE_SAMPLING_PERIOD;
 
-	@Option(name = "--scrypt", usage = "Used to adjust target for getwork workers when mining scrypt coins.", handler = BooleanOptionHandler.class)
+	@Option(name = "--scrypt", usage = "Used to adjust target when mining scrypt coins. Used to estimate hashrate and for getwork workers.", handler = BooleanOptionHandler.class)
 	private boolean isScrypt;
 
 	private List<Pool> pools;

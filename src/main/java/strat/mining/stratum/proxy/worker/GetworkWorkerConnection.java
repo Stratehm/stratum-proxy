@@ -4,13 +4,12 @@ import java.math.BigInteger;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -33,10 +32,11 @@ import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.pool.Pool;
+import strat.mining.stratum.proxy.utils.ArrayUtils;
 import strat.mining.stratum.proxy.utils.AtomicBigInteger;
-import strat.mining.stratum.proxy.utils.HashrateUtils;
 import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.utils.Timer.Task;
+import strat.mining.stratum.proxy.utils.WorkerConnectionHashrateDelegator;
 
 public class GetworkWorkerConnection implements WorkerConnection {
 
@@ -46,9 +46,6 @@ public class GetworkWorkerConnection implements WorkerConnection {
 
 	private StratumProxyManager manager;
 
-	private Deque<Share> lastAcceptedShares;
-	private Deque<Share> lastRejectedShares;
-
 	private Pool pool;
 
 	private List<Pair<Request, Response>> longPollingRequest;
@@ -56,8 +53,6 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	private Set<String> authorizedUsername;
 
 	private InetAddress remoteAddress;
-
-	private Integer samplingHashesPeriod = Constants.DEFAULT_WORKER_CONNECTION_HASHRATE_SAMPLING_PERIOD * 1000;
 
 	private GetworkJobTemplate currentJob;
 
@@ -76,17 +71,22 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	private Task getworkTimeoutTask;
 	private Integer getworkTimeoutDelay = Constants.DEFAULT_GETWORK_CONNECTION_TIMEOUT;
 
+	private WorkerConnectionHashrateDelegator workerHashrateDelegator;
+
+	private Date isActiveSince;
+
 	public GetworkWorkerConnection(InetAddress remoteAddress, StratumProxyManager manager) {
 		this.manager = manager;
 		this.remoteAddress = remoteAddress;
 		this.longPollingRequest = Collections.synchronizedList(new ArrayList<Pair<Request, Response>>());
 		this.authorizedUsername = Collections.synchronizedSet(new HashSet<String>());
-		this.lastAcceptedShares = new ConcurrentLinkedDeque<Share>();
-		this.lastRejectedShares = new ConcurrentLinkedDeque<Share>();
 		this.extranonce2Counter = new AtomicBigInteger(ZERO_BIG_INTEGER_BYTES);
 		this.extranonce2AndJobIdByMerkleRoot = Collections.synchronizedMap(new HashMap<String, Pair<String, String>>());
 		this.submitResponseLatches = Collections.synchronizedMap(new HashMap<Long, CountDownLatch>());
 		this.submitResponses = Collections.synchronizedMap(new HashMap<Long, MiningSubmitResponse>());
+
+		this.workerHashrateDelegator = new WorkerConnectionHashrateDelegator();
+		this.isActiveSince = new Date();
 
 		// Start the getwork timeout
 		resetGetworkTimeoutTask();
@@ -171,12 +171,12 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	@Override
 	public void onPoolSubmitResponse(MiningSubmitRequest workerRequest, MiningSubmitResponse poolResponse) {
 		// Get the latch for the response.
-		CountDownLatch responseLatch = submitResponseLatches.remove(poolResponse.getId());
+		CountDownLatch responseLatch = submitResponseLatches.remove(workerRequest.getId());
 
 		// If no latches, the response is maybe in timeout or not expected.
 		if (responseLatch != null) {
 			// Save the response with the id.
-			submitResponses.put(poolResponse.getId(), poolResponse);
+			submitResponses.put(workerRequest.getId(), poolResponse);
 			// Then awake the thread waiting for the response.
 			responseLatch.countDown();
 		}
@@ -216,38 +216,23 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	}
 
 	@Override
-	public void updateShareLists(Share share, boolean isAccepted) {
-		if (isAccepted) {
-			lastAcceptedShares.addLast(share);
-			HashrateUtils.purgeShareList(lastAcceptedShares, samplingHashesPeriod);
-		} else {
-			lastRejectedShares.addLast(share);
-			HashrateUtils.purgeShareList(lastRejectedShares, samplingHashesPeriod);
-		}
-	}
-
-	/**
-	 * Return the of accepted hashes per seconds of the user.
-	 * 
-	 * @return
-	 */
 	public double getAcceptedHashrate() {
-		HashrateUtils.purgeShareList(lastAcceptedShares, samplingHashesPeriod);
-		return HashrateUtils.getHashrateFromShareList(lastAcceptedShares, samplingHashesPeriod);
+		return workerHashrateDelegator.getAcceptedHashrate();
 	}
 
-	/**
-	 * Return the number of rejected hashes per seconds of the user.
-	 * 
-	 * @return
-	 */
+	@Override
 	public double getRejectedHashrate() {
-		HashrateUtils.purgeShareList(lastRejectedShares, samplingHashesPeriod);
-		return HashrateUtils.getHashrateFromShareList(lastRejectedShares, samplingHashesPeriod);
+		return workerHashrateDelegator.getRejectedHashrate();
 	}
 
+	@Override
+	public void updateShareLists(Share share, boolean isAccepted) {
+		workerHashrateDelegator.updateShareLists(share, isAccepted);
+	}
+
+	@Override
 	public void setSamplingHashesPeriod(Integer samplingHashesPeriod) {
-		this.samplingHashesPeriod = samplingHashesPeriod * 1000;
+		workerHashrateDelegator.setSamplingHashesPeriod(samplingHashesPeriod);
 	}
 
 	/**
@@ -263,8 +248,16 @@ public class GetworkWorkerConnection implements WorkerConnection {
 					notification.getCurrentNTime(), notification.getNetworkDifficultyBits(), notification.getMerkleBranches(),
 					notification.getCoinbase1(), notification.getCoinbase2(), getPool().getExtranonce1() + extranonce1Tail);
 			currentJob.setDifficulty(pool.getDifficulty(), CommandLineOptions.getInstance().isScrypt());
+
+			// Reset all extranonce2 stuff
+			extranonce2Counter.set(BigInteger.ZERO);
+			extranonce2AndJobIdByMerkleRoot.clear();
 		} else {
 			currentJob.setJobId(notification.getJobId());
+			currentJob.setCoinbase1(notification.getCoinbase1());
+			currentJob.setCoinbase2(notification.getCoinbase2());
+			currentJob.setHashPrevBlock(notification.getPreviousHash());
+			currentJob.setVersion(notification.getBitcoinVersion());
 			currentJob.setBits(notification.getNetworkDifficultyBits());
 			currentJob.setTime(notification.getCurrentNTime());
 			currentJob.setMerkleBranches(notification.getMerkleBranches());
@@ -279,12 +272,9 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	public String getGetworkData() {
 		resetGetworkTimeoutTask();
 
-		// Reset the counter if the max value is reached
-		if (extranonce2Counter.get().compareTo(BigInteger.valueOf(extranonce2MaxValue)) >= 0) {
-			extranonce2Counter.set(ZERO_BIG_INTEGER_BYTES);
-		}
-		byte[] extranonce2 = extranonce2Counter.incrementAndGet().toByteArray();
-		String extranonce2String = HexUtils.convert(extranonce2);
+		// Retrieve a nex extranonce2 for this conenction
+		String extranonce2String = getExtranonce2();
+
 		// The pair contains the merkleRoot on the left and the data on the
 		// right.
 		Pair<String, String> data = currentJob.getData(extranonce2String);
@@ -293,6 +283,28 @@ public class GetworkWorkerConnection implements WorkerConnection {
 		extranonce2AndJobIdByMerkleRoot.put(data.getFirst(), new Pair<String, String>(extranonce2String, currentJob.getJobId()));
 
 		return data.getSecond();
+	}
+
+	/**
+	 * Return a new extranonce2 for this connection
+	 * 
+	 * @return
+	 */
+	protected String getExtranonce2() {
+		// Reset the counter if the max value is reached
+		if (extranonce2Counter.get().compareTo(BigInteger.valueOf(extranonce2MaxValue)) >= 0) {
+			extranonce2Counter.set(ZERO_BIG_INTEGER_BYTES);
+		}
+
+		// Get the extranonce2
+		byte[] extranonce2 = extranonce2Counter.incrementAndGet().toByteArray();
+
+		// Then add padding to the extranonce2
+		byte[] extranonce2Padded = new byte[pool.getWorkerExtranonce2Size()];
+		ArrayUtils.copyInto(extranonce2, extranonce2Padded, extranonce2Padded.length - extranonce2.length);
+
+		String extranonce2String = HexUtils.convert(extranonce2Padded);
+		return extranonce2String;
 	}
 
 	/**
@@ -320,25 +332,27 @@ public class GetworkWorkerConnection implements WorkerConnection {
 
 		MiningSubmitRequest submitRequest = new MiningSubmitRequest();
 		submitRequest.setWorkerName(workerName);
-		submitRequest.setExtranonce2(extranonce2JobId.getFirst());
+		submitRequest.setExtranonce2(extranonce1Tail + extranonce2JobId.getFirst());
 		submitRequest.setJobId(extranonce2JobId.getSecond());
-		submitRequest.setNonce(jobSubmit.getNonce());
 		submitRequest.setNtime(jobSubmit.getTime());
+		submitRequest.setNonce(jobSubmit.getNonce());
 
 		// Create the latch to wait the submit response.
 		CountDownLatch responseLatch = new CountDownLatch(1);
+		// Save the latch with the request id.
 		submitResponseLatches.put(submitRequest.getId(), responseLatch);
 
-		// Save the latch with the request id.
 		manager.onSubmitRequest(this, submitRequest);
 
 		try {
 			// Wait for the response for 1 second max.
-			boolean isTimeout = responseLatch.await(1, TimeUnit.SECONDS);
+			boolean isTimeout = !responseLatch.await(1, TimeUnit.SECONDS);
 			if (isTimeout) {
 				errorMessage = "MAYBE accepted share. Timeout on submit.";
 				// Remove the latch since no response has been received.
 				submitResponseLatches.remove(submitRequest.getId());
+				LOGGER.warn("Share MAYBE accepted (diff: {}) from {}@{}. (Timeout on submit request on pool {}", pool != null ? pool.getDifficulty()
+						: "Unknown", submitRequest.getWorkerName(), getConnectionName(), pool.getName());
 			} else {
 				MiningSubmitResponse response = submitResponses.remove(submitRequest.getId());
 
@@ -348,6 +362,8 @@ public class GetworkWorkerConnection implements WorkerConnection {
 				} else {
 					LOGGER.info("REJECTED share (diff: {}) from {}@{} on {}. Booo !!!!. Error: {}", pool != null ? pool.getDifficulty() : "Unknown",
 							submitRequest.getWorkerName(), getConnectionName(), pool.getName(), response.getJsonError());
+					errorMessage = response.getJsonError() != null && response.getJsonError().getMessage() != null ? response.getJsonError()
+							.getMessage() : "Unknown";
 				}
 			}
 		} catch (Exception e) {
@@ -363,6 +379,7 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	private void resetGetworkTimeoutTask() {
 		if (getworkTimeoutTask != null) {
 			getworkTimeoutTask.cancel();
+			getworkTimeoutTask = null;
 		}
 		this.getworkTimeoutTask = new Task() {
 			public void run() {
@@ -370,5 +387,15 @@ public class GetworkWorkerConnection implements WorkerConnection {
 			}
 		};
 		Timer.getInstance().schedule(getworkTimeoutTask, 1000 * getworkTimeoutDelay);
+	}
+
+	@Override
+	public Set<String> getAuthorizedWorkers() {
+		return Collections.unmodifiableSet(authorizedUsername);
+	}
+
+	@Override
+	public Date getActiveSince() {
+		return isActiveSince;
 	}
 }

@@ -600,7 +600,7 @@ public class Pool implements Comparable<Pool> {
 	 * @param delayFirstRetry
 	 */
 	private void retryConnect(boolean delayFirstRetry) {
-		if (connectionRetryDelay > 0) {
+		if (connectionRetryDelay > 0 && reconnectTask == null) {
 			LOGGER.info("Trying reconnect of pool {} in {} seconds.", getName(), delayFirstRetry ? connectionRetryDelay : 0.001);
 			reconnectTask = new Task() {
 				public void run() {

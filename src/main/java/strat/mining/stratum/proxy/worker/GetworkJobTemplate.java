@@ -13,6 +13,7 @@ import org.glassfish.grizzly.utils.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strat.mining.stratum.proxy.utils.AtomicBigInteger;
 import strat.mining.stratum.proxy.utils.HashingUtils;
 
 /**
@@ -54,26 +55,29 @@ public class GetworkJobTemplate {
 	// The first index of the merkle root hash in the block header
 	private static final int MERKLE_ROOT_BLOCK_HEADER_POSITION = 36;
 
-	private String jobId;
+	private volatile String jobId;
 
-	private byte[] version;
-	private byte[] hashPrevBlock;
-	private byte[] time;
-	private byte[] bits;
+	private volatile byte[] version;
+	private volatile byte[] hashPrevBlock;
+	// private byte[] time;
+	private AtomicBigInteger time;
+	private volatile byte[] bits;
 
 	// Stratum parameters
-	private List<String> merkleBranches;
-	private String coinbase1;
-	private String coinbase2;
-	private String extranonce1;
+	private volatile List<String> merkleBranches;
+	private volatile String coinbase1;
+	private volatile String coinbase2;
+	private volatile String extranonce1;
 
-	private byte[] templateData;
+	private volatile byte[] templateData;
 
 	// Flag to true when templateData has to be updated.
-	private boolean isDataDirty = true;
+	private volatile boolean isDataDirty = true;
 
-	private double difficulty;
-	private String target;
+	private volatile double difficulty;
+	private volatile String target;
+
+	private volatile long lastDataTemplateUpdateTime;
 
 	public GetworkJobTemplate(String jobId, String version, String hashPrevBlock, String time, String bits, List<String> merkleBranches,
 			String coinbase1, String coinbase2, String extranonce1) {
@@ -85,8 +89,11 @@ public class GetworkJobTemplate {
 
 		this.hashPrevBlock = HexUtils.convert(hashPrevBlock);
 		this.version = HexUtils.convert(version);
-		this.time = HexUtils.convert(time);
+		// Create the time BigInteger from the LittleEndian hex data.
+		this.time = new AtomicBigInteger(HexUtils.convert(time));
 		this.bits = HexUtils.convert(bits);
+
+		this.lastDataTemplateUpdateTime = System.currentTimeMillis() / 1000;
 
 		this.target = DEFAULT_TARGET;
 
@@ -112,7 +119,7 @@ public class GetworkJobTemplate {
 	}
 
 	public void setTime(String time) {
-		this.time = HexUtils.convert(time);
+		this.time.set(HexUtils.convert(time));
 		isDataDirty = true;
 	}
 
@@ -139,8 +146,17 @@ public class GetworkJobTemplate {
 	 * Compute the template data array.
 	 */
 	private void computeTemplateData() {
-		if (isDataDirty) {
+		// Compute once again the data only if at least one value has changed or
+		// if the last update was more than 1 second ago.
+		long currentTime = System.currentTimeMillis() / 1000;
+		long secondsSinceLastUpdate = currentTime - lastDataTemplateUpdateTime;
+		if (isDataDirty || secondsSinceLastUpdate > 1) {
 			isDataDirty = false;
+			lastDataTemplateUpdateTime = currentTime;
+
+			// Update the time with the secondsSinceLastUpdate
+			time.addAndGet(BigInteger.valueOf(secondsSinceLastUpdate));
+
 			// The block header is 128 Bytes long
 			// 80 bytes of useful data and others as padding.
 			ByteArrayOutputStream byteStream = new ByteArrayOutputStream(128);
@@ -150,7 +166,7 @@ public class GetworkJobTemplate {
 				byteStream.write(version);
 				byteStream.write(hashPrevBlock);
 				byteStream.write(FAKE_MERKLE_ROOT);
-				byteStream.write(time);
+				byteStream.write(time.get().toByteArray());
 				byteStream.write(bits);
 				byteStream.write(DEFAULT_NONCE);
 				byteStream.write(BLOCK_HEADER_PADDING);
@@ -183,7 +199,9 @@ public class GetworkJobTemplate {
 		byte[] littleEndianMerkleRootHash = strat.mining.stratum.proxy.utils.ArrayUtils.swapBytes(bigEndianMerkleRootHash, 4);
 
 		// And reverse the order of the 4-bytes words.
-		littleEndianMerkleRootHash = strat.mining.stratum.proxy.utils.ArrayUtils.reverseWords(littleEndianMerkleRootHash, 4);
+		// littleEndianMerkleRootHash =
+		// strat.mining.stratum.proxy.utils.ArrayUtils.reverseWords(littleEndianMerkleRootHash,
+		// 4);
 
 		// Then build the data
 		byte[] data = buildData(littleEndianMerkleRootHash);

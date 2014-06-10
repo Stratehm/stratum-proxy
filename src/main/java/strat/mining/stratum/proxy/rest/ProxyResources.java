@@ -572,16 +572,19 @@ public class ProxyResources {
 	private WorkerConnectionDTO convertWorkerConnectionToDTO(WorkerConnection connection) {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(API_DATE_FORMAT);
 		WorkerConnectionDTO result = new WorkerConnectionDTO();
-		result.setRemoteHost(connection.getConnectionName());
+		result.setRemoteHost(connection.getRemoteAddress().toString());
 		result.setAcceptedHashesPerSeconds(Double.valueOf(connection.getAcceptedHashrate()).longValue());
 		result.setRejectedHashesPerSeconds(Double.valueOf(connection.getRejectedHashrate()).longValue());
 		result.setPoolName(connection.getPool().getName());
+		result.setAuthorizedUsers(new ArrayList<>(connection.getAuthorizedWorkers()));
+		result.setIsActiveSince(simpleDateFormat.format(connection.getActiveSince()));
 
 		if (connection instanceof StratumWorkerConnection) {
 			StratumWorkerConnection stratumConnection = (StratumWorkerConnection) connection;
-			result.setAuthorizedUsers(new ArrayList<>(stratumConnection.getAuthorizedWorkers()));
-			result.setIsActiveSince(simpleDateFormat.format(stratumConnection.getActiveSince()));
+			result.setConnectionType("tcp+stratum");
 			result.setIsExtranonceNotificationSupported(stratumConnection.isSetExtranonceNotificationSupported());
+		} else {
+			result.setConnectionType("getwork");
 		}
 
 		return result;

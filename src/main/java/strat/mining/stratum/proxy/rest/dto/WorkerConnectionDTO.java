@@ -21,6 +21,8 @@ package strat.mining.stratum.proxy.rest.dto;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WorkerConnectionDTO {
@@ -31,7 +33,9 @@ public class WorkerConnectionDTO {
 	private Long rejectedHashesPerSeconds;
 	private String isActiveSince;
 	private String poolName;
+	@JsonInclude(Include.NON_NULL)
 	private Boolean isExtranonceNotificationSupported;
+	private String connectionType;
 
 	public String getRemoteHost() {
 		return remoteHost;
@@ -87,6 +91,14 @@ public class WorkerConnectionDTO {
 
 	public void setIsExtranonceNotificationSupported(Boolean isExtranonceNotificationSupported) {
 		this.isExtranonceNotificationSupported = isExtranonceNotificationSupported;
+	}
+
+	public String getConnectionType() {
+		return connectionType;
+	}
+
+	public void setConnectionType(String connectionType) {
+		this.connectionType = connectionType;
 	}
 
 }

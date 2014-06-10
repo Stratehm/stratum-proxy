@@ -14,7 +14,7 @@ public class GetworkJobSubmit {
 	private static final int TIME_POSITION = 136;
 	private static final int TIME_LENGTH = 8;
 
-	private static final int NONCE_POSITION = 256;
+	private static final int NONCE_POSITION = 152;
 	private static final int NONCE_LENGTH = 8;
 
 	private String merkleRoot;

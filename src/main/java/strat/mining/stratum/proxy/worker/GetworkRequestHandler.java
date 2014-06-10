@@ -1,6 +1,7 @@
 package strat.mining.stratum.proxy.worker;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
@@ -26,11 +27,13 @@ import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.GetworkRequest;
 import strat.mining.stratum.proxy.json.GetworkResponse;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
+import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -70,27 +73,12 @@ public class GetworkRequestHandler extends HttpHandler {
 				GetworkRequest getworkRequest = jsonUnmarshaller.readValue(content, GetworkRequest.class);
 				// If data are presents, it is a submit request
 				if (getworkRequest.getData() != null) {
-					LOGGER.debug("New getwork submit request from user {}@{}.", request.getAttribute("username"),
-							workerConnection.getConnectionName());
-					String errorMesage = workerConnection.submitWork((String) request.getAttribute("username"), getworkRequest.getData());
-					// If there is an error message, the share submit has
-					// failed/been rejected
-					if (errorMesage != null) {
-						response.setHeader("X-Reject-Reason", errorMesage);
-					}
-
+					processGetworkSubmit(request, response, workerConnection, getworkRequest);
 				} else {
-					LOGGER.debug("New getwork request from user {}@{}.", request.getAttribute("username"), workerConnection.getConnectionName());
 					// Else it is a getwork request
-					GetworkResponse jsonResponse = new GetworkResponse();
-					jsonResponse.setId(getworkRequest.getId());
-					jsonResponse.setData(workerConnection.getGetworkData());
-					jsonResponse.setTarget(workerConnection.getGetworkTarget());
-
-					String result = jsonUnmarshaller.writeValueAsString(jsonResponse);
-					LOGGER.debug("Returning response to {}@{}: {}", request.getAttribute("username"), request.getRemoteAddr(), result);
-					response.getOutputBuffer().write(result);
+					processBasicGetworkRequest(request, response, workerConnection, getworkRequest);
 				}
+
 			} else {
 				LOGGER.debug("New getwork long-polling request from user {}@{}.", request.getAttribute("username"),
 						workerConnection.getConnectionName());
@@ -108,6 +96,63 @@ public class GetworkRequestHandler extends HttpHandler {
 			LOGGER.error("Unsupported request content from {}: {}", request.getRemoteAddr(), content, e);
 		}
 
+	}
+
+	/**
+	 * Process a basic (non long-polling) getwork request.
+	 * 
+	 * @param request
+	 * @param response
+	 * @param workerConnection
+	 * @param getworkRequest
+	 * @throws JsonProcessingException
+	 * @throws IOException
+	 */
+	protected void processBasicGetworkRequest(Request request, Response response, GetworkWorkerConnection workerConnection,
+			GetworkRequest getworkRequest) throws JsonProcessingException, IOException {
+		LOGGER.debug("New getwork request from user {}@{}.", request.getAttribute("username"), workerConnection.getConnectionName());
+
+		// Return the getwork data
+		GetworkResponse jsonResponse = new GetworkResponse();
+		jsonResponse.setId(getworkRequest.getId());
+		jsonResponse.setData(workerConnection.getGetworkData());
+		jsonResponse.setTarget(workerConnection.getGetworkTarget());
+
+		String result = jsonUnmarshaller.writeValueAsString(jsonResponse);
+		LOGGER.debug("Returning response to {}@{}: {}", request.getAttribute("username"), request.getRemoteAddr(), result);
+		response.getOutputBuffer().write(result);
+	}
+
+	/**
+	 * Process a getwork share submission.
+	 * 
+	 * @param request
+	 * @param response
+	 * @param workerConnection
+	 * @param getworkRequest
+	 * @throws JsonProcessingException
+	 * @throws IOException
+	 */
+	protected void processGetworkSubmit(Request request, Response response, GetworkWorkerConnection workerConnection, GetworkRequest getworkRequest)
+			throws JsonProcessingException, IOException {
+		LOGGER.debug("New getwork submit request from user {}@{}.", request.getAttribute("username"), workerConnection.getConnectionName());
+
+		MiningSubmitResponse jsonResponse = new MiningSubmitResponse();
+		jsonResponse.setId(getworkRequest.getId());
+
+		String errorMesage = workerConnection.submitWork((String) request.getAttribute("username"), getworkRequest.getData());
+		// If there is an error message, the share submit has
+		// failed/been rejected
+		if (errorMesage != null) {
+			response.setHeader("X-Reject-Reason", errorMesage);
+			jsonResponse.setIsAccepted(false);
+		} else {
+			jsonResponse.setIsAccepted(true);
+		}
+
+		String result = jsonUnmarshaller.writeValueAsString(jsonResponse);
+		LOGGER.debug("Returning response to {}@{}: {}", request.getAttribute("username"), request.getRemoteAddr(), result);
+		response.getOutputBuffer().write(result);
 	}
 
 	/**

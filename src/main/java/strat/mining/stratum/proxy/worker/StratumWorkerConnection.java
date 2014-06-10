@@ -22,11 +22,9 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,9 +53,9 @@ import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.network.StratumConnection;
 import strat.mining.stratum.proxy.pool.Pool;
-import strat.mining.stratum.proxy.utils.HashrateUtils;
 import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.utils.Timer.Task;
+import strat.mining.stratum.proxy.utils.WorkerConnectionHashrateDelegator;
 
 public class StratumWorkerConnection extends StratumConnection implements WorkerConnection {
 
@@ -81,16 +79,13 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 
 	private boolean isSetExtranonceNotificationSupported = false;
 
-	private Deque<Share> lastAcceptedShares;
-	private Deque<Share> lastRejectedShares;
-	private Integer samplingHashesPeriod = Constants.DEFAULT_WORKER_CONNECTION_HASHRATE_SAMPLING_PERIOD * 1000;
+	private WorkerConnectionHashrateDelegator workerHashrateDelegator;
 
 	public StratumWorkerConnection(Socket socket, StratumProxyManager manager) {
 		super(socket);
 		this.manager = manager;
 		this.authorizedWorkers = Collections.synchronizedSet(new HashSet<String>());
-		lastAcceptedShares = new ConcurrentLinkedDeque<Share>();
-		lastRejectedShares = new ConcurrentLinkedDeque<Share>();
+		this.workerHashrateDelegator = new WorkerConnectionHashrateDelegator();
 	}
 
 	@Override
@@ -401,48 +396,32 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 		}
 	}
 
-	/**
-	 * Return a read-only set of users that are authorized on this connection.
-	 * 
-	 * @return
-	 */
+	@Override
 	public Set<String> getAuthorizedWorkers() {
 		return Collections.unmodifiableSet(authorizedWorkers);
 	}
 
 	@Override
 	public double getAcceptedHashrate() {
-		HashrateUtils.purgeShareList(lastAcceptedShares, samplingHashesPeriod);
-		return HashrateUtils.getHashrateFromShareList(lastAcceptedShares, samplingHashesPeriod);
+		return workerHashrateDelegator.getAcceptedHashrate();
 	}
 
 	@Override
 	public double getRejectedHashrate() {
-		HashrateUtils.purgeShareList(lastRejectedShares, samplingHashesPeriod);
-		return HashrateUtils.getHashrateFromShareList(lastRejectedShares, samplingHashesPeriod);
+		return workerHashrateDelegator.getRejectedHashrate();
 	}
 
-	/**
-	 * Update the shares lists with the given share to compute hashrate
-	 * 
-	 * @param share
-	 * @param isAccepted
-	 */
+	@Override
 	public void updateShareLists(Share share, boolean isAccepted) {
-		if (isAccepted) {
-			lastAcceptedShares.addLast(share);
-			HashrateUtils.purgeShareList(lastAcceptedShares, samplingHashesPeriod);
-		} else {
-			lastRejectedShares.addLast(share);
-			HashrateUtils.purgeShareList(lastRejectedShares, samplingHashesPeriod);
-		}
+		workerHashrateDelegator.updateShareLists(share, isAccepted);
 	}
 
 	@Override
 	public void setSamplingHashesPeriod(Integer samplingHashesPeriod) {
-		this.samplingHashesPeriod = samplingHashesPeriod * 1000;
+		workerHashrateDelegator.setSamplingHashesPeriod(samplingHashesPeriod);
 	}
 
+	@Override
 	public Date getActiveSince() {
 		return isActiveSince;
 	}
