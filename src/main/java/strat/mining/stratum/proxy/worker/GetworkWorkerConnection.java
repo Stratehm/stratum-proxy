@@ -2,25 +2,22 @@ package strat.mining.stratum.proxy.worker;
 
 import java.math.BigInteger;
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.glassfish.grizzly.http.server.Request;
-import org.glassfish.grizzly.http.server.Response;
 import org.glassfish.grizzly.http.util.HexUtils;
 import org.glassfish.grizzly.utils.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strat.mining.stratum.proxy.callback.LongPollingCallback;
 import strat.mining.stratum.proxy.cli.CommandLineOptions;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
@@ -48,7 +45,7 @@ public class GetworkWorkerConnection implements WorkerConnection {
 
 	private Pool pool;
 
-	private List<Pair<Request, Response>> longPollingRequest;
+	private Set<LongPollingCallback> longPollingCallbacks;
 
 	private Set<String> authorizedUsername;
 
@@ -78,7 +75,7 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	public GetworkWorkerConnection(InetAddress remoteAddress, StratumProxyManager manager) {
 		this.manager = manager;
 		this.remoteAddress = remoteAddress;
-		this.longPollingRequest = Collections.synchronizedList(new ArrayList<Pair<Request, Response>>());
+		this.longPollingCallbacks = Collections.synchronizedSet(new HashSet<LongPollingCallback>());
 		this.authorizedUsername = Collections.synchronizedSet(new HashSet<String>());
 		this.extranonce2Counter = new AtomicBigInteger(ZERO_BIG_INTEGER_BYTES);
 		this.extranonce2AndJobIdByMerkleRoot = Collections.synchronizedMap(new HashMap<String, Pair<String, String>>());
@@ -154,18 +151,19 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	@Override
 	public void onPoolExtranonceChange() throws ChangeExtranonceNotSupportedException {
 		updateCurrentJobTemplateFromStratumJob(getPool().getCurrentStratumJob());
+		callLongPollingCallbacks();
 	}
 
 	@Override
 	public void onPoolDifficultyChanged(MiningSetDifficultyNotification notification) {
-		// TODO Update connection and send long polling response
 		currentJob.setDifficulty(notification.getDifficulty(), CommandLineOptions.getInstance().isScrypt());
-
+		callLongPollingCallbacks();
 	}
 
 	@Override
 	public void onPoolNotify(MiningNotifyNotification notification) {
 		updateCurrentJobTemplateFromStratumJob(notification);
+		callLongPollingCallbacks();
 	}
 
 	@Override
@@ -192,26 +190,32 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	}
 
 	/**
-	 * Add a long polling request.
+	 * Add a long polling Callback.
 	 * 
-	 * @param request
-	 * @param response
+	 * @param callback
 	 */
-	public void addLongPollingRequest(Request request, Response response) {
-		response.suspend();
-
+	public void addLongPollingCallback(LongPollingCallback callback) {
+		longPollingCallbacks.add(callback);
 	}
 
 	/**
-	 * Wake up and send response to all long polling requests.
+	 * Remove the given long polling callback
+	 * 
+	 * @param callback
 	 */
-	private void wakeUpLongPollingRequests() {
-		synchronized (longPollingRequest) {
-			for (Pair<Request, Response> pair : longPollingRequest) {
-				// TODO fill the long polling request
-				pair.getSecond().resume();
+	public void removeLongPollingCallback(LongPollingCallback callback) {
+		longPollingCallbacks.remove(callback);
+	}
+
+	/**
+	 * Call all the registered callbacks for long-polling.
+	 */
+	private void callLongPollingCallbacks() {
+		synchronized (longPollingCallbacks) {
+			for (LongPollingCallback callback : longPollingCallbacks) {
+				callback.onLongPollingOver();
 			}
-			longPollingRequest.clear();
+			longPollingCallbacks.clear();
 		}
 	}
 

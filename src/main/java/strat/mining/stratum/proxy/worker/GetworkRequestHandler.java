@@ -8,7 +8,9 @@ import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.grizzly.http.server.Response;
@@ -18,6 +20,7 @@ import org.glassfish.jersey.internal.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strat.mining.stratum.proxy.callback.LongPollingCallback;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.AuthorizationException;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
@@ -43,20 +46,19 @@ public class GetworkRequestHandler extends HttpHandler {
 
 	private StratumProxyManager manager;
 
-	private ObjectMapper jsonUnmarshaller;
+	private static ObjectMapper jsonUnmarshaller = new ObjectMapper();;
 
 	private Map<InetAddress, GetworkWorkerConnection> workerConnections;
 
 	public GetworkRequestHandler(StratumProxyManager manager) {
 		this.manager = manager;
-		this.jsonUnmarshaller = new ObjectMapper();
 		this.workerConnections = Collections.synchronizedMap(new HashMap<InetAddress, GetworkWorkerConnection>());
 
 	}
 
 	@Override
-	public void service(Request request, Response response) throws Exception {
-		// response.setHeader("X-Mining-Extensions", "longpoll");
+	public void service(final Request request, final Response response) throws Exception {
+		response.setHeader("X-Mining-Extensions", "longpoll");
 
 		String content = null;
 		try {
@@ -65,25 +67,29 @@ public class GetworkRequestHandler extends HttpHandler {
 
 			setRequestCredentials(request);
 
-			GetworkWorkerConnection workerConnection = getWorkerConnection(request);
+			final GetworkWorkerConnection workerConnection = getWorkerConnection(request);
+			final GetworkRequest getworkRequest = jsonUnmarshaller.readValue(content, GetworkRequest.class);
 
 			if (!request.getRequestURI().equalsIgnoreCase(Constants.DEFAULT_GETWORK_LONG_POLLING_URL)) {
+				// Basic getwork Request
 				response.setHeader("X-Long-Polling", Constants.DEFAULT_GETWORK_LONG_POLLING_URL);
-				// Basic getwork request
-				GetworkRequest getworkRequest = jsonUnmarshaller.readValue(content, GetworkRequest.class);
-				// If data are presents, it is a submit request
+
 				if (getworkRequest.getData() != null) {
+					// If data are presents, it is a submit request
+					LOGGER.debug("New getwork submit request from user {}@{}.", request.getAttribute("username"),
+							workerConnection.getConnectionName());
 					processGetworkSubmit(request, response, workerConnection, getworkRequest);
 				} else {
 					// Else it is a getwork request
-					processBasicGetworkRequest(request, response, workerConnection, getworkRequest);
+					LOGGER.debug("New getwork request from user {}@{}.", request.getAttribute("username"), workerConnection.getConnectionName());
+					processGetworkRequest(request, response, workerConnection, getworkRequest);
 				}
 
 			} else {
+				// Long polling getwork request
 				LOGGER.debug("New getwork long-polling request from user {}@{}.", request.getAttribute("username"),
 						workerConnection.getConnectionName());
-				// TODO Long polling
-				// Block on the workerConnection getLongPollData.
+				processLongPollingRequest(request, response, workerConnection, getworkRequest);
 			}
 
 		} catch (NoCredentialsException e) {
@@ -99,6 +105,60 @@ public class GetworkRequestHandler extends HttpHandler {
 	}
 
 	/**
+	 * Process the request as a long-polling one.
+	 * 
+	 * @param request
+	 * @param response
+	 * @param workerConnection
+	 * @param getworkRequest
+	 */
+	private void processLongPollingRequest(final Request request, final Response response, final GetworkWorkerConnection workerConnection,
+			final GetworkRequest getworkRequest) {
+		// Prepare the callback of long polling
+		final LongPollingCallback longPollingCallback = new LongPollingCallback() {
+			public void onLongPollingOver() {
+				try {
+					// Once the worker connection call the callback, process the
+					// getwork request to fill the response.
+					processGetworkRequest(request, response, workerConnection, getworkRequest);
+
+					// Then resume the response to send it to the miner.
+					response.resume();
+				} catch (Exception e) {
+					LOGGER.error("Failed to send  long-polling response to {}@{}.", request.getAttribute("username"),
+							workerConnection.getConnectionName(), e);
+				}
+			}
+		};
+
+		// Suspend the response for at least 70 seconds (miners should cancel
+		// the request after 60 seconds)
+		// If the request is cancelled or failed, remove hte callback from the
+		// worker connection since there is no need to call it.
+		response.suspend(70, TimeUnit.SECONDS, new CompletionHandler<Response>() {
+			public void updated(Response result) {
+			}
+
+			public void failed(Throwable throwable) {
+				LOGGER.error("Long-polling request of {}@{} failed. Cause: {}", request.getAttribute("username"),
+						workerConnection.getConnectionName(), throwable.getMessage());
+				workerConnection.removeLongPollingCallback(longPollingCallback);
+			}
+
+			public void completed(Response result) {
+			}
+
+			public void cancelled() {
+				LOGGER.error("Long-polling request of {}@{} cancelled.", request.getAttribute("username"), workerConnection.getConnectionName());
+				workerConnection.removeLongPollingCallback(longPollingCallback);
+			}
+		});
+
+		// Add the callback to the worker connection
+		workerConnection.addLongPollingCallback(longPollingCallback);
+	}
+
+	/**
 	 * Process a basic (non long-polling) getwork request.
 	 * 
 	 * @param request
@@ -108,10 +168,8 @@ public class GetworkRequestHandler extends HttpHandler {
 	 * @throws JsonProcessingException
 	 * @throws IOException
 	 */
-	protected void processBasicGetworkRequest(Request request, Response response, GetworkWorkerConnection workerConnection,
-			GetworkRequest getworkRequest) throws JsonProcessingException, IOException {
-		LOGGER.debug("New getwork request from user {}@{}.", request.getAttribute("username"), workerConnection.getConnectionName());
-
+	protected void processGetworkRequest(Request request, Response response, GetworkWorkerConnection workerConnection, GetworkRequest getworkRequest)
+			throws JsonProcessingException, IOException {
 		// Return the getwork data
 		GetworkResponse jsonResponse = new GetworkResponse();
 		jsonResponse.setId(getworkRequest.getId());
@@ -135,8 +193,6 @@ public class GetworkRequestHandler extends HttpHandler {
 	 */
 	protected void processGetworkSubmit(Request request, Response response, GetworkWorkerConnection workerConnection, GetworkRequest getworkRequest)
 			throws JsonProcessingException, IOException {
-		LOGGER.debug("New getwork submit request from user {}@{}.", request.getAttribute("username"), workerConnection.getConnectionName());
-
 		MiningSubmitResponse jsonResponse = new MiningSubmitResponse();
 		jsonResponse.setId(getworkRequest.getId());
 
@@ -231,4 +287,5 @@ public class GetworkRequestHandler extends HttpHandler {
 			throw new NoCredentialsException();
 		}
 	}
+
 }
