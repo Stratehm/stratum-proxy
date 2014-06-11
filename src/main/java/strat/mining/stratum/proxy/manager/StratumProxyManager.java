@@ -67,6 +67,7 @@ import strat.mining.stratum.proxy.rest.dto.AddPoolDTO;
 import strat.mining.stratum.proxy.rest.dto.AddressDTO;
 import strat.mining.stratum.proxy.rest.dto.ConnectionIdentifierDTO;
 import strat.mining.stratum.proxy.rest.dto.UserNameDTO;
+import strat.mining.stratum.proxy.worker.StratumWorkerConnection;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -161,7 +162,7 @@ public class StratumProxyManager {
 						incomingConnectionSocket.setKeepAlive(true);
 						LOGGER.info("New connection on {} from {}.", serverSocket.getLocalSocketAddress(),
 								incomingConnectionSocket.getRemoteSocketAddress());
-						WorkerConnection workerConnection = new WorkerConnection(incomingConnectionSocket, StratumProxyManager.this);
+						StratumWorkerConnection workerConnection = new StratumWorkerConnection(incomingConnectionSocket, StratumProxyManager.this);
 						workerConnection.setSamplingHashesPeriod(CommandLineOptions.getInstance().getConnectionHashrateSamplingPeriod());
 						workerConnection.startReading();
 					} catch (Exception e) {
@@ -339,7 +340,7 @@ public class StratumProxyManager {
 			LOGGER.debug("No worker connections on pool {}. Do not send setDifficulty.", pool.getName());
 		} else {
 			for (WorkerConnection connection : connections) {
-				connection.sendNotification(notification);
+				connection.onPoolDifficultyChanged(notification);
 			}
 		}
 	}
@@ -398,7 +399,7 @@ public class StratumProxyManager {
 			LOGGER.debug("No worker connections on pool {}. Do not send notify.", pool.getName());
 		} else {
 			for (WorkerConnection connection : connections) {
-				connection.sendNotification(notification);
+				connection.onPoolNotify(notification);
 			}
 		}
 	}
@@ -454,9 +455,9 @@ public class StratumProxyManager {
 			LOGGER.warn("Pool {} is DOWN. Moving connections to another one.", pool.getName());
 			Future<?> switchingFuture = switchPoolConnections(pool);
 			// Wait for the end of connection switch before declaring the pool
-			// has stopped. (Wait 1 seconds max)
+			// has stopped. (Wait 100 seconds max)
 			try {
-				switchingFuture.get(100000000, TimeUnit.MILLISECONDS);
+				switchingFuture.get(100000, TimeUnit.MILLISECONDS);
 			} catch (InterruptedException | ExecutionException | TimeoutException e) {
 				LOGGER.warn("Pool {} stopped before the end of connection switch.", pool.getName(), e);
 			}

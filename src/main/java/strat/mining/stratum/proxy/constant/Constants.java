@@ -27,6 +27,8 @@ public class Constants {
 	public static final Integer DEFAULT_STRATUM_LISTENING_PORT = 3333;
 	public static final Integer DEFAULT_REST_LISTENING_PORT = 8888;
 	public static final String DEFAULT_REST_LISTENING_ADDRESS = "0.0.0.0";
+	public static final Integer DEFAULT_GETWORK_LISTENING_PORT = 8332;
+	public static final String DEFAULT_GETWORK_LISTENING_ADDRESS = "0.0.0.0";
 
 	public static final Integer DEFAULT_POOL_PORT = 3333;
 	public static final Integer DEFAULT_POOL_CONNECTION_RETRY_DELAY = 5;
@@ -50,7 +52,11 @@ public class Constants {
 	public static final String VERSION = "stratehm-stratum-proxy-" + Launcher.getVersion();
 
 	public static final double AVERAGE_NUMBER_OF_HASHES_PER_SHARE_AT_DIFFICULTY_ONE = Math.pow(2, 32);
+	public static final double AVERAGE_NUMBER_OF_HASHES_PER_SHARE_AT_DIFFICULTY_ONE_SCRYPT = Math.pow(2, 16);
 
 	public static final String DEFAULT_WORKER_NAME_SEPARTOR = ".";
+
+	public static final String DEFAULT_GETWORK_LONG_POLLING_URL = "/getwork/longpolling";
+	public static final Integer DEFAULT_GETWORK_CONNECTION_TIMEOUT = 120;
 
 }

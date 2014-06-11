@@ -56,6 +56,7 @@ import strat.mining.stratum.proxy.rest.dto.StatusDTO;
 import strat.mining.stratum.proxy.rest.dto.UserDetailsDTO;
 import strat.mining.stratum.proxy.rest.dto.UserNameDTO;
 import strat.mining.stratum.proxy.rest.dto.WorkerConnectionDTO;
+import strat.mining.stratum.proxy.worker.StratumWorkerConnection;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
 
 @Path("proxy")
@@ -571,13 +572,20 @@ public class ProxyResources {
 	private WorkerConnectionDTO convertWorkerConnectionToDTO(WorkerConnection connection) {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(API_DATE_FORMAT);
 		WorkerConnectionDTO result = new WorkerConnectionDTO();
-		result.setAuthorizedUsers(new ArrayList<>(connection.getAuthorizedWorkers()));
-		result.setIsActiveSince(simpleDateFormat.format(connection.getActiveSince()));
-		result.setRemoteHost(connection.getConnectionName());
+		result.setRemoteHost(connection.getRemoteAddress().toString());
 		result.setAcceptedHashesPerSeconds(Double.valueOf(connection.getAcceptedHashrate()).longValue());
 		result.setRejectedHashesPerSeconds(Double.valueOf(connection.getRejectedHashrate()).longValue());
 		result.setPoolName(connection.getPool().getName());
-		result.setIsExtranonceNotificationSupported(connection.isSetExtranonceNotificationSupported());
+		result.setAuthorizedUsers(new ArrayList<>(connection.getAuthorizedWorkers()));
+		result.setIsActiveSince(simpleDateFormat.format(connection.getActiveSince()));
+
+		if (connection instanceof StratumWorkerConnection) {
+			StratumWorkerConnection stratumConnection = (StratumWorkerConnection) connection;
+			result.setConnectionType("tcp+stratum");
+			result.setIsExtranonceNotificationSupported(stratumConnection.isSetExtranonceNotificationSupported());
+		} else {
+			result.setConnectionType("getwork");
+		}
 
 		return result;
 	}

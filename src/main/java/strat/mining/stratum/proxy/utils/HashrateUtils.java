@@ -20,6 +20,7 @@ package strat.mining.stratum.proxy.utils;
 
 import java.util.Deque;
 
+import strat.mining.stratum.proxy.cli.CommandLineOptions;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.model.Share;
 
@@ -40,8 +41,10 @@ public final class HashrateUtils {
 			totalDifficultyInSamplingPeriod += share.getDifficulty();
 		}
 
-		double hashesPerSeconds = (totalDifficultyInSamplingPeriod / (samplingHashesPeriod / 1000))
-				* Constants.AVERAGE_NUMBER_OF_HASHES_PER_SHARE_AT_DIFFICULTY_ONE;
+		double averageNumberOfHashesPerShareAtDifficultyOne = CommandLineOptions.getInstance().isScrypt() ? Constants.AVERAGE_NUMBER_OF_HASHES_PER_SHARE_AT_DIFFICULTY_ONE_SCRYPT
+				: Constants.AVERAGE_NUMBER_OF_HASHES_PER_SHARE_AT_DIFFICULTY_ONE;
+
+		double hashesPerSeconds = (totalDifficultyInSamplingPeriod / (samplingHashesPeriod / 1000)) * averageNumberOfHashesPerShareAtDifficultyOne;
 		return hashesPerSeconds;
 	}
 

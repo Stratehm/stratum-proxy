@@ -85,6 +85,12 @@ public class CommandLineOptions {
 	@Option(name = "--rest-listen-address", usage = "The address to bind to listen REST requests. (0.0.0.0 by default)", metaVar = "ipAddress")
 	private String restBindAddress = Constants.DEFAULT_REST_LISTENING_ADDRESS;
 
+	@Option(name = "--getwork-listen-port", usage = "The port number to listen Getwork requests. (8332 by default)", metaVar = "portNumber")
+	private Integer getworkListenPort = Constants.DEFAULT_GETWORK_LISTENING_PORT;
+
+	@Option(name = "--getwork-listen-address", usage = "The address to bind to listen Getwork requests. (0.0.0.0 by default)", metaVar = "ipAddress")
+	private String getworkBindAddress = Constants.DEFAULT_GETWORK_LISTENING_ADDRESS;
+
 	@Option(name = "--version", usage = "Print the version.", handler = BooleanOptionHandler.class)
 	private boolean isVersionRequested;
 
@@ -120,6 +126,9 @@ public class CommandLineOptions {
 
 	@Option(name = "--connection-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate on workers conections. (600 seconds by default)")
 	private Integer connectionHashrateSamplingPeriod = Constants.DEFAULT_WORKER_CONNECTION_HASHRATE_SAMPLING_PERIOD;
+
+	@Option(name = "--scrypt", usage = "Used to adjust target when mining scrypt coins. Used to estimate hashrate and for getwork workers.", handler = BooleanOptionHandler.class)
+	private boolean isScrypt;
 
 	private List<Pool> pools;
 
@@ -280,6 +289,18 @@ public class CommandLineOptions {
 
 	public Integer getConnectionHashrateSamplingPeriod() {
 		return connectionHashrateSamplingPeriod;
+	}
+
+	public Integer getGetworkListenPort() {
+		return getworkListenPort;
+	}
+
+	public String getGetworkBindAddress() {
+		return getworkBindAddress;
+	}
+
+	public boolean isScrypt() {
+		return isScrypt;
 	}
 
 	private static Logger getLogger() {
