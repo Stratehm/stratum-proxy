@@ -49,6 +49,9 @@ public class CommandLineOptions {
 
 	private CmdLineParser parser;
 
+	@Option(name = "-f", aliases = { "--conf-file" }, usage = "Use the given configuration file. If set, all other command line options are discarded (except --version and --help)", handler = FileOptionHandler.class, metaVar = "filePath")
+	private File configurationFile;
+
 	@Option(name = "-n", aliases = { "--pool-names" }, usage = "Names of the pools. Space separated. (Default to host)", handler = StringArrayOptionHandler.class, metaVar = "name1 [name2] [name3]...")
 	private List<String> poolNames;
 
@@ -301,6 +304,10 @@ public class CommandLineOptions {
 
 	public boolean isScrypt() {
 		return isScrypt;
+	}
+
+	public File getConfigurationFile() {
+		return configurationFile;
 	}
 
 	private static Logger getLogger() {
