@@ -45,8 +45,6 @@ public class CommandLineOptions {
 
 	private static Logger LOGGER = null;
 
-	private static CommandLineOptions instance = new CommandLineOptions();
-
 	private CmdLineParser parser;
 
 	@Option(name = "-f", aliases = { "--conf-file" }, usage = "Use the given configuration file. If set, all other command line options are discarded (except --version and --help)", handler = FileOptionHandler.class, metaVar = "filePath")
@@ -74,25 +72,25 @@ public class CommandLineOptions {
 	private Level logLevel;
 
 	@Option(name = "--stratum-listen-port", usage = "The port number to listen incoming connections. (3333 by default)", metaVar = "portNumber")
-	private Integer stratumListeningPort = Constants.DEFAULT_STRATUM_LISTENING_PORT;
+	private Integer stratumListeningPort;
 
 	@Option(name = "--stratum-listen-address", usage = "The address to bind to listen incoming connections. (0.0.0.0 by default)", metaVar = "ipAddress")
 	private String stratumBindAddress;
 
 	@Option(name = "--number-of-submit", usage = "The number of submit for each share. (Only for debug use)", metaVar = "number")
-	private Integer numberOfSubmit = 1;
+	private Integer numberOfSubmit;
 
 	@Option(name = "--rest-listen-port", usage = "The port number to listen REST requests. (8888 by default)", metaVar = "portNumber")
-	private Integer restListenPort = Constants.DEFAULT_REST_LISTENING_PORT;
+	private Integer restListenPort;
 
 	@Option(name = "--rest-listen-address", usage = "The address to bind to listen REST requests. (0.0.0.0 by default)", metaVar = "ipAddress")
-	private String restBindAddress = Constants.DEFAULT_REST_LISTENING_ADDRESS;
+	private String restBindAddress;
 
 	@Option(name = "--getwork-listen-port", usage = "The port number to listen Getwork requests. (8332 by default)", metaVar = "portNumber")
-	private Integer getworkListenPort = Constants.DEFAULT_GETWORK_LISTENING_PORT;
+	private Integer getworkListenPort;
 
 	@Option(name = "--getwork-listen-address", usage = "The address to bind to listen Getwork requests. (0.0.0.0 by default)", metaVar = "ipAddress")
-	private String getworkBindAddress = Constants.DEFAULT_GETWORK_LISTENING_ADDRESS;
+	private String getworkBindAddress;
 
 	@Option(name = "--version", usage = "Print the version.", handler = BooleanOptionHandler.class)
 	private boolean isVersionRequested;
@@ -101,13 +99,13 @@ public class CommandLineOptions {
 	private boolean isHelpRequested;
 
 	@Option(name = "--pool-connection-retry-delay", usage = "Delay in seconds before retry to connect to an inactive pool. (5 seconds by default). 0 to disable retry.")
-	private Integer poolConnectionRetryDelay = Constants.DEFAULT_POOL_CONNECTION_RETRY_DELAY;
+	private Integer poolConnectionRetryDelay;
 
 	@Option(name = "--pool-reconnect-stability-period", usage = "Delay in seconds before declaring the pool as stable and workers could be moved on this pool. (30 seconds by default). 0 to disable.")
-	private Integer poolReconnectStabilityPeriod = Constants.DEFAULT_POOL_RECONNECTION_STABILITY_PERIOD;;
+	private Integer poolReconnectStabilityPeriod;
 
 	@Option(name = "--pool-no-notify-timeout", usage = "Delay in seconds to declare a pool as inactive if no mining.notify request received since the last one. (120 seconds by default). 0 to disable.")
-	private Integer poolNoNotifyTimeout = Constants.DEFAULT_NOTIFY_NOTIFICATION_TIMEOUT;
+	private Integer poolNoNotifyTimeout;
 
 	@Option(name = "--pool-no-reconnect-different-host", usage = "Do not accept client.reconnect if connection on a different host is requested. Still accept reconnection on another port on the same host. If not set, accept all reconnection requests.", handler = BooleanOptionHandler.class)
 	private boolean isRejectReconnect;
@@ -122,27 +120,20 @@ public class CommandLineOptions {
 	private List<Boolean> poolsUseWorkerPassword;
 
 	@Option(name = "--pool-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate on pools. (600 seconds by default)")
-	private Integer poolHashrateSamplingPeriod = Constants.DEFAULT_POOL_HASHRATE_SAMPLING_PERIOD;
+	private Integer poolHashrateSamplingPeriod;
 
 	@Option(name = "--user-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate for connected users. (600 seconds by default)")
-	private Integer userHashrateSamplingPeriod = Constants.DEFAULT_USER_HASHRATE_SAMPLING_PERIOD;
+	private Integer userHashrateSamplingPeriod;
 
 	@Option(name = "--connection-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate on workers conections. (600 seconds by default)")
-	private Integer connectionHashrateSamplingPeriod = Constants.DEFAULT_WORKER_CONNECTION_HASHRATE_SAMPLING_PERIOD;
+	private Integer connectionHashrateSamplingPeriod;
 
 	@Option(name = "--scrypt", usage = "Used to adjust target when mining scrypt coins. Used to estimate hashrate and for getwork workers.", handler = BooleanOptionHandler.class)
 	private boolean isScrypt;
 
 	private List<Pool> pools;
 
-	public static CommandLineOptions getInstance() {
-		if (instance == null) {
-			instance = new CommandLineOptions();
-		}
-		return instance;
-	}
-
-	private CommandLineOptions() {
+	public CommandLineOptions() {
 		parser = new CmdLineParser(this);
 	}
 
@@ -234,12 +225,7 @@ public class CommandLineOptions {
 	}
 
 	public File getLogDirectory() {
-		File result = logDirectory;
-		if (result == null || !result.isDirectory() || !result.exists()) {
-			System.err.println("Log directory not set or available. Use the tmp OS directory.");
-			result = new File(System.getProperty("java.io.tmpdir"));
-		}
-		return result;
+		return logDirectory;
 	}
 
 	public void printUsage() {
@@ -282,7 +268,7 @@ public class CommandLineOptions {
 		return poolNoNotifyTimeout;
 	}
 
-	public boolean isRejectReconnect() {
+	public Boolean isRejectReconnect() {
 		return isRejectReconnect;
 	}
 
@@ -302,12 +288,24 @@ public class CommandLineOptions {
 		return getworkBindAddress;
 	}
 
-	public boolean isScrypt() {
+	public Boolean isScrypt() {
 		return isScrypt;
 	}
 
 	public File getConfigurationFile() {
 		return configurationFile;
+	}
+
+	public Integer getNumberOfSubmit() {
+		return numberOfSubmit;
+	}
+
+	public Integer getPoolReconnectStabilityPeriod() {
+		return poolReconnectStabilityPeriod;
+	}
+
+	public Integer getPoolHashrateSamplingPeriod() {
+		return poolHashrateSamplingPeriod;
 	}
 
 	private static Logger getLogger() {
