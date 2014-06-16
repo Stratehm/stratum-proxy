@@ -20,15 +20,10 @@ package strat.mining.stratum.proxy;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
 import java.util.List;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 
 import javax.ws.rs.core.UriBuilder;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.ServerConfiguration;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
@@ -38,7 +33,7 @@ import org.kohsuke.args4j.CmdLineException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import strat.mining.stratum.proxy.cli.CommandLineOptions;
+import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
@@ -56,8 +51,6 @@ public class Launcher {
 	private static HttpServer apiHttpServer;
 
 	private static HttpServer getWorkHttpServer;
-
-	private static String version;
 
 	public static void main(String[] args) {
 
@@ -97,54 +90,41 @@ public class Launcher {
 			}
 		});
 
-		CommandLineOptions cliParser = CommandLineOptions.getInstance();
 		try {
-			cliParser.parseArguments(args);
+			ConfigurationManager configurationManager = ConfigurationManager.getInstance();
+			configurationManager.loadConfiguration(args);
+			LOGGER = LoggerFactory.getLogger(Launcher.class);
 
-			if (cliParser.isHelpRequested()) {
-				cliParser.printUsage();
-			} else if (cliParser.isVersionRequested()) {
-				String version = "stratum-proxy by Stratehm. GPLv3 Licence. Version " + Constants.VERSION;
-				System.out.println(version);
-			} else {
+			// Initialize the proxy manager
+			initProxyManager(configurationManager);
 
-				// Initialize the logging system
-				initLogging(cliParser);
+			// Initialize the Getwork system
+			initGetwork(configurationManager);
 
-				// Initialize the proxy manager
-				initProxyManager(cliParser);
+			// Initialize the rest services
+			initRestServices(configurationManager);
 
-				// Initialize the Getwork system
-				initGetwork(cliParser);
+			// Wait the end of the program
+			waitInfinite();
 
-				// Initialize the rest services
-				initRestServices(cliParser);
-
-				// Wait the end of the program
-				waitInfinite();
-			}
-
-		} catch (CmdLineException e) {
+		} catch (Exception e) {
 			if (LOGGER != null) {
 				LOGGER.error("Failed to parse arguments.", e);
 			} else {
 				System.out.println("Failed to start the proxy: ");
 				e.printStackTrace();
 			}
-			cliParser.printUsage();
-		} catch (IOException e1) {
-			LOGGER.error("Failed to start the stratum proxy.", e1);
 		}
-
 	}
 
 	/**
 	 * Initialize the REST services.
 	 * 
-	 * @param cliParser
+	 * @param configurationManager
 	 */
-	private static void initRestServices(CommandLineOptions cliParser) {
-		URI baseUri = UriBuilder.fromUri("http://" + cliParser.getRestBindAddress()).port(cliParser.getRestListenPort()).build();
+	private static void initRestServices(ConfigurationManager configurationManager) {
+		URI baseUri = UriBuilder.fromUri("http://" + configurationManager.getRestBindAddress()).port(configurationManager.getRestListenPort())
+				.build();
 		ResourceConfig config = new ResourceConfig(ProxyResources.class);
 		config.register(JacksonFeature.class);
 		apiHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
@@ -153,10 +133,11 @@ public class Launcher {
 	/**
 	 * Initialize the Getwork system.
 	 * 
-	 * @param cliParser
+	 * @param configurationManager
 	 */
-	private static void initGetwork(CommandLineOptions cliParser) {
-		URI baseUri = UriBuilder.fromUri("http://" + cliParser.getGetworkBindAddress()).port(cliParser.getGetworkListenPort()).build();
+	private static void initGetwork(ConfigurationManager configurationManager) {
+		URI baseUri = UriBuilder.fromUri("http://" + configurationManager.getGetworkBindAddress()).port(configurationManager.getGetworkListenPort())
+				.build();
 		apiHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri);
 		ServerConfiguration serverConfiguration = apiHttpServer.getServerConfiguration();
 		serverConfiguration.addHttpHandler(new GetworkRequestHandler(stratumProxyManager), "/", Constants.DEFAULT_GETWORK_LONG_POLLING_URL);
@@ -165,12 +146,12 @@ public class Launcher {
 	/**
 	 * Initialize the proxy manager
 	 * 
-	 * @param cliParser
+	 * @param configurationManager
 	 * @throws IOException
 	 * @throws CmdLineException
 	 */
-	private static void initProxyManager(CommandLineOptions cliParser) throws IOException, CmdLineException {
-		List<Pool> pools = cliParser.getPools();
+	private static void initProxyManager(ConfigurationManager configurationManager) throws IOException, CmdLineException {
+		List<Pool> pools = configurationManager.getPools();
 		LOGGER.info("Using pools: {}.", pools);
 
 		stratumProxyManager = new StratumProxyManager(pools);
@@ -179,29 +160,8 @@ public class Launcher {
 		stratumProxyManager.startPools();
 
 		// Start to accept incoming workers connections
-		stratumProxyManager.startListeningIncomingConnections(cliParser.getStratumBindAddress(), cliParser.getStratumListeningPort());
-	}
-
-	/**
-	 * Initialize the logging system
-	 * 
-	 * @param cliParser
-	 */
-	private static void initLogging(CommandLineOptions cliParser) {
-		// Set the directory used for logging.
-		System.setProperty("log.directory.path", cliParser.getLogDirectory().getAbsolutePath());
-
-		Level logLevel = cliParser.getLogLevel();
-		String logLevelMessage = null;
-		if (logLevel == null) {
-			logLevel = Level.INFO;
-			logLevelMessage = "LogLevel not set, using INFO.";
-		} else {
-			logLevelMessage = "Using " + logLevel.toString() + " LogLevel.";
-		}
-		LogManager.getRootLogger().setLevel(logLevel);
-		LOGGER = LoggerFactory.getLogger(Launcher.class);
-		LOGGER.info(logLevelMessage);
+		stratumProxyManager.startListeningIncomingConnections(configurationManager.getStratumBindAddress(),
+				configurationManager.getStratumListeningPort());
 	}
 
 	/**
@@ -226,32 +186,4 @@ public class Launcher {
 		return stratumProxyManager;
 	}
 
-	/**
-	 * Return the version of the program
-	 * 
-	 * @return
-	 */
-	public static String getVersion() {
-		if (version == null) {
-			version = "Dev";
-
-			Class<Launcher> clazz = Launcher.class;
-			String className = clazz.getSimpleName() + ".class";
-			String classPath = clazz.getResource(className).toString();
-			if (classPath.startsWith("jar")) {
-				// Class not from JAR
-				String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + "/META-INF/MANIFEST.MF";
-
-				try {
-					Manifest manifest = new Manifest(new URL(manifestPath).openStream());
-					Attributes attr = manifest.getMainAttributes();
-					version = attr.getValue("Implementation-Version");
-				} catch (IOException e) {
-					// Do nothing, just return Unknown as version
-				}
-			}
-		}
-
-		return version;
-	}
 }
