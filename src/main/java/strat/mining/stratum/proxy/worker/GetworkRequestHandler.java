@@ -47,6 +47,8 @@ import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.GetworkRequest;
 import strat.mining.stratum.proxy.json.GetworkResponse;
+import strat.mining.stratum.proxy.json.JsonRpcError;
+import strat.mining.stratum.proxy.json.JsonRpcResponse;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
@@ -79,6 +81,7 @@ public class GetworkRequestHandler extends HttpHandler {
 		response.setHeader("X-Mining-Extensions", "longpoll");
 
 		String content = null;
+		Long jsonRpcRequestId = 0L;
 		try {
 			content = new BufferedReader(request.getReader()).readLine();
 			LOGGER.trace("New request from {}: {}", request.getRemoteAddr(), content);
@@ -87,6 +90,7 @@ public class GetworkRequestHandler extends HttpHandler {
 
 			final GetworkWorkerConnection workerConnection = getWorkerConnection(request);
 			final GetworkRequest getworkRequest = jsonUnmarshaller.readValue(content, GetworkRequest.class);
+			jsonRpcRequestId = getworkRequest.getId();
 
 			if (!request.getRequestURI().equalsIgnoreCase(Constants.DEFAULT_GETWORK_LONG_POLLING_URL)) {
 				// Basic getwork Request
@@ -114,10 +118,19 @@ public class GetworkRequestHandler extends HttpHandler {
 			LOGGER.warn("Request from {} without credentials. Returning 401 Unauthorized.", request.getRemoteAddr());
 			response.setHeader(Header.WWWAuthenticate, "Basic realm=\"stratum-proxy\"");
 			response.setStatus(HttpStatus.UNAUTHORIZED_401);
+			setResponseError(jsonRpcRequestId, response, "Credentials needed.");
 		} catch (AuthorizationException e) {
 			LOGGER.warn("Authorization failed for getwork request from {}. {}", request.getRemoteAddr(), e.getMessage());
+			response.setStatus(HttpStatus.FORBIDDEN_403);
+			setResponseError(jsonRpcRequestId, response, "Bad user/password.");
 		} catch (JsonParseException | JsonMappingException e) {
 			LOGGER.error("Unsupported request content from {}: {}", request.getRemoteAddr(), content, e);
+			response.setStatus(HttpStatus.BAD_REQUEST_400);
+			setResponseError(jsonRpcRequestId, response, "Request parsing failed.");
+		} catch (NoPoolAvailableException e) {
+			LOGGER.warn("Getwork request rejected from {}: No pool available.", request.getRemoteAddr());
+			response.setStatus(HttpStatus.NO_CONTENT_204);
+			setResponseError(jsonRpcRequestId, response, "No pool available.");
 		}
 
 	}
@@ -134,7 +147,7 @@ public class GetworkRequestHandler extends HttpHandler {
 			final GetworkRequest getworkRequest) {
 		// Prepare the callback of long polling
 		final LongPollingCallback longPollingCallback = new LongPollingCallback() {
-			public void onLongPollingOver() {
+			public void onLongPollingResume() {
 				try {
 					// Once the worker connection call the callback, process the
 					// getwork request to fill the response.
@@ -143,9 +156,15 @@ public class GetworkRequestHandler extends HttpHandler {
 					// Then resume the response to send it to the miner.
 					response.resume();
 				} catch (Exception e) {
-					LOGGER.error("Failed to send  long-polling response to {}@{}.", request.getAttribute("username"),
+					LOGGER.error("Failed to send long-polling response to {}@{}.", request.getAttribute("username"),
 							workerConnection.getConnectionName(), e);
 				}
+			}
+
+			public void onLongPollingCancel(String causeMessage) {
+				response.setStatus(HttpStatus.NO_CONTENT_204);
+				setResponseError(getworkRequest.getId(), response, causeMessage);
+				response.resume();
 			}
 		};
 
@@ -303,6 +322,28 @@ public class GetworkRequestHandler extends HttpHandler {
 
 		} else {
 			throw new NoCredentialsException();
+		}
+	}
+
+	/**
+	 * Set the error object for the JSON rpc response.
+	 */
+	private void setResponseError(Long jsonRpcRequestId, Response response, String errorMessage) {
+		JsonRpcResponse jsonResponse = new JsonRpcResponse();
+		jsonResponse.setId(jsonRpcRequestId);
+		jsonResponse.setResult(null);
+
+		JsonRpcError error = new JsonRpcError();
+		error.setCode(0);
+		error.setMessage(errorMessage);
+		error.setTraceback(null);
+		jsonResponse.setErrorRpc(error);
+
+		try {
+			String result = jsonUnmarshaller.writeValueAsString(jsonResponse);
+			response.getOutputBuffer().write(result);
+		} catch (Exception e) {
+			LOGGER.error("Failed to send an error response to {}.", response.getRequest().getRemoteAddr(), e);
 		}
 	}
 

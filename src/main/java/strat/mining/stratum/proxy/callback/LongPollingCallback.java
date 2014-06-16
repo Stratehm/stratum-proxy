@@ -37,11 +37,16 @@ public abstract class LongPollingCallback {
 	}
 
 	/**
-	 * Called when a long polling request has to be replied. jsonResponse
+	 * Called when a long polling request has to be replied.
 	 * 
 	 * @param jsonResponse
 	 */
-	public abstract void onLongPollingOver();
+	public abstract void onLongPollingResume();
+
+	/**
+	 * Called when a long polling request has to be cancelled.
+	 */
+	public abstract void onLongPollingCancel(String causeMessage);
 
 	@Override
 	public int hashCode() {

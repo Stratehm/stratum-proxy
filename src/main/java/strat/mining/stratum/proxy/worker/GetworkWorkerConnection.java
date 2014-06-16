@@ -115,7 +115,20 @@ public class GetworkWorkerConnection implements WorkerConnection {
 			}
 		}
 
-		// TODO close all LongPolling requests.
+		// Cancel all long polling requests
+		cancelAllLongPolling();
+	}
+
+	/**
+	 * Cancel all pending long polling requests
+	 */
+	private void cancelAllLongPolling() {
+		synchronized (longPollingCallbacks) {
+			for (LongPollingCallback callback : longPollingCallbacks) {
+				callback.onLongPollingCancel("Worker connection closed");
+			}
+			longPollingCallbacks.clear();
+		}
 	}
 
 	/**
@@ -169,7 +182,6 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	@Override
 	public void onPoolExtranonceChange() throws ChangeExtranonceNotSupportedException {
 		updateCurrentJobTemplateFromStratumJob(getPool().getCurrentStratumJob());
-		callLongPollingCallbacks();
 	}
 
 	@Override
@@ -181,7 +193,6 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	@Override
 	public void onPoolNotify(MiningNotifyNotification notification) {
 		updateCurrentJobTemplateFromStratumJob(notification);
-		callLongPollingCallbacks();
 	}
 
 	@Override
@@ -231,7 +242,7 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	private void callLongPollingCallbacks() {
 		synchronized (longPollingCallbacks) {
 			for (LongPollingCallback callback : longPollingCallbacks) {
-				callback.onLongPollingOver();
+				callback.onLongPollingResume();
 			}
 			longPollingCallbacks.clear();
 		}
@@ -284,6 +295,8 @@ public class GetworkWorkerConnection implements WorkerConnection {
 			currentJob.setTime(notification.getCurrentNTime());
 			currentJob.setMerkleBranches(notification.getMerkleBranches());
 		}
+
+		callLongPollingCallbacks();
 	}
 
 	/**
