@@ -1,3 +1,21 @@
+/**
+ * stratum-proxy is a proxy supporting the crypto-currency stratum pool mining
+ * protocol.
+ * Copyright (C) 2014  Stratehm (stratehm@hotmail.com)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with multipool-stats-backend. If not, see <http://www.gnu.org/licenses/>.
+ */
 package strat.mining.stratum.proxy.configuration.model;
 
 import org.hibernate.validator.constraints.NotEmpty;
@@ -15,7 +33,7 @@ public class Pool {
 	private Boolean enableExtranonceSubscribe;
 	private Boolean appendWorkerNames;
 	private String workerNameSeparator;
-	private String useWorkerPassword;
+	private Boolean useWorkerPassword;
 
 	public String getName() {
 		return name;
@@ -73,11 +91,11 @@ public class Pool {
 		this.workerNameSeparator = workerNameSeparator;
 	}
 
-	public String getUseWorkerPassword() {
+	public Boolean getUseWorkerPassword() {
 		return useWorkerPassword;
 	}
 
-	public void setUseWorkerPassword(String useWorkerPassword) {
+	public void setUseWorkerPassword(Boolean useWorkerPassword) {
 		this.useWorkerPassword = useWorkerPassword;
 	}
 

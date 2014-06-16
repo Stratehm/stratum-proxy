@@ -1,3 +1,21 @@
+/**
+ * stratum-proxy is a proxy supporting the crypto-currency stratum pool mining
+ * protocol.
+ * Copyright (C) 2014  Stratehm (stratehm@hotmail.com)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with multipool-stats-backend. If not, see <http://www.gnu.org/licenses/>.
+ */
 package strat.mining.stratum.proxy.worker;
 
 import java.math.BigInteger;
@@ -18,7 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.callback.LongPollingCallback;
-import strat.mining.stratum.proxy.cli.CommandLineOptions;
+import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
@@ -156,7 +174,7 @@ public class GetworkWorkerConnection implements WorkerConnection {
 
 	@Override
 	public void onPoolDifficultyChanged(MiningSetDifficultyNotification notification) {
-		currentJob.setDifficulty(notification.getDifficulty(), CommandLineOptions.getInstance().isScrypt());
+		currentJob.setDifficulty(notification.getDifficulty(), ConfigurationManager.getInstance().isScrypt());
 		callLongPollingCallbacks();
 	}
 
@@ -251,7 +269,7 @@ public class GetworkWorkerConnection implements WorkerConnection {
 			currentJob = new GetworkJobTemplate(notification.getJobId(), notification.getBitcoinVersion(), notification.getPreviousHash(),
 					notification.getCurrentNTime(), notification.getNetworkDifficultyBits(), notification.getMerkleBranches(),
 					notification.getCoinbase1(), notification.getCoinbase2(), getPool().getExtranonce1() + extranonce1Tail);
-			currentJob.setDifficulty(pool.getDifficulty(), CommandLineOptions.getInstance().isScrypt());
+			currentJob.setDifficulty(pool.getDifficulty(), ConfigurationManager.getInstance().isScrypt());
 
 			// Reset all extranonce2 stuff
 			extranonce2Counter.set(BigInteger.ZERO);

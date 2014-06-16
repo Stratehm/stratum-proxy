@@ -37,6 +37,18 @@ java -jar stratum-proxy.jar proxyOptions
 java -jar stratum-proxy.jar --help
 ```
 
+##Configuration File
+
+In order to use a configuration file instead of the command line parameters, use the following command line options:
+
+```sh
+java -jar stratum-proxy.jar -f /path/to/the/configuration/file
+```
+
+When -f option is used, all other command line options are discarded and only the configuration file is used.
+
+The files stratum-proxy-minimal-sample.conf and stratum-proxy-full-sample.conf in the package can be used to build your own configuration file.
+
 ##API Details
 
 A REST API is available. Methods parameters or result are in JSON. By default, the methods can be accessed at the URL http://hostIp:8888/proxy/. 

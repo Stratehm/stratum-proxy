@@ -1,3 +1,21 @@
+/**
+ * stratum-proxy is a proxy supporting the crypto-currency stratum pool mining
+ * protocol.
+ * Copyright (C) 2014  Stratehm (stratehm@hotmail.com)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with multipool-stats-backend. If not, see <http://www.gnu.org/licenses/>.
+ */
 package strat.mining.stratum.proxy.configuration;
 
 import java.io.File;
@@ -130,8 +148,9 @@ public class ConfigurationManager {
 	 * @throws IOException
 	 * @throws JsonMappingException
 	 * @throws JsonParseException
+	 * @throws BadParameterException
 	 */
-	private void useConfigurationFile() throws JsonParseException, JsonMappingException, IOException {
+	private void useConfigurationFile() throws JsonParseException, JsonMappingException, IOException, BadParameterException {
 		Configuration configuration = jsonParser.readValue(configurationFile, Configuration.class);
 
 		logLevel = configuration.getLogLevel() != null ? Level.toLevel(configuration.getLogLevel()) : logLevel;
@@ -174,7 +193,7 @@ public class ConfigurationManager {
 		pools = new ArrayList<Pool>();
 
 		if (configuration.getPools() != null && configuration.getPools().size() > 0) {
-			int counter = 1;
+			int counter = 0;
 			for (strat.mining.stratum.proxy.configuration.model.Pool confPool : configuration.getPools()) {
 
 				String poolName = confPool.getHost();
@@ -193,7 +212,7 @@ public class ConfigurationManager {
 				if (confPool.getHost() != null && !confPool.getHost().trim().isEmpty()) {
 					poolHost = confPool.getHost();
 				} else {
-					throw new BadParameterException("Missing host for the pool number " + counter + " in configuration file.");
+					throw new BadParameterException("Missing host for the pool number " + (counter + 1) + " in configuration file.");
 				}
 
 				if (confPool.getUser() != null && !confPool.getUser().trim().isEmpty()) {
@@ -202,16 +221,30 @@ public class ConfigurationManager {
 					throw new BadParameterException("Missing username for the pool with host " + poolHost + " in configuration file.");
 				}
 
-				if (confPool.getUser() != null && !confPool.getUser().trim().isEmpty()) {
-					username = confPool.getUser();
-				} else {
-					throw new BadParameterException("Missing username for the pool with host " + poolHost + " in configuration file.");
+				if (confPool.getPassword() != null) {
+					username = confPool.getPassword();
+				}
+
+				if (confPool.getEnableExtranonceSubscribe() != null) {
+					isExtranonceSubscribe = confPool.getEnableExtranonceSubscribe();
+				}
+
+				if (confPool.getAppendWorkerNames() != null) {
+					isAppendWorkerNames = confPool.getAppendWorkerNames();
+				}
+
+				if (confPool.getWorkerNameSeparator() != null) {
+					workerNameSeparator = confPool.getWorkerNameSeparator();
+				}
+
+				if (confPool.getUseWorkerPassword() != null) {
+					useWorkerPassword = confPool.getUseWorkerPassword();
 				}
 
 				Pool pool = new Pool(poolName, poolHost, username, password);
 				pool.setExtranonceSubscribeEnabled(isExtranonceSubscribe);
 				pool.setNumberOfSubmit(numberOfSubmit);
-				pool.setPriority(counter - 1);
+				pool.setPriority(counter);
 				pool.setConnectionRetryDelay(poolConnectionRetryDelay);
 				pool.setReconnectStabilityPeriod(poolReconnectStabilityPeriod);
 				pool.setNoNotifyTimeout(poolNoNotifyTimeout);
@@ -223,7 +256,6 @@ public class ConfigurationManager {
 				pools.add(pool);
 
 				counter++;
-
 			}
 		}
 	}

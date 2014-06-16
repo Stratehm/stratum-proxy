@@ -31,6 +31,7 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.kohsuke.args4j.CmdLineException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
@@ -92,6 +93,7 @@ public class Launcher {
 		try {
 			ConfigurationManager configurationManager = ConfigurationManager.getInstance();
 			configurationManager.loadConfiguration(args);
+			LOGGER = LoggerFactory.getLogger(Launcher.class);
 
 			// Initialize the proxy manager
 			initProxyManager(configurationManager);
