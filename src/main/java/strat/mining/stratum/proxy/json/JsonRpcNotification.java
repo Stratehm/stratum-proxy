@@ -20,11 +20,18 @@ package strat.mining.stratum.proxy.json;
 
 import java.util.List;
 
+import strat.mining.stratum.proxy.constant.Constants;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class JsonRpcNotification {
 
+	@JsonInclude(Include.NON_NULL)
+	private String jsonrpc;
 	// The id of a notification is always null.
 	private Integer id = null;
 	private String method;
@@ -58,6 +65,23 @@ public class JsonRpcNotification {
 
 	public void setParams(List<Object> params) {
 		this.params = params;
+	}
+
+	public String getJsonrpc() {
+		return jsonrpc;
+	}
+
+	public void setJsonrpc(String jsonrpc) {
+		this.jsonrpc = jsonrpc;
+	}
+
+	public void setJsonRpc2() {
+		setJsonrpc(Constants.JSON_RPC_2_VERSION);
+	}
+
+	@JsonIgnore
+	public boolean isJsonRpc2() {
+		return jsonrpc != null && jsonrpc.equalsIgnoreCase(Constants.JSON_RPC_2_VERSION);
 	}
 
 	@SuppressWarnings("unchecked")

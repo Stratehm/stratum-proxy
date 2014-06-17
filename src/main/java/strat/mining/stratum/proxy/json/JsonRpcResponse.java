@@ -21,8 +21,12 @@ package strat.mining.stratum.proxy.json;
 import java.util.ArrayList;
 import java.util.List;
 
+import strat.mining.stratum.proxy.constant.Constants;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * A response to a request.
@@ -33,8 +37,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class JsonRpcResponse {
 
+	@JsonInclude(Include.NON_NULL)
+	private String jsonrpc;
 	private Long id;
-	private List<Object> error;
+	private Object error;
 	private Object result;
 
 	public JsonRpcResponse() {
@@ -46,6 +52,23 @@ public class JsonRpcResponse {
 		this.setResult(response.getResult());
 	}
 
+	public String getJsonrpc() {
+		return jsonrpc;
+	}
+
+	public void setJsonrpc(String jsonrpc) {
+		this.jsonrpc = jsonrpc;
+	}
+
+	public void setJsonRpc2() {
+		setJsonrpc(Constants.JSON_RPC_2_VERSION);
+	}
+
+	@JsonIgnore
+	public boolean isJsonRpc2() {
+		return jsonrpc != null && jsonrpc.equalsIgnoreCase(Constants.JSON_RPC_2_VERSION);
+	}
+
 	public Long getId() {
 		return id;
 	}
@@ -54,30 +77,41 @@ public class JsonRpcResponse {
 		this.id = id;
 	}
 
-	public List<Object> getError() {
+	public Object getError() {
 		return error;
 	}
 
+	public void setError(Object errorObject) {
+		error = errorObject;
+	}
+
+	@SuppressWarnings("unchecked")
 	@JsonIgnore
 	public JsonRpcError getJsonError() {
 		JsonRpcError errorObject = new JsonRpcError();
 		if (error != null) {
-			errorObject.setCode(error.size() > 0 && error.get(0) != null ? (Integer) error.get(0) : null);
-			errorObject.setMessage(error.size() > 1 && error.get(1) != null ? (String) error.get(1) : null);
-			errorObject.setTraceback(error.size() > 2 && error.get(2) != null ? error.get(2) : null);
+			if (!isJsonRpc2()) {
+				List<Object> errorList = (List<Object>) error;
+				errorObject.setCode(errorList.size() > 0 && errorList.get(0) != null ? (Integer) errorList.get(0) : null);
+				errorObject.setMessage(errorList.size() > 1 && errorList.get(1) != null ? (String) errorList.get(1) : null);
+				errorObject.setTraceback(errorList.size() > 2 && errorList.get(2) != null ? errorList.get(2) : null);
+			} else {
+				return (JsonRpcError) error;
+			}
 		}
 		return errorObject;
 	}
 
-	public void setError(List<Object> errorObject) {
-		error = errorObject;
-	}
-
 	public void setErrorRpc(JsonRpcError errorObject) {
-		error = new ArrayList<Object>();
-		error.add(errorObject.getCode());
-		error.add(errorObject.getMessage());
-		error.add(errorObject.getTraceback());
+		if (!isJsonRpc2()) {
+			List<Object> errorList = new ArrayList<Object>();
+			errorList.add(errorObject.getCode());
+			errorList.add(errorObject.getMessage());
+			errorList.add(errorObject.getTraceback());
+			error = errorList;
+		} else {
+			error = errorObject;
+		}
 	}
 
 	public Object getResult() {

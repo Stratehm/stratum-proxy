@@ -452,7 +452,7 @@ public class Pool implements Comparable<Pool> {
 	private boolean isAuthorized(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
 		// Check the P2Pool authorization. Authorized if the the result is null
 		// and there is no error.
-		boolean isP2PoolAuthorized = (response.getIsAuthorized() == null && (response.getError() == null || response.getError().isEmpty()));
+		boolean isP2PoolAuthorized = (response.getIsAuthorized() == null && response.getError() == null);
 
 		// Check if the user is authorized in the response.
 		boolean isAuthorized = isP2PoolAuthorized || (response.getIsAuthorized() != null && response.getIsAuthorized());

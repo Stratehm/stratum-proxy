@@ -22,6 +22,8 @@ import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 
 public class Constants {
 
+	public static final String JSON_RPC_2_VERSION = "2.0";
+
 	public static final String DEFAULT_USERNAME = "19wv8FQKv3NkwTdzBCQn1AGsb9ghqBPWXi";
 	public static final String DEFAULT_PASSWORD = "x";
 	public static final Integer DEFAULT_STRATUM_LISTENING_PORT = 3333;

@@ -21,13 +21,20 @@ package strat.mining.stratum.proxy.json;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+import strat.mining.stratum.proxy.constant.Constants;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class JsonRpcRequest {
 
 	private static final AtomicLong nextRequestId = new AtomicLong(0);
 
+	@JsonInclude(Include.NON_NULL)
+	private String jsonrpc;
 	private Long id;
 	private String method;
 	private List<Object> params;
@@ -65,6 +72,23 @@ public class JsonRpcRequest {
 
 	public void setParams(List<Object> params) {
 		this.params = params;
+	}
+
+	@JsonIgnore
+	public boolean isJsonRpc2() {
+		return jsonrpc != null && jsonrpc.equalsIgnoreCase(Constants.JSON_RPC_2_VERSION);
+	}
+
+	public String getJsonrpc() {
+		return jsonrpc;
+	}
+
+	public void setJsonrpc(String jsonrpc) {
+		this.jsonrpc = jsonrpc;
+	}
+
+	public void setJsonRpc2() {
+		setJsonrpc(Constants.JSON_RPC_2_VERSION);
 	}
 
 }

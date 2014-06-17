@@ -113,7 +113,7 @@ public class Timer {
 							long timeToWait = 500;
 							if (nextTask != null) {
 								timeToWait = nextTask.getExpectedExecutionTime() - currentTime;
-								LOGGER.trace("Next task to execute {}: waiting for {} ms.", timeToWait);
+								LOGGER.trace("Next task to execute {}: waiting for {} ms.", nextTask.getName(), timeToWait);
 							} else {
 								LOGGER.trace("No task in the queue. Waiting for {} ms.", timeToWait);
 							}
@@ -185,6 +185,19 @@ public class Timer {
 
 		public void setName(String name) {
 			this.name = name;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("Task [isCancelled=");
+			builder.append(isCancelled);
+			builder.append(", expectedExecutionTime=");
+			builder.append(expectedExecutionTime);
+			builder.append(", name=");
+			builder.append(name);
+			builder.append("]");
+			return builder.toString();
 		}
 
 	}
