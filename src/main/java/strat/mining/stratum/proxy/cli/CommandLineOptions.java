@@ -19,7 +19,6 @@
 package strat.mining.stratum.proxy.cli;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Level;
@@ -29,11 +28,6 @@ import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.spi.BooleanOptionHandler;
 import org.kohsuke.args4j.spi.FileOptionHandler;
 import org.kohsuke.args4j.spi.StringArrayOptionHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import strat.mining.stratum.proxy.constant.Constants;
-import strat.mining.stratum.proxy.pool.Pool;
 
 /**
  * Parse and stores the parameters given through command line
@@ -42,8 +36,6 @@ import strat.mining.stratum.proxy.pool.Pool;
  * 
  */
 public class CommandLineOptions {
-
-	private static Logger LOGGER = null;
 
 	private CmdLineParser parser;
 
@@ -131,97 +123,12 @@ public class CommandLineOptions {
 	@Option(name = "--scrypt", usage = "Used to adjust target when mining scrypt coins. Used to estimate hashrate and for getwork workers.", handler = BooleanOptionHandler.class)
 	private boolean isScrypt;
 
-	private List<Pool> pools;
-
 	public CommandLineOptions() {
 		parser = new CmdLineParser(this);
 	}
 
 	public void parseArguments(String... args) throws CmdLineException {
 		parser.parseArgument(args);
-	}
-
-	/**
-	 * Return the list of pools given through the command line at startup
-	 * 
-	 * @return
-	 * @throws CmdLineException
-	 */
-	public List<Pool> getPools() throws CmdLineException {
-		if (pools == null) {
-			pools = new ArrayList<Pool>();
-			if (poolHosts != null) {
-				int index = 0;
-
-				if (poolHosts.size() > 0 && poolUsers != null && poolUsers.size() > 0 && poolPasswords != null && poolPasswords.size() > 0) {
-
-					for (String poolHost : poolHosts) {
-						String poolName = poolHost;
-						String username = Constants.DEFAULT_USERNAME;
-						String password = Constants.DEFAULT_PASSWORD;
-						Boolean isExtranonceSubscribe = Boolean.FALSE;
-						Boolean isAppendWorkerNames = Boolean.FALSE;
-						String workerNameSeparator = Constants.DEFAULT_WORKER_NAME_SEPARTOR;
-						Boolean useWorkerPassword = Boolean.FALSE;
-
-						if (poolNames != null && poolNames.size() > index) {
-							poolName = poolNames.get(index);
-						}
-
-						if (poolUsers != null && poolUsers.size() > index) {
-							username = poolUsers.get(index);
-						} else {
-							username = poolUsers.get(poolUsers.size() - 1);
-							getLogger().warn("No user defined for pool {}. Using {}.", poolName, username);
-						}
-
-						if (poolPasswords != null && poolPasswords.size() > index) {
-							password = poolPasswords.get(index);
-						} else {
-							password = poolPasswords.get(poolPasswords.size() - 1);
-							getLogger().warn("No password defined for pool {}. Using {}.", poolName, password);
-						}
-
-						if (isExtranonceSubscribeEnabled != null && isExtranonceSubscribeEnabled.size() > index) {
-							isExtranonceSubscribe = isExtranonceSubscribeEnabled.get(index);
-						}
-
-						if (poolsAppendWorkerNames != null && poolsAppendWorkerNames.size() > index) {
-							isAppendWorkerNames = poolsAppendWorkerNames.get(index);
-						}
-
-						if (poolsUseWorkerPassword != null && poolsUseWorkerPassword.size() > index) {
-							useWorkerPassword = poolsUseWorkerPassword.get(index);
-						}
-
-						if (poolsWorkerNameSeparator != null && poolsWorkerNameSeparator.size() > index) {
-							workerNameSeparator = poolsWorkerNameSeparator.get(index);
-						}
-
-						Pool pool = new Pool(poolName, poolHost, username, password);
-						pool.setExtranonceSubscribeEnabled(isExtranonceSubscribe);
-						pool.setNumberOfSubmit(numberOfSubmit);
-						pool.setPriority(index);
-						pool.setConnectionRetryDelay(poolConnectionRetryDelay);
-						pool.setReconnectStabilityPeriod(poolReconnectStabilityPeriod);
-						pool.setNoNotifyTimeout(poolNoNotifyTimeout);
-						pool.setRejectReconnect(isRejectReconnect);
-						pool.setSamplingHashratePeriod(poolHashrateSamplingPeriod);
-						pool.setAppendWorkerNames(isAppendWorkerNames);
-						pool.setWorkerSeparator(workerNameSeparator);
-						pool.setUseWorkerPassword(useWorkerPassword);
-						pools.add(pool);
-
-						index++;
-					}
-				} else {
-					throw new CmdLineException(parser,
-							"At least one user/password (with -u and -p options) has to be provided if a pool host is specified.");
-				}
-
-			}
-		}
-		return pools;
 	}
 
 	public File getLogDirectory() {
@@ -308,11 +215,36 @@ public class CommandLineOptions {
 		return poolHashrateSamplingPeriod;
 	}
 
-	private static Logger getLogger() {
-		if (LOGGER == null) {
-			LOGGER = LoggerFactory.getLogger(CommandLineOptions.class);
-		}
-		return LOGGER;
+	public List<String> getPoolNames() {
+		return poolNames;
+	}
+
+	public List<String> getPoolHosts() {
+		return poolHosts;
+	}
+
+	public List<String> getPoolUsers() {
+		return poolUsers;
+	}
+
+	public List<String> getPoolPasswords() {
+		return poolPasswords;
+	}
+
+	public List<Boolean> getPoolsAppendWorkerNames() {
+		return poolsAppendWorkerNames;
+	}
+
+	public List<String> getPoolsWorkerNameSeparator() {
+		return poolsWorkerNameSeparator;
+	}
+
+	public List<Boolean> getPoolsUseWorkerPassword() {
+		return poolsUseWorkerPassword;
+	}
+
+	public List<Boolean> getIsExtranonceSubscribeEnabled() {
+		return isExtranonceSubscribeEnabled;
 	}
 
 }

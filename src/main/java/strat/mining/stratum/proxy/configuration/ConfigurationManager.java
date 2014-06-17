@@ -62,15 +62,6 @@ public class ConfigurationManager {
 
 	private List<Pool> pools;
 
-	private List<String> poolNames;
-	private List<String> poolHosts;
-	private List<String> poolUsers;
-	private List<String> poolPasswords;
-	private List<Boolean> isExtranonceSubscribeEnabled;
-	private List<Boolean> poolsAppendWorkerNames;
-	private List<String> poolsWorkerNameSeparator;
-	private List<Boolean> poolsUseWorkerPassword;
-
 	private File logDirectory;
 	private Level logLevel = Level.INFO;
 
@@ -316,12 +307,13 @@ public class ConfigurationManager {
 	 */
 	private void buildPoolsFromCommandLine(CommandLineOptions cliParser) throws Exception {
 		pools = new ArrayList<Pool>();
-		if (poolHosts != null) {
+		if (cliParser.getPoolHosts() != null) {
 			int index = 0;
 
-			if (poolHosts.size() > 0 && poolUsers != null && poolUsers.size() > 0 && poolPasswords != null && poolPasswords.size() > 0) {
+			if (cliParser.getPoolHosts().size() > 0 && cliParser.getPoolUsers() != null && cliParser.getPoolUsers().size() > 0
+					&& cliParser.getPoolPasswords() != null && cliParser.getPoolPasswords().size() > 0) {
 
-				for (String poolHost : poolHosts) {
+				for (String poolHost : cliParser.getPoolHosts()) {
 					String poolName = poolHost;
 					String username = Constants.DEFAULT_USERNAME;
 					String password = Constants.DEFAULT_PASSWORD;
@@ -330,38 +322,38 @@ public class ConfigurationManager {
 					String workerNameSeparator = Constants.DEFAULT_WORKER_NAME_SEPARTOR;
 					Boolean useWorkerPassword = Boolean.FALSE;
 
-					if (poolNames != null && poolNames.size() > index) {
-						poolName = poolNames.get(index);
+					if (cliParser.getPoolNames() != null && cliParser.getPoolNames().size() > index) {
+						poolName = cliParser.getPoolNames().get(index);
 					}
 
-					if (poolUsers != null && poolUsers.size() > index) {
-						username = poolUsers.get(index);
+					if (cliParser.getPoolUsers() != null && cliParser.getPoolUsers().size() > index) {
+						username = cliParser.getPoolUsers().get(index);
 					} else {
-						username = poolUsers.get(poolUsers.size() - 1);
+						username = cliParser.getPoolUsers().get(cliParser.getPoolUsers().size() - 1);
 						logger.warn("No user defined for pool {}. Using {}.", poolName, username);
 					}
 
-					if (poolPasswords != null && poolPasswords.size() > index) {
-						password = poolPasswords.get(index);
+					if (cliParser.getPoolPasswords() != null && cliParser.getPoolPasswords().size() > index) {
+						password = cliParser.getPoolPasswords().get(index);
 					} else {
-						password = poolPasswords.get(poolPasswords.size() - 1);
+						password = cliParser.getPoolPasswords().get(cliParser.getPoolPasswords().size() - 1);
 						logger.warn("No password defined for pool {}. Using {}.", poolName, password);
 					}
 
-					if (isExtranonceSubscribeEnabled != null && isExtranonceSubscribeEnabled.size() > index) {
-						isExtranonceSubscribe = isExtranonceSubscribeEnabled.get(index);
+					if (cliParser.getIsExtranonceSubscribeEnabled() != null && cliParser.getIsExtranonceSubscribeEnabled().size() > index) {
+						isExtranonceSubscribe = cliParser.getIsExtranonceSubscribeEnabled().get(index);
 					}
 
-					if (poolsAppendWorkerNames != null && poolsAppendWorkerNames.size() > index) {
-						isAppendWorkerNames = poolsAppendWorkerNames.get(index);
+					if (cliParser.getPoolsAppendWorkerNames() != null && cliParser.getPoolsAppendWorkerNames().size() > index) {
+						isAppendWorkerNames = cliParser.getPoolsAppendWorkerNames().get(index);
 					}
 
-					if (poolsUseWorkerPassword != null && poolsUseWorkerPassword.size() > index) {
-						useWorkerPassword = poolsUseWorkerPassword.get(index);
+					if (cliParser.getPoolsUseWorkerPassword() != null && cliParser.getPoolsUseWorkerPassword().size() > index) {
+						useWorkerPassword = cliParser.getPoolsUseWorkerPassword().get(index);
 					}
 
-					if (poolsWorkerNameSeparator != null && poolsWorkerNameSeparator.size() > index) {
-						workerNameSeparator = poolsWorkerNameSeparator.get(index);
+					if (cliParser.getPoolsWorkerNameSeparator() != null && cliParser.getPoolsWorkerNameSeparator().size() > index) {
+						workerNameSeparator = cliParser.getPoolsWorkerNameSeparator().get(index);
 					}
 
 					Pool pool = new Pool(poolName, poolHost, username, password);
