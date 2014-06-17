@@ -25,11 +25,11 @@
 			<outputDirectory>/</outputDirectory>
 		</file>
 		<file>
-			<source>${basedir}/src/main/resources/stratum-proxy-full-sample.conf</source>
+			<source>src/main/resources/stratum-proxy-full-sample.conf</source>
 			<outputDirectory>/</outputDirectory>
 		</file>
 		<file>
-			<source>${basedir}/src/main/resources/stratum-proxy-minimal-sample.conf</source>
+			<source>src/main/resources/stratum-proxy-minimal-sample.conf</source>
 			<outputDirectory>/</outputDirectory>
 		</file>
 	</files>
