@@ -72,12 +72,17 @@ public class Timer {
 	public void schedule(Task task, long delay) {
 		// Check that the task is not null and delay is valid.
 		if (task != null && delay >= 0) {
+			LOGGER.debug("Scheduling of task {} in {} ms.", task.getName(), delay);
 			task.setExpectedExecutionTime(System.currentTimeMillis() + delay);
+			LOGGER.trace("Expected execution time of task {}: {}.", task.getName(), task.getExpectedExecutionTime());
 			// Wake up the scheduler.
 			synchronized (waitingTasks) {
 				waitingTasks.add(task);
+				LOGGER.trace("Task added => Waking up the scheduler.", task.getName(), task.getExpectedExecutionTime());
 				waitingTasks.notifyAll();
 			}
+		} else {
+			LOGGER.info("Failed to schedule task {} in {} ms.", task != null ? task.getName() : "null", delay);
 		}
 	}
 
@@ -95,6 +100,7 @@ public class Timer {
 				long currentTime = System.currentTimeMillis();
 				try {
 					synchronized (waitingTasks) {
+						LOGGER.trace("Looking for next task to execute: {}", waitingTasks);
 						try {
 							nextTask = waitingTasks.first();
 						} catch (NoSuchElementException e) {
@@ -107,6 +113,9 @@ public class Timer {
 							long timeToWait = 500;
 							if (nextTask != null) {
 								timeToWait = nextTask.getExpectedExecutionTime() - currentTime;
+								LOGGER.trace("Next task to execute {}: waiting for {} ms.", timeToWait);
+							} else {
+								LOGGER.trace("No task in the queue. Waiting for {} ms.", timeToWait);
 							}
 
 							waitingTasks.wait(timeToWait);
@@ -114,9 +123,14 @@ public class Timer {
 						} else {
 							nextTask = waitingTasks.pollFirst();
 
+							LOGGER.trace("Task to execute now: {}.", nextTask.getName());
+
 							// Run the task only if it is not cancelled.
 							if (!nextTask.isCancelled()) {
+								LOGGER.trace("Executing task {} now.", nextTask.getName());
 								executor.execute(nextTask);
+							} else {
+								LOGGER.trace("Task {} cancelled. Do not execute.", nextTask.getName());
 							}
 						}
 					}
@@ -142,10 +156,14 @@ public class Timer {
 
 		private Long expectedExecutionTime;
 
+		private String name;
+
 		public void cancel() {
+			LOGGER.debug("Cancelling the task {}.", getName());
 			isCancelled = true;
 			synchronized (Timer.getInstance().waitingTasks) {
 				Timer.getInstance().waitingTasks.remove(this);
+				LOGGER.debug("Task {} removed.", getName());
 			}
 		}
 
@@ -159,6 +177,14 @@ public class Timer {
 
 		public void setExpectedExecutionTime(Long expectedExecutionTime) {
 			this.expectedExecutionTime = expectedExecutionTime;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
 		}
 
 	}

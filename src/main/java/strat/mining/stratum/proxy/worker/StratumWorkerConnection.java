@@ -99,6 +99,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 				close();
 			}
 		};
+		subscribeTimeoutTask.setName("SubscribeTimeoutTask-" + getConnectionName());
 		Timer.getInstance().schedule(subscribeTimeoutTask, subscribeReceiveTimeout);
 	}
 

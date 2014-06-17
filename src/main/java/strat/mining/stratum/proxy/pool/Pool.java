@@ -202,6 +202,7 @@ public class Pool implements Comparable<Pool> {
 				retryConnect(true);
 			}
 		};
+		subscribeResponseTimeoutTask.setName("SubscribeTimeoutTask-" + getName());
 		Timer.getInstance().schedule(subscribeResponseTimeoutTask, 5000);
 	}
 
@@ -616,6 +617,7 @@ public class Pool implements Comparable<Pool> {
 					}
 				}
 			};
+			reconnectTask.setName("ReconnectTask-" + getName());
 			Timer.getInstance().schedule(reconnectTask, delayFirstRetry ? connectionRetryDelay * 1000 : 1);
 		} else {
 			LOGGER.warn("Do not try to reconnect pool {} since --pool-connection-retry-delay is {}.", getName(), connectionRetryDelay);
@@ -736,6 +738,7 @@ public class Pool implements Comparable<Pool> {
 					retryConnect(false);
 				}
 			};
+			notifyTimeoutTask.setName("NotifyTimeoutTask-" + getName());
 			Timer.getInstance().schedule(notifyTimeoutTask, noNotifyTimeout * 1000);
 		}
 	}
@@ -762,6 +765,7 @@ public class Pool implements Comparable<Pool> {
 						}
 					}
 				};
+				stabilityTestTask.setName("StabilityTestTask-" + getName());
 				Timer.getInstance().schedule(stabilityTestTask, reconnectStabilityPeriod * 1000);
 			} else {
 				LOGGER.debug("Pool {} declared as stable since since first start.", getName());

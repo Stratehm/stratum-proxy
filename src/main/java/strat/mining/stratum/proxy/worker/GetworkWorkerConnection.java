@@ -421,6 +421,7 @@ public class GetworkWorkerConnection implements WorkerConnection {
 				closeWithError(new TimeoutException("No getwork request on this connection since " + getworkTimeoutDelay + " seconds."));
 			}
 		};
+		getworkTimeoutTask.setName("GetworkTimeoutTask-" + getConnectionName());
 		Timer.getInstance().schedule(getworkTimeoutTask, 1000 * getworkTimeoutDelay);
 	}
 
