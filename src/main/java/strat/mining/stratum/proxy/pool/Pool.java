@@ -601,17 +601,17 @@ public class Pool implements Comparable<Pool> {
 	 * @param delayFirstRetry
 	 */
 	private void retryConnect(boolean delayFirstRetry) {
-		if (connectionRetryDelay > 0 && reconnectTask == null) {
+		if (connectionRetryDelay > 0) {
+			if (reconnectTask == null) {
+				reconnectTask.cancel();
+				reconnectTask = null;
+			}
 			LOGGER.info("Trying reconnect of pool {} in {} seconds.", getName(), delayFirstRetry ? connectionRetryDelay : 0.001);
 			reconnectTask = new Task() {
 				public void run() {
 					try {
 						LOGGER.info("Trying reconnect of pool {}...", getName());
 						startPool(manager);
-						if (reconnectTask != null) {
-							reconnectTask.cancel();
-							reconnectTask = null;
-						}
 					} catch (Exception e) {
 						LOGGER.error("Failed to restart the pool {}.", getName(), e);
 					}
@@ -791,6 +791,8 @@ public class Pool implements Comparable<Pool> {
 	 * Cancel all active timers
 	 */
 	private void cancelTimers() {
+		LOGGER.debug("Cancel all timers of pool {}.", getName());
+
 		if (stabilityTestTask != null) {
 			stabilityTestTask.cancel();
 			stabilityTestTask = null;
