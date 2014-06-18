@@ -213,7 +213,7 @@ public class ConfigurationManager {
 				}
 
 				if (confPool.getPassword() != null) {
-					username = confPool.getPassword();
+					password = confPool.getPassword();
 				}
 
 				if (confPool.getEnableExtranonceSubscribe() != null) {
