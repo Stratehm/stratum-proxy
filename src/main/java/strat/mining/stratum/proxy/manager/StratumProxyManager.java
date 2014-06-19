@@ -82,6 +82,8 @@ public class StratumProxyManager {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(StratumProxyManager.class);
 
+	private static StratumProxyManager instance;
+
 	private ServerSocket serverSocket;
 	private Thread listeningThread;
 
@@ -99,9 +101,9 @@ public class StratumProxyManager {
 
 	private StratumAuthorizationManager stratumAuthorizationManager;
 
-	public StratumProxyManager(List<Pool> pools) {
+	private StratumProxyManager() {
 		this.stratumAuthorizationManager = new StratumAuthorizationManager();
-		this.pools = Collections.synchronizedList(new ArrayList<Pool>(pools));
+		this.pools = Collections.synchronizedList(new ArrayList<Pool>());
 		this.workerConnections = new CopyOnWriteArrayList<WorkerConnection>();
 		this.users = Collections.synchronizedMap(new HashMap<String, User>());
 		this.poolWorkerConnections = Collections.synchronizedMap(new HashMap<Pool, List<WorkerConnection>>());
@@ -109,10 +111,18 @@ public class StratumProxyManager {
 				"SwitchPoolConnectionsThread-%d").build());
 	}
 
+	public static StratumProxyManager getInstance() {
+		if (instance == null) {
+			instance = new StratumProxyManager();
+		}
+		return instance;
+	}
+
 	/**
 	 * Start all pools.
 	 */
-	public void startPools() {
+	public void startPools(List<Pool> pools) {
+		this.pools = Collections.synchronizedList(new ArrayList<Pool>(pools));
 		synchronized (pools) {
 			for (Pool pool : pools) {
 				try {

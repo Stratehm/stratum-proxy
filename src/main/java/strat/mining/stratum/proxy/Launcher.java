@@ -35,6 +35,8 @@ import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
+import strat.mining.stratum.proxy.database.DatabaseManager;
+import strat.mining.stratum.proxy.manager.HashrateRecorder;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.ProxyResources;
@@ -45,8 +47,6 @@ public class Launcher {
 	public static Logger LOGGER = null;
 
 	public static final String THREAD_MONITOR = "";
-
-	private static StratumProxyManager stratumProxyManager;
 
 	private static HttpServer apiHttpServer;
 
@@ -73,11 +73,11 @@ public class Launcher {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
 				if (LOGGER != null) {
-					if (stratumProxyManager != null) {
+					if (StratumProxyManager.getInstance() != null) {
 						LOGGER.info("User requested shutdown... Gracefuly kill all connections...");
-						stratumProxyManager.stopListeningIncomingConnections();
-						stratumProxyManager.stopPools();
-						stratumProxyManager.closeAllWorkerConnections();
+						StratumProxyManager.getInstance().stopListeningIncomingConnections();
+						StratumProxyManager.getInstance().stopPools();
+						StratumProxyManager.getInstance().closeAllWorkerConnections();
 					}
 					if (apiHttpServer != null) {
 						apiHttpServer.shutdownNow();
@@ -95,6 +95,9 @@ public class Launcher {
 			configurationManager.loadConfiguration(args);
 			LOGGER = LoggerFactory.getLogger(Launcher.class);
 
+			// Start initialization of the database manager
+			initDatabaseManager();
+
 			// Initialize the proxy manager
 			initProxyManager(configurationManager);
 
@@ -104,17 +107,35 @@ public class Launcher {
 			// Initialize the rest services
 			initRestServices(configurationManager);
 
+			// Initialize the hashrate recorder
+			initHashrateRecorder();
+
 			// Wait the end of the program
 			waitInfinite();
 
 		} catch (Exception e) {
 			if (LOGGER != null) {
-				LOGGER.error("Failed to parse arguments.", e);
+				LOGGER.error("Failed to start the proxy.", e);
 			} else {
 				System.out.println("Failed to start the proxy: ");
 				e.printStackTrace();
 			}
 		}
+	}
+
+	/**
+	 * Initialize the hashrate recoder.
+	 */
+	private static void initHashrateRecorder() {
+		HashrateRecorder.getInstance().startCapture();
+	}
+
+	/**
+	 * Initialize the database manager.
+	 */
+	private static void initDatabaseManager() {
+		// Just get the instance to create it.
+		DatabaseManager.getInstance();
 	}
 
 	/**
@@ -140,7 +161,7 @@ public class Launcher {
 				.build();
 		apiHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri);
 		ServerConfiguration serverConfiguration = apiHttpServer.getServerConfiguration();
-		serverConfiguration.addHttpHandler(new GetworkRequestHandler(stratumProxyManager), "/", Constants.DEFAULT_GETWORK_LONG_POLLING_URL);
+		serverConfiguration.addHttpHandler(new GetworkRequestHandler(), "/", Constants.DEFAULT_GETWORK_LONG_POLLING_URL);
 	}
 
 	/**
@@ -154,13 +175,11 @@ public class Launcher {
 		List<Pool> pools = configurationManager.getPools();
 		LOGGER.info("Using pools: {}.", pools);
 
-		stratumProxyManager = new StratumProxyManager(pools);
-
-		// Connect to the pools.
-		stratumProxyManager.startPools();
+		// Start the pools.
+		StratumProxyManager.getInstance().startPools(pools);
 
 		// Start to accept incoming workers connections
-		stratumProxyManager.startListeningIncomingConnections(configurationManager.getStratumBindAddress(),
+		StratumProxyManager.getInstance().startListeningIncomingConnections(configurationManager.getStratumBindAddress(),
 				configurationManager.getStratumListeningPort());
 	}
 
@@ -175,15 +194,6 @@ public class Launcher {
 		} catch (Exception e) {
 			LOGGER.info("Closing proxy...");
 		}
-	}
-
-	/**
-	 * Return the stratum proxy manager
-	 * 
-	 * @return
-	 */
-	public static StratumProxyManager getStratumProxyManager() {
-		return stratumProxyManager;
 	}
 
 }

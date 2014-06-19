@@ -21,7 +21,9 @@ package strat.mining.stratum.proxy.configuration;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.Attributes;
@@ -83,6 +85,10 @@ public class ConfigurationManager {
 	private Integer connectionHashrateSamplingPeriod = Constants.DEFAULT_WORKER_CONNECTION_HASHRATE_SAMPLING_PERIOD;
 	private boolean isScrypt = false;
 
+	private File databaseDirectory;
+	private Integer hashrateDatabaseSamplingPeriod = Constants.DEFAULT_HASHRATE_DATABASE_SAMPLING_PERIOD;
+	private Integer hashrateDatabaseHistoryDepth = Constants.DEFAULT_HASHRATE_DATABASE_HISTORY_DEPTH;
+
 	private ObjectMapper jsonParser;
 
 	public static ConfigurationManager getInstance() {
@@ -131,6 +137,8 @@ public class ConfigurationManager {
 				useCommandLine(cliParser);
 			}
 		}
+
+		initDatabaseDirectory();
 	}
 
 	/**
@@ -145,7 +153,8 @@ public class ConfigurationManager {
 		Configuration configuration = jsonParser.readValue(configurationFile, Configuration.class);
 
 		logLevel = configuration.getLogLevel() != null ? Level.toLevel(configuration.getLogLevel()) : logLevel;
-		logDirectory = configuration.getLogDirectory() != null ? new File(configuration.getLogDirectory()) : logDirectory;
+		logDirectory = configuration.getLogDirectory() != null && !configuration.getLogDirectory().trim().isEmpty() ? new File(
+				configuration.getLogDirectory()) : logDirectory;
 		// Initialize the logging system
 		initLogging();
 
@@ -171,6 +180,13 @@ public class ConfigurationManager {
 		connectionHashrateSamplingPeriod = configuration.getConnectionHashrateSamplingPeriod() != null ? configuration
 				.getConnectionHashrateSamplingPeriod() : connectionHashrateSamplingPeriod;
 		isScrypt = configuration.getIsScrypt() != null ? configuration.getIsScrypt() : isScrypt;
+
+		databaseDirectory = configuration.getDatabaseDirectory() != null && !configuration.getDatabaseDirectory().trim().isEmpty() ? new File(
+				configuration.getDatabaseDirectory()) : databaseDirectory;
+		hashrateDatabaseSamplingPeriod = configuration.getHashrateDatabaseSamplingPeriod() != null ? configuration
+				.getHashrateDatabaseSamplingPeriod() : hashrateDatabaseSamplingPeriod;
+		hashrateDatabaseHistoryDepth = configuration.getHashrateDatabaseHistoryDepth() != null ? configuration.getHashrateDatabaseHistoryDepth()
+				: hashrateDatabaseHistoryDepth;
 
 		buildPoolsFromConfigurationFile(configuration);
 	}
@@ -285,6 +301,12 @@ public class ConfigurationManager {
 		connectionHashrateSamplingPeriod = cliParser.getConnectionHashrateSamplingPeriod() != null ? cliParser.getConnectionHashrateSamplingPeriod()
 				: connectionHashrateSamplingPeriod;
 		isScrypt = cliParser.isScrypt() != null ? cliParser.isScrypt() : isScrypt;
+
+		databaseDirectory = cliParser.getDatabaseDirectory() != null ? cliParser.getDatabaseDirectory() : databaseDirectory;
+		hashrateDatabaseSamplingPeriod = cliParser.getHashrateDatabaseSamplingPeriod() != null ? cliParser.getHashrateDatabaseSamplingPeriod()
+				: hashrateDatabaseSamplingPeriod;
+		hashrateDatabaseHistoryDepth = cliParser.getHashrateDatabaseHistoryDepth() != null ? cliParser.getHashrateDatabaseHistoryDepth()
+				: hashrateDatabaseHistoryDepth;
 
 		buildPoolsFromCommandLine(cliParser);
 	}
@@ -470,6 +492,37 @@ public class ConfigurationManager {
 	}
 
 	/**
+	 * Check that the database directory is set and exists.. If not set, use the
+	 * default directory. If does not exist, create it.
+	 * 
+	 * @throws FileNotFoundException
+	 *             if the database directory cannot be created.
+	 */
+	private void initDatabaseDirectory() throws FileNotFoundException {
+		// When database directory is not given by the user.
+		if (databaseDirectory == null) {
+			databaseDirectory = new File(getInstallDirectory(), "database");
+
+			logger.info("Database directory not specified. Using default one: {}.", databaseDirectory.getAbsolutePath());
+
+			if (!databaseDirectory.exists()) {
+				logger.info("Default database directory does not exist. Create directory: {}.", databaseDirectory.getAbsolutePath());
+				if (!databaseDirectory.mkdirs()) {
+					throw new FileNotFoundException("Failed to create the directory " + databaseDirectory.getAbsolutePath());
+				}
+			}
+		} else {
+			logger.info("Using database directory: {}.", databaseDirectory.getAbsolutePath());
+			if (!databaseDirectory.exists()) {
+				logger.info("Database directory does not exist. Create directory: {}.", databaseDirectory.getAbsolutePath());
+				if (!databaseDirectory.mkdirs()) {
+					throw new FileNotFoundException("Failed to create the directory " + databaseDirectory.getAbsolutePath());
+				}
+			}
+		}
+	}
+
+	/**
 	 * Return the version of the program
 	 * 
 	 * @return
@@ -491,10 +544,45 @@ public class ConfigurationManager {
 					version = attr.getValue("Implementation-Version");
 				} catch (IOException e) {
 					// Do nothing, just return Unknown as version
+					version = "Unknown";
 				}
 			}
 		}
 
 		return version;
 	}
+
+	/**
+	 * Return the installation directory of the application.
+	 */
+	public static final String getInstallDirectory() {
+		String path = ConfigurationManager.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+		String decodedPath = null;
+		try {
+			decodedPath = URLDecoder.decode(path, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			String errorMessage = "Failed to get the installation directory.";
+			if (logger != null) {
+				logger.error(errorMessage, e);
+			} else {
+				System.err.println(e);
+				e.printStackTrace();
+			}
+		}
+		File jarPath = new File(decodedPath);
+		return jarPath.getParent();
+	}
+
+	public File getDatabaseDirectory() {
+		return databaseDirectory;
+	}
+
+	public Integer getHashrateDatabaseSamplingPeriod() {
+		return hashrateDatabaseSamplingPeriod;
+	}
+
+	public Integer getHashrateDatabaseHistoryDepth() {
+		return hashrateDatabaseHistoryDepth;
+	}
+
 }

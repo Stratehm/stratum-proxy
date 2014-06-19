@@ -123,6 +123,15 @@ public class CommandLineOptions {
 	@Option(name = "--scrypt", usage = "Used to adjust target when mining scrypt coins. Used to estimate hashrate and for getwork workers.", handler = BooleanOptionHandler.class)
 	private boolean isScrypt;
 
+	@Option(name = "--database-directory", usage = "Set the directory where the database is saved. (Default to the INSTALLATION_DIR/database)")
+	private File databaseDirectory;
+
+	@Option(name = "--hashrate-database-sampling-period", usage = "The time (in seconds) beetwen two records of pools, users and connections hashrates in the database. (60 seconds by default)")
+	private Integer hashrateDatabaseSamplingPeriod;
+
+	@Option(name = "--hashrate-database-history-depth", usage = "The number of days to keep data in the hashrate database. (Default to 7 days)")
+	private Integer hashrateDatabaseHistoryDepth;
+
 	public CommandLineOptions() {
 		parser = new CmdLineParser(this);
 	}
@@ -245,6 +254,18 @@ public class CommandLineOptions {
 
 	public List<Boolean> getIsExtranonceSubscribeEnabled() {
 		return isExtranonceSubscribeEnabled;
+	}
+
+	public File getDatabaseDirectory() {
+		return databaseDirectory;
+	}
+
+	public Integer getHashrateDatabaseSamplingPeriod() {
+		return hashrateDatabaseSamplingPeriod;
+	}
+
+	public Integer getHashrateDatabaseHistoryDepth() {
+		return hashrateDatabaseHistoryDepth;
 	}
 
 }

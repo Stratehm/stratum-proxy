@@ -62,4 +62,7 @@ public class Constants {
 	public static final String DEFAULT_GETWORK_LONG_POLLING_URL = "/getwork/longpolling";
 	public static final Integer DEFAULT_GETWORK_CONNECTION_TIMEOUT = 120;
 
+	public static final Integer DEFAULT_HASHRATE_DATABASE_SAMPLING_PERIOD = 60;
+	public static final Integer DEFAULT_HASHRATE_DATABASE_HISTORY_DEPTH = 7;
+
 }

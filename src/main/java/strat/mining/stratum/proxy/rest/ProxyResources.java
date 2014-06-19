@@ -36,7 +36,8 @@ import org.apache.log4j.LogManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import strat.mining.stratum.proxy.Launcher;
+import strat.mining.stratum.proxy.database.DatabaseManager;
+import strat.mining.stratum.proxy.database.model.HashrateModel;
 import strat.mining.stratum.proxy.exception.BadParameterException;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
 import strat.mining.stratum.proxy.exception.NotConnectedException;
@@ -49,6 +50,8 @@ import strat.mining.stratum.proxy.rest.dto.AddPoolDTO;
 import strat.mining.stratum.proxy.rest.dto.AddressDTO;
 import strat.mining.stratum.proxy.rest.dto.ChangePriorityDTO;
 import strat.mining.stratum.proxy.rest.dto.ConnectionIdentifierDTO;
+import strat.mining.stratum.proxy.rest.dto.HashrateDTO;
+import strat.mining.stratum.proxy.rest.dto.HashrateHistoryDTO;
 import strat.mining.stratum.proxy.rest.dto.LogLevelDTO;
 import strat.mining.stratum.proxy.rest.dto.PoolDetailsDTO;
 import strat.mining.stratum.proxy.rest.dto.PoolNameDTO;
@@ -68,7 +71,9 @@ public class ProxyResources {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProxyResources.class);
 
-	private StratumProxyManager stratumProxyManager = Launcher.getStratumProxyManager();
+	private StratumProxyManager stratumProxyManager = StratumProxyManager.getInstance();
+
+	private DatabaseManager databaseManager = DatabaseManager.getInstance();
 
 	/**
 	 * Get the list of connected users
@@ -508,6 +513,38 @@ public class ProxyResources {
 		return response;
 	}
 
+	@POST
+	@Path("hashrate/user")
+	public Response getUserHashrateHistory(UserNameDTO username) {
+		HashrateHistoryDTO result = new HashrateHistoryDTO();
+		List<HashrateModel> userHashrates = databaseManager.getUserHashrate(username.getUsername());
+		result.setName(username.getUsername());
+		result.setHashrates(convertHashrateToDTO(userHashrates));
+
+		Response response = Response.status(Response.Status.OK).entity(result).build();
+
+		return response;
+	}
+
+	@POST
+	@Path("hashrate/pool")
+	public Response getPoolHashrateHistory(PoolNameDTO poolName) {
+		HashrateHistoryDTO result = new HashrateHistoryDTO();
+		Response response = null;
+		Pool pool = stratumProxyManager.getPool(poolName.getPoolName());
+
+		if (pool != null) {
+			List<HashrateModel> poolHashrates = databaseManager.getPoolHashrate(pool.getHost());
+			result.setName(poolName.getPoolName());
+			result.setHashrates(convertHashrateToDTO(poolHashrates));
+			response = Response.status(Response.Status.OK).entity(result).build();
+		} else {
+			response = Response.status(Response.Status.NOT_FOUND).build();
+		}
+
+		return response;
+	}
+
 	/**
 	 * Return the log level from the level name. Throw an exception if the level
 	 * does not exist.
@@ -605,6 +642,22 @@ public class ProxyResources {
 		}
 		result.setConnections(connections);
 
+		return result;
+	}
+
+	private List<HashrateDTO> convertHashrateToDTO(List<HashrateModel> userHashrates) {
+		List<HashrateDTO> result = new ArrayList<>();
+
+		if (userHashrates != null) {
+			for (HashrateModel model : userHashrates) {
+				HashrateDTO dto = new HashrateDTO();
+				dto.setAcceptedHashrate(model.getAcceptedHashrate());
+				dto.setRejectedHashrate(model.getRejectedHashrate());
+				dto.setCaptureTimeUTC(model.getCaptureTime() / 1000);
+
+				result.add(dto);
+			}
+		}
 		return result;
 	}
 

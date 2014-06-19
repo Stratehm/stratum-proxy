@@ -70,8 +70,8 @@ public class GetworkRequestHandler extends HttpHandler {
 
 	private Map<InetAddress, GetworkWorkerConnection> workerConnections;
 
-	public GetworkRequestHandler(StratumProxyManager manager) {
-		this.manager = manager;
+	public GetworkRequestHandler() {
+		this.manager = StratumProxyManager.getInstance();
 		this.workerConnections = Collections.synchronizedMap(new HashMap<InetAddress, GetworkWorkerConnection>());
 
 	}

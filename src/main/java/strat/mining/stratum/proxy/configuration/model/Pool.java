@@ -18,12 +18,9 @@
  */
 package strat.mining.stratum.proxy.configuration.model;
 
-import org.hibernate.validator.constraints.NotEmpty;
-
 public class Pool {
 
 	private String name;
-	@NotEmpty
 	private String host;
 	// Not empty if appendWorkersName false
 	private String user;

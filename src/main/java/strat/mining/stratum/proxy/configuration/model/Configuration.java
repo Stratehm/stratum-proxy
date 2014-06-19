@@ -44,6 +44,10 @@ public class Configuration {
 	private Integer userHashrateSamplingPeriod;
 	private Integer connectionHashrateSamplingPeriod;
 
+	private String databaseDirectory;
+	private Integer hashrateDatabaseSamplingPeriod;
+	private Integer hashrateDatabaseHistoryDepth;
+
 	private Boolean isScrypt;
 
 	@Valid
@@ -186,6 +190,30 @@ public class Configuration {
 			pools = new ArrayList<>();
 		}
 		this.pools = pools;
+	}
+
+	public String getDatabaseDirectory() {
+		return databaseDirectory;
+	}
+
+	public void setDatabaseDirectory(String databaseDirectory) {
+		this.databaseDirectory = databaseDirectory;
+	}
+
+	public Integer getHashrateDatabaseSamplingPeriod() {
+		return hashrateDatabaseSamplingPeriod;
+	}
+
+	public void setHashrateDatabaseSamplingPeriod(Integer hashrateDatabaseSamplingPeriod) {
+		this.hashrateDatabaseSamplingPeriod = hashrateDatabaseSamplingPeriod;
+	}
+
+	public Integer getHashrateDatabaseHistoryDepth() {
+		return hashrateDatabaseHistoryDepth;
+	}
+
+	public void setHashrateDatabaseHistoryDepth(Integer hashrateDatabaseHistoryDepth) {
+		this.hashrateDatabaseHistoryDepth = hashrateDatabaseHistoryDepth;
 	}
 
 }

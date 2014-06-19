@@ -87,11 +87,11 @@
 			<version>2.3</version>
 		</dependency>
 
-		<!-- Bean validation -->
+		<!-- NeoDatis DB -->
 		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-validator</artifactId>
-			<version>5.1.1.Final</version>
+			<groupId>org.neodatis.odb</groupId>
+			<artifactId>neodatis-odb</artifactId>
+			<version>1.9.30.689</version>
 		</dependency>
 
 	</dependencies>
