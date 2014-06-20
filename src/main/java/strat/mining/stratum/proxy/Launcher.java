@@ -18,14 +18,23 @@
  */
 package strat.mining.stratum.proxy;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.List;
 
 import javax.ws.rs.core.UriBuilder;
 
+import org.glassfish.grizzly.http.CompressionConfig.CompressionMode;
+import org.glassfish.grizzly.http.server.CLStaticHttpHandler;
+import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.http.server.Request;
+import org.glassfish.grizzly.http.server.Response;
 import org.glassfish.grizzly.http.server.ServerConfiguration;
+import org.glassfish.grizzly.http.server.StaticHttpHandler;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -149,6 +158,54 @@ public class Launcher {
 		ResourceConfig config = new ResourceConfig(ProxyResources.class);
 		config.register(JacksonFeature.class);
 		apiHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
+		ServerConfiguration serverConfiguration = apiHttpServer.getServerConfiguration();
+		apiHttpServer.getListener("grizzly").getCompressionConfig().setCompressionMode(CompressionMode.ON);
+		HttpHandler staticHandler = getStaticHandler();
+		if (staticHandler != null) {
+			serverConfiguration.addHttpHandler(staticHandler, "/");
+		}
+	}
+
+	/**
+	 * Return the handler to serve static content.
+	 * 
+	 * @return
+	 */
+	private static HttpHandler getStaticHandler() {
+		HttpHandler handler = null;
+		// If the application is running form the jar file, use a Class Loader
+		// to get the web content.
+		if (ConfigurationManager.isRunningFromJar()) {
+			try {
+				File stratumProxyWebappJarFile = new File(ConfigurationManager.getInstallDirectory(), "lib/stratum-proxy-webapp.jar");
+				if (stratumProxyWebappJarFile.exists()) {
+					handler = new CLStaticHttpHandler(new URLClassLoader(
+							new URL[] { new URL("file://" + stratumProxyWebappJarFile.getAbsolutePath()) }), "/") {
+						protected boolean handle(String resourcePath, Request request, Response response) throws Exception {
+							String resourcePathFiltered = resourcePath;
+							// If the root is requested, then replace the
+							// requested resource by index.html
+							if ("/".equals(resourcePath)) {
+								resourcePathFiltered = "/index.html";
+							}
+							return super.handle(resourcePathFiltered, request, response);
+						}
+
+					};
+				} else {
+					LOGGER.warn("lib/stratum-proxy-webapp.jar not found. GUI will not be available.");
+				}
+			} catch (Exception e) {
+				LOGGER.warn("Failed to initialize the Web content loader. GUI will not be available.", e);
+			}
+		} else {
+			// If not running from a jar, it is running from the dev
+			// environment. So use a static handler.
+			File installPath = new File(ConfigurationManager.getInstallDirectory());
+			File docRootPath = new File(installPath.getParentFile(), "src/main/resources/webapp");
+			handler = new StaticHttpHandler(docRootPath.getAbsolutePath());
+		}
+		return handler;
 	}
 
 	/**

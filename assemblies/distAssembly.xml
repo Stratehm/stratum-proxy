@@ -6,6 +6,7 @@
 	<includeBaseDirectory>true</includeBaseDirectory>
 	<dependencySets>
 		<dependencySet>
+			<useProjectArtifact>false</useProjectArtifact>
 			<outputDirectory>/lib</outputDirectory>
 		</dependencySet>
 	</dependencySets>
@@ -31,6 +32,10 @@
 		<file>
 			<source>src/main/resources/stratum-proxy-minimal-sample.conf</source>
 			<outputDirectory>/</outputDirectory>
+		</file>
+		<file>
+			<source>${project.build.directory}/stratum-proxy-webapp.jar</source>
+			<outputDirectory>/lib</outputDirectory>
 		</file>
 	</files>
 </assembly>

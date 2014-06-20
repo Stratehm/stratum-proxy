@@ -556,6 +556,24 @@ public class ConfigurationManager {
 	 * Return the installation directory of the application.
 	 */
 	public static final String getInstallDirectory() {
+		return getJarFile().getParent();
+	}
+
+	/**
+	 * Return the path of the application jar file.
+	 * 
+	 * @return
+	 */
+	public static final String getJarFilePath() {
+		return getJarFile().getAbsolutePath();
+	}
+
+	/**
+	 * Return the jar file.
+	 * 
+	 * @return
+	 */
+	private static File getJarFile() {
 		String path = ConfigurationManager.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		String decodedPath = null;
 		try {
@@ -569,8 +587,18 @@ public class ConfigurationManager {
 				e.printStackTrace();
 			}
 		}
-		File jarPath = new File(decodedPath);
-		return jarPath.getParent();
+		return new File(decodedPath);
+	}
+
+	/**
+	 * Return true only if the application is running from the jar file.
+	 * 
+	 * @return
+	 */
+	public static boolean isRunningFromJar() {
+		String className = ConfigurationManager.class.getName().replace('.', '/');
+		String classJar = ConfigurationManager.class.getResource("/" + className + ".class").toString();
+		return classJar.startsWith("jar:");
 	}
 
 	public File getDatabaseDirectory() {

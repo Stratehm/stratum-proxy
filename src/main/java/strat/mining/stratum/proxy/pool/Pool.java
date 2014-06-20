@@ -602,7 +602,7 @@ public class Pool implements Comparable<Pool> {
 	 */
 	private void retryConnect(boolean delayFirstRetry) {
 		if (connectionRetryDelay > 0) {
-			if (reconnectTask == null) {
+			if (reconnectTask != null) {
 				reconnectTask.cancel();
 				reconnectTask = null;
 			}
