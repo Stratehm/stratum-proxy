@@ -60,7 +60,11 @@ public class HashrateRecorder {
 		LOGGER.debug("Scheduling the hashrate capture task in {} ms.", CAPTURE_PERIOD);
 		captureTask = new Task() {
 			public void run() {
-				capture();
+				try {
+					capture();
+				} catch (Exception e) {
+					LOGGER.error("Error during hashrate capture.", e);
+				}
 				scheduleTask();
 			}
 		};
