@@ -159,8 +159,8 @@ public class Launcher {
 	private static void initGetwork(ConfigurationManager configurationManager) {
 		URI baseUri = UriBuilder.fromUri("http://" + configurationManager.getGetworkBindAddress()).port(configurationManager.getGetworkListenPort())
 				.build();
-		apiHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri);
-		ServerConfiguration serverConfiguration = apiHttpServer.getServerConfiguration();
+		getWorkHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri);
+		ServerConfiguration serverConfiguration = getWorkHttpServer.getServerConfiguration();
 		serverConfiguration.addHttpHandler(new GetworkRequestHandler(), "/", Constants.DEFAULT_GETWORK_LONG_POLLING_URL);
 	}
 
