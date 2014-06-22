@@ -70,6 +70,16 @@ public class Launcher {
 		//
 		// arf.getData("000001");
 
+		// String splittedData =
+		// "0000000206586cdb5fd4a83a94a352104ca66e9b558f996d23c54e720000000000000000c54c4a2c242902deca483072c9ed7ba89a0b210ca4351fc6e651c164";
+		// byte[] hexSplitted = HexUtils.convert(splittedData);
+		// // hexSplitted = ArrayUtils.reverseWords(hexSplitted, 4);
+		//
+		// byte[] hexHash = HashingUtils.midstateSHA256Python(hexSplitted);
+		// String midstateComputed = HexUtils.convert(hexHash);
+		// String midstate =
+		// "ca9a8af983d2639900381eafe0b724d2ac3dd108f1e216af8cf2eefcc83b7854";
+
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
 				if (LOGGER != null) {

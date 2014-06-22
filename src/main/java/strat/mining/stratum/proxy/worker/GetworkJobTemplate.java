@@ -44,6 +44,8 @@ public class GetworkJobTemplate {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GetworkJobTemplate.class);
 
+	private static final String HASH1 = "00000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000010000";
+
 	private static final BigDecimal DIFFICULTY_1_TARGET = new BigDecimal(new BigInteger(
 			HexUtils.convert("00000000ffff0000000000000000000000000000000000000000000000000000")));
 
@@ -288,6 +290,10 @@ public class GetworkJobTemplate {
 
 	public String getTarget() {
 		return target;
+	}
+
+	public String getHash1() {
+		return HASH1;
 	}
 
 	/**
