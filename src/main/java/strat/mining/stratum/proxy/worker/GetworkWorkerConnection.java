@@ -35,6 +35,7 @@ import org.glassfish.grizzly.utils.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strat.mining.stratum.proxy.callback.ConnectionClosedCallback;
 import strat.mining.stratum.proxy.callback.LongPollingCallback;
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
@@ -91,7 +92,9 @@ public class GetworkWorkerConnection implements WorkerConnection {
 
 	private Date isActiveSince;
 
-	public GetworkWorkerConnection(InetAddress remoteAddress, StratumProxyManager manager) {
+	private ConnectionClosedCallback connectionClosedCallback;
+
+	public GetworkWorkerConnection(InetAddress remoteAddress, StratumProxyManager manager, ConnectionClosedCallback connectionClosedCallback) {
 		this.manager = manager;
 		this.remoteAddress = remoteAddress;
 		this.longPollingCallbacks = Collections.synchronizedSet(new HashSet<LongPollingCallback>());
@@ -103,6 +106,8 @@ public class GetworkWorkerConnection implements WorkerConnection {
 
 		this.workerHashrateDelegator = new WorkerConnectionHashrateDelegator();
 		this.isActiveSince = new Date();
+
+		this.connectionClosedCallback = connectionClosedCallback;
 
 		// Start the getwork timeout
 		resetGetworkTimeoutTask();
@@ -118,6 +123,10 @@ public class GetworkWorkerConnection implements WorkerConnection {
 
 		// Cancel all long polling requests
 		cancelAllLongPolling();
+
+		if (connectionClosedCallback != null) {
+			connectionClosedCallback.onConnectionClosed(this);
+		}
 	}
 
 	/**
@@ -273,6 +282,7 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	 * Update the current job template from the stratum notification.
 	 */
 	private void updateCurrentJobTemplateFromStratumJob(MiningNotifyNotification notification) {
+		LOGGER.debug("Update getwork job for connection {}.", getConnectionName());
 		// Update the job only if a clean job is requested and if the connection
 		// is bound to a pool.
 		if (pool != null && notification.getCleanJobs()) {

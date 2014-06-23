@@ -38,6 +38,7 @@ import org.glassfish.jersey.internal.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strat.mining.stratum.proxy.callback.ConnectionClosedCallback;
 import strat.mining.stratum.proxy.callback.LongPollingCallback;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.AuthorizationException;
@@ -278,31 +279,28 @@ public class GetworkRequestHandler extends HttpHandler {
 	 * @throws NoCredentialsException
 	 * @throws AuthorizationException
 	 */
-	private GetworkWorkerConnection getWorkerConnection(Request request) throws UnknownHostException, NoPoolAvailableException,
+	private synchronized GetworkWorkerConnection getWorkerConnection(Request request) throws UnknownHostException, NoPoolAvailableException,
 			TooManyWorkersException, ChangeExtranonceNotSupportedException, NoCredentialsException, AuthorizationException {
-		InetAddress address = InetAddress.getByName(request.getRemoteAddr());
+		final InetAddress address = InetAddress.getByName(request.getRemoteAddr());
 
 		GetworkWorkerConnection workerConnection = workerConnections.get(address);
 		// If the worker connection is null, try to create it.
 		if (workerConnection == null) {
-			// Before creating the worker connection, take the monitor on the
-			// workerConnections map, to avoid several thread to create a new
-			// worker connection each.
-			synchronized (workerConnections) {
-				// Check if another thread has already created a new worker
-				// connection. If so, nothing more to do.
-				workerConnection = workerConnections.get(address);
-				if (workerConnection == null) {
-					LOGGER.debug("No existing getwork connections for address {}. Create it.", request.getRemoteAddr());
-					workerConnection = new GetworkWorkerConnection(address, manager);
-
-					MiningSubscribeRequest subscribeRequest = new MiningSubscribeRequest();
-					Pool pool = manager.onSubscribeRequest(workerConnection, subscribeRequest);
-					workerConnection.rebindToPool(pool);
-
-					workerConnections.put(address, workerConnection);
+			LOGGER.debug("No existing getwork connections for address {}. Create it.", request.getRemoteAddr());
+			workerConnection = new GetworkWorkerConnection(address, manager, new ConnectionClosedCallback() {
+				public void onConnectionClosed(WorkerConnection connection) {
+					// When the connection is closed, remove it from the
+					// connection list.
+					workerConnections.remove(address);
+					LOGGER.debug("Getwork connection {} removed from Getwork handler.", connection.getConnectionName());
 				}
-			}
+			});
+
+			MiningSubscribeRequest subscribeRequest = new MiningSubscribeRequest();
+			Pool pool = manager.onSubscribeRequest(workerConnection, subscribeRequest);
+			workerConnection.rebindToPool(pool);
+
+			workerConnections.put(address, workerConnection);
 		}
 
 		try {
