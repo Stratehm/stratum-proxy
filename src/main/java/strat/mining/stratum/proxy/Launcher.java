@@ -35,6 +35,7 @@ import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.grizzly.http.server.Response;
 import org.glassfish.grizzly.http.server.ServerConfiguration;
 import org.glassfish.grizzly.http.server.StaticHttpHandler;
+import org.glassfish.grizzly.http.server.StaticHttpHandlerBase;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -114,7 +115,7 @@ public class Launcher {
 			initGetwork(configurationManager);
 
 			// Initialize the rest services
-			initRestServices(configurationManager);
+			initHttpServices(configurationManager);
 
 			// Initialize the hashrate recorder
 			initHashrateRecorder();
@@ -148,11 +149,11 @@ public class Launcher {
 	}
 
 	/**
-	 * Initialize the REST services.
+	 * Initialize the HTTP services.
 	 * 
 	 * @param configurationManager
 	 */
-	private static void initRestServices(ConfigurationManager configurationManager) {
+	private static void initHttpServices(ConfigurationManager configurationManager) {
 		URI baseUri = UriBuilder.fromUri("http://" + configurationManager.getRestBindAddress()).port(configurationManager.getRestListenPort())
 				.build();
 		ResourceConfig config = new ResourceConfig(ProxyResources.class);
@@ -164,6 +165,8 @@ public class Launcher {
 		if (staticHandler != null) {
 			serverConfiguration.addHttpHandler(staticHandler, "/");
 		}
+
+		apiHttpServer.getListener("grizzly").getKeepAlive().setIdleTimeoutInSeconds(1);
 	}
 
 	/**
@@ -172,7 +175,7 @@ public class Launcher {
 	 * @return
 	 */
 	private static HttpHandler getStaticHandler() {
-		HttpHandler handler = null;
+		StaticHttpHandlerBase handler = null;
 		// If the application is running form the jar file, use a Class Loader
 		// to get the web content.
 		if (ConfigurationManager.isRunningFromJar()) {
@@ -205,6 +208,9 @@ public class Launcher {
 			File docRootPath = new File(installPath.getParentFile(), "src/main/resources/webapp");
 			handler = new StaticHttpHandler(docRootPath.getAbsolutePath());
 		}
+		// Disable the file cache if in development.
+		handler.setFileCacheEnabled(ConfigurationManager.getVersion().equals("Dev"));
+
 		return handler;
 	}
 
