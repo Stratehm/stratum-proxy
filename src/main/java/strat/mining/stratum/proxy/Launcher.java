@@ -40,6 +40,7 @@ import strat.mining.stratum.proxy.manager.HashrateRecorder;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.ProxyResources;
+import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.worker.GetworkRequestHandler;
 
 public class Launcher {
@@ -80,25 +81,7 @@ public class Launcher {
 		// String midstate =
 		// "ca9a8af983d2639900381eafe0b724d2ac3dd108f1e216af8cf2eefcc83b7854";
 
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			public void run() {
-				if (LOGGER != null) {
-					if (StratumProxyManager.getInstance() != null) {
-						LOGGER.info("User requested shutdown... Gracefuly kill all connections...");
-						StratumProxyManager.getInstance().stopListeningIncomingConnections();
-						StratumProxyManager.getInstance().stopPools();
-						StratumProxyManager.getInstance().closeAllWorkerConnections();
-					}
-					if (apiHttpServer != null) {
-						apiHttpServer.shutdownNow();
-					}
-					if (getWorkHttpServer != null) {
-						getWorkHttpServer.shutdownNow();
-					}
-					LOGGER.info("Shutdown !");
-				}
-			}
-		});
+		initShutdownHook();
 
 		try {
 			ConfigurationManager configurationManager = ConfigurationManager.getInstance();
@@ -131,6 +114,51 @@ public class Launcher {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	/**
+	 * Initialize the shutdown hook to close gracefully all connections.
+	 */
+	private static void initShutdownHook() {
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			public void run() {
+
+				// Start a timer task that will exit the program after 1 second
+				// if the cleanup is not over.
+				Timer.getInstance().schedule(new Timer.Task() {
+					public void run() {
+						if (LOGGER != null) {
+							LOGGER.error("Force killing of the proxy...");
+						} else {
+							System.err.println("Force killing of the proxy...");
+						}
+						System.exit(0);
+					}
+				}, 1000);
+
+				if (StratumProxyManager.getInstance() != null) {
+					if (LOGGER != null) {
+						LOGGER.info("User requested shutdown... Gracefuly kill all connections...");
+					} else {
+						System.out.println("User requested shutdown... Gracefuly kill all connections...");
+					}
+					StratumProxyManager.getInstance().stopListeningIncomingConnections();
+					StratumProxyManager.getInstance().closeAllWorkerConnections();
+					StratumProxyManager.getInstance().stopPools();
+				}
+				if (apiHttpServer != null) {
+					apiHttpServer.shutdownNow();
+				}
+				if (getWorkHttpServer != null) {
+					getWorkHttpServer.shutdownNow();
+				}
+				if (LOGGER != null) {
+					LOGGER.info("Shutdown !");
+				} else {
+					System.out.println("Shutdown !");
+				}
+			}
+		});
 	}
 
 	/**
