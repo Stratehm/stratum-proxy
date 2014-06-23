@@ -138,9 +138,8 @@ public class ConfigurationManager {
 				// Use parameters of the command line.
 				useCommandLine(cliParser);
 			}
+			initDatabaseDirectory();
 		}
-
-		initDatabaseDirectory();
 	}
 
 	/**
