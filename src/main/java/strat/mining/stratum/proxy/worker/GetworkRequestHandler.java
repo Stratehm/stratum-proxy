@@ -54,6 +54,7 @@ import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
+import strat.mining.stratum.proxy.worker.GetworkJobTemplate.GetworkRequestResult;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -207,11 +208,15 @@ public class GetworkRequestHandler extends HttpHandler {
 	 */
 	protected void processGetworkRequest(Request request, Response response, GetworkWorkerConnection workerConnection, GetworkRequest getworkRequest)
 			throws JsonProcessingException, IOException {
+
+		GetworkRequestResult requestResult = workerConnection.getGetworkData();
 		// Return the getwork data
 		GetworkResponse jsonResponse = new GetworkResponse();
 		jsonResponse.setId(getworkRequest.getId());
-		jsonResponse.setData(workerConnection.getGetworkData());
-		jsonResponse.setTarget(workerConnection.getGetworkTarget());
+		jsonResponse.setData(requestResult.getData());
+		jsonResponse.setTarget(requestResult.getTarget());
+		jsonResponse.setHash1(requestResult.getHash1());
+		jsonResponse.setMidstate(requestResult.getMidstate());
 
 		String result = jsonUnmarshaller.writeValueAsString(jsonResponse);
 		LOGGER.debug("Returning response to {}@{}: {}", request.getAttribute("username"), request.getRemoteAddr(), result);

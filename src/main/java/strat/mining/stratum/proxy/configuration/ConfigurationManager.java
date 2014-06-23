@@ -89,6 +89,8 @@ public class ConfigurationManager {
 	private Integer hashrateDatabaseSamplingPeriod = Constants.DEFAULT_HASHRATE_DATABASE_SAMPLING_PERIOD;
 	private Integer hashrateDatabaseHistoryDepth = Constants.DEFAULT_HASHRATE_DATABASE_HISTORY_DEPTH;
 
+	private boolean noMidsate = false;
+
 	private ObjectMapper jsonParser;
 
 	public static ConfigurationManager getInstance() {
@@ -187,6 +189,7 @@ public class ConfigurationManager {
 				.getHashrateDatabaseSamplingPeriod() : hashrateDatabaseSamplingPeriod;
 		hashrateDatabaseHistoryDepth = configuration.getHashrateDatabaseHistoryDepth() != null ? configuration.getHashrateDatabaseHistoryDepth()
 				: hashrateDatabaseHistoryDepth;
+		noMidsate = configuration.getNoMidstate() != null ? configuration.getNoMidstate() : noMidsate;
 
 		buildPoolsFromConfigurationFile(configuration);
 	}
@@ -307,6 +310,7 @@ public class ConfigurationManager {
 				: hashrateDatabaseSamplingPeriod;
 		hashrateDatabaseHistoryDepth = cliParser.getHashrateDatabaseHistoryDepth() != null ? cliParser.getHashrateDatabaseHistoryDepth()
 				: hashrateDatabaseHistoryDepth;
+		noMidsate = cliParser.isNoMidstate() != null ? cliParser.isNoMidstate() : noMidsate;
 
 		buildPoolsFromCommandLine(cliParser);
 	}
@@ -583,6 +587,10 @@ public class ConfigurationManager {
 
 	public Integer getHashrateDatabaseHistoryDepth() {
 		return hashrateDatabaseHistoryDepth;
+	}
+
+	public boolean isNoMidsate() {
+		return noMidsate;
 	}
 
 }

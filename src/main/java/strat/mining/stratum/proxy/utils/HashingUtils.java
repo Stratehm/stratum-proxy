@@ -58,7 +58,7 @@ public final class HashingUtils {
 	 * @param data
 	 * @return
 	 */
-	public static final byte[] midstateSHA256Python(byte[] data) {
+	public static final byte[] midstateSHA256(byte[] data) {
 		if (data.length != 64) {
 			throw new IndexOutOfBoundsException("Data must be 64 bytes long");
 		}

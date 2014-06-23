@@ -52,6 +52,7 @@ import strat.mining.stratum.proxy.utils.AtomicBigInteger;
 import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.utils.Timer.Task;
 import strat.mining.stratum.proxy.utils.WorkerConnectionHashrateDelegator;
+import strat.mining.stratum.proxy.worker.GetworkJobTemplate.GetworkRequestResult;
 
 public class GetworkWorkerConnection implements WorkerConnection {
 
@@ -304,20 +305,18 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	 * 
 	 * @return
 	 */
-	public String getGetworkData() {
+	public GetworkRequestResult getGetworkData() {
 		resetGetworkTimeoutTask();
 
 		// Retrieve a nex extranonce2 for this conenction
 		String extranonce2String = getExtranonce2();
 
-		// The pair contains the merkleRoot on the left and the data on the
-		// right.
-		Pair<String, String> data = currentJob.getData(extranonce2String);
+		GetworkRequestResult data = currentJob.getData(extranonce2String);
 
 		// Save the merkleroot with the extranonce2/jobId value
-		extranonce2AndJobIdByMerkleRoot.put(data.getFirst(), new Pair<String, String>(extranonce2String, currentJob.getJobId()));
+		extranonce2AndJobIdByMerkleRoot.put(data.getMerkleRoot(), new Pair<String, String>(extranonce2String, currentJob.getJobId()));
 
-		return data.getSecond();
+		return data;
 	}
 
 	/**

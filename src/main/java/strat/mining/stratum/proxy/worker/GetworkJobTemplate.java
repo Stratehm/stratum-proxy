@@ -27,10 +27,10 @@ import java.util.List;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.glassfish.grizzly.http.util.HexUtils;
-import org.glassfish.grizzly.utils.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.utils.AtomicBigInteger;
 import strat.mining.stratum.proxy.utils.HashingUtils;
 
@@ -206,10 +206,9 @@ public class GetworkJobTemplate {
 	 * value.
 	 * 
 	 * @param extranonce2
-	 * @return The merkleRoot in the left member of the pair and the data in the
-	 *         right member.
+	 * @return
 	 */
-	public Pair<String, String> getData(String extranonce2) {
+	public GetworkRequestResult getData(String extranonce2) {
 		computeTemplateData();
 
 		// Build the merkleRoot with the given extranonce2
@@ -226,7 +225,33 @@ public class GetworkJobTemplate {
 		// Then build the data
 		byte[] data = buildData(littleEndianMerkleRootHash);
 
-		return new Pair<String, String>(HexUtils.convert(littleEndianMerkleRootHash), HexUtils.convert(data));
+		// Compute midstate only if enabled.
+		String midstate = null;
+		if (!ConfigurationManager.getInstance().isNoMidsate()) {
+			midstate = HexUtils.convert(buildMidstate(data));
+		}
+
+		GetworkRequestResult result = new GetworkRequestResult();
+		result.setMerkleRoot(HexUtils.convert(littleEndianMerkleRootHash));
+		result.setData(HexUtils.convert(data));
+		result.setHash1(getHash1());
+		result.setTarget(getTarget());
+		result.setMidstate(midstate);
+
+		return result;
+	}
+
+	/**
+	 * Build the midstate of the given block header.
+	 * 
+	 * @param data
+	 * @return
+	 */
+	private byte[] buildMidstate(byte[] data) {
+
+		byte[] midstateData = ArrayUtils.subarray(data, 0, 64);
+
+		return HashingUtils.midstateSHA256(midstateData);
 	}
 
 	/**
@@ -316,5 +341,60 @@ public class GetworkJobTemplate {
 		// 256-bits integer)
 		littleEndianTargetBytes = strat.mining.stratum.proxy.utils.ArrayUtils.reverseWords(littleEndianTargetBytes, 4);
 		this.target = HexUtils.convert(littleEndianTargetBytes);
+	}
+
+	/**
+	 * Contains all fields needed to reply to a getwork request.
+	 * 
+	 * @author Strat
+	 * 
+	 */
+	public static class GetworkRequestResult {
+		private String data;
+		private String target;
+		private String hash1;
+		private String midstate;
+		private String merkleRoot;
+
+		public String getData() {
+			return data;
+		}
+
+		public void setData(String data) {
+			this.data = data;
+		}
+
+		public String getTarget() {
+			return target;
+		}
+
+		public void setTarget(String target) {
+			this.target = target;
+		}
+
+		public String getHash1() {
+			return hash1;
+		}
+
+		public void setHash1(String hash1) {
+			this.hash1 = hash1;
+		}
+
+		public String getMidstate() {
+			return midstate;
+		}
+
+		public void setMidstate(String midstate) {
+			this.midstate = midstate;
+		}
+
+		public String getMerkleRoot() {
+			return merkleRoot;
+		}
+
+		public void setMerkleRoot(String merkleRoot) {
+			this.merkleRoot = merkleRoot;
+		}
+
 	}
 }
