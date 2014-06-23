@@ -283,15 +283,26 @@ public class GetworkRequestHandler extends HttpHandler {
 		InetAddress address = InetAddress.getByName(request.getRemoteAddr());
 
 		GetworkWorkerConnection workerConnection = workerConnections.get(address);
+		// If the worker connection is null, try to create it.
 		if (workerConnection == null) {
-			LOGGER.debug("No existing getwork connections for address {}.", request.getRemoteAddr());
-			workerConnection = new GetworkWorkerConnection(address, manager);
+			// Before creating the worker connection, take the monitor on the
+			// workerConnections map, to avoid several thread to create a new
+			// worker connection each.
+			synchronized (workerConnections) {
+				// Check if another thread has already created a new worker
+				// connection. If so, nothing more to do.
+				workerConnection = workerConnections.get(address);
+				if (workerConnection == null) {
+					LOGGER.debug("No existing getwork connections for address {}. Create it.", request.getRemoteAddr());
+					workerConnection = new GetworkWorkerConnection(address, manager);
 
-			MiningSubscribeRequest subscribeRequest = new MiningSubscribeRequest();
-			Pool pool = manager.onSubscribeRequest(workerConnection, subscribeRequest);
-			workerConnection.rebindToPool(pool);
+					MiningSubscribeRequest subscribeRequest = new MiningSubscribeRequest();
+					Pool pool = manager.onSubscribeRequest(workerConnection, subscribeRequest);
+					workerConnection.rebindToPool(pool);
 
-			workerConnections.put(address, workerConnection);
+					workerConnections.put(address, workerConnection);
+				}
+			}
 		}
 
 		try {
