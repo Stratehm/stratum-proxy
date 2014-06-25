@@ -81,6 +81,8 @@ public class GetworkRequestHandler extends HttpHandler {
 	@Override
 	public void service(final Request request, final Response response) throws Exception {
 		response.setHeader("X-Mining-Extensions", "longpoll");
+		response.setHeader("X-Roll-Ntime", "1");
+		response.setHeader("Content-Type", "application/json");
 
 		String content = null;
 		Long jsonRpcRequestId = 0L;
