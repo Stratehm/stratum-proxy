@@ -213,6 +213,7 @@ public class ConfigurationManager {
 				Boolean isAppendWorkerNames = Boolean.FALSE;
 				String workerNameSeparator = Constants.DEFAULT_WORKER_NAME_SEPARTOR;
 				Boolean useWorkerPassword = Boolean.FALSE;
+				Boolean isEnabled = Boolean.TRUE;
 
 				if (confPool.getName() != null && !confPool.getName().trim().isEmpty()) {
 					poolName = confPool.getName();
@@ -250,6 +251,10 @@ public class ConfigurationManager {
 					useWorkerPassword = confPool.getUseWorkerPassword();
 				}
 
+				if (confPool.getIsEnabled() != null) {
+					isEnabled = confPool.getIsEnabled();
+				}
+
 				Pool pool = new Pool(poolName, poolHost, username, password);
 				pool.setExtranonceSubscribeEnabled(isExtranonceSubscribe);
 				pool.setNumberOfSubmit(numberOfSubmit);
@@ -262,6 +267,13 @@ public class ConfigurationManager {
 				pool.setAppendWorkerNames(isAppendWorkerNames);
 				pool.setWorkerSeparator(workerNameSeparator);
 				pool.setUseWorkerPassword(useWorkerPassword);
+				try {
+					pool.setEnabled(isEnabled);
+				} catch (Exception e) {
+					// Should never happens. Else, it is a bug.
+					System.err.println("Error during creation of pool " + pool.getName() + " (cause: enabled value)");
+					e.printStackTrace();
+				}
 				pools.add(pool);
 
 				counter++;
