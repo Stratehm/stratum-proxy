@@ -196,14 +196,26 @@ public class Launcher {
 				if (stratumProxyWebappJarFile.exists()) {
 					handler = new CLStaticHttpHandler(new URLClassLoader(
 							new URL[] { new URL("file://" + stratumProxyWebappJarFile.getAbsolutePath()) }), "/") {
+
+						private final Logger SUB_LOGGER = LoggerFactory.getLogger(CLStaticHttpHandler.class);
+
 						protected boolean handle(String resourcePath, Request request, Response response) throws Exception {
+							SUB_LOGGER.trace("Requested resource: {}.", resourcePath);
+							long time = System.currentTimeMillis();
 							String resourcePathFiltered = resourcePath;
 							// If the root is requested, then replace the
 							// requested resource by index.html
 							if ("/".equals(resourcePath)) {
 								resourcePathFiltered = "/index.html";
 							}
-							return super.handle(resourcePathFiltered, request, response);
+							boolean found = super.handle(resourcePathFiltered, request, response);
+							time = System.currentTimeMillis() - time;
+							if (found) {
+								SUB_LOGGER.trace("Resource sent in {} ms: {}.", time, resourcePath);
+							} else {
+								SUB_LOGGER.trace("Resource not found: {}.", resourcePath);
+							}
+							return found;
 						}
 
 					};
@@ -218,10 +230,26 @@ public class Launcher {
 			// environment. So use a static handler.
 			File installPath = new File(ConfigurationManager.getInstallDirectory());
 			File docRootPath = new File(installPath.getParentFile(), "src/main/resources/webapp");
-			handler = new StaticHttpHandler(docRootPath.getAbsolutePath());
+			handler = new StaticHttpHandler(docRootPath.getAbsolutePath()) {
+				private final Logger SUB_LOGGER = LoggerFactory.getLogger(StaticHttpHandler.class);
+
+				protected boolean handle(String uri, Request request, Response response) throws Exception {
+					SUB_LOGGER.trace("Requested resource: {}.", uri);
+					long time = System.currentTimeMillis();
+					boolean found = super.handle(uri, request, response);
+					time = System.currentTimeMillis() - time;
+					if (found) {
+						SUB_LOGGER.trace("Resource sent in {} ms: {}.", time, uri);
+					} else {
+						SUB_LOGGER.trace("Resource not found: {}.", uri);
+					}
+					return found;
+				}
+
+			};
 		}
 		// Disable the file cache if in development.
-		handler.setFileCacheEnabled(ConfigurationManager.getVersion().equals("Dev"));
+		handler.setFileCacheEnabled(!ConfigurationManager.getVersion().equals("Dev"));
 
 		return handler;
 	}
