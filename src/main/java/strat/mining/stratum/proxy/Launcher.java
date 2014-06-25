@@ -50,6 +50,7 @@ import strat.mining.stratum.proxy.manager.HashrateRecorder;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.ProxyResources;
+import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.worker.GetworkRequestHandler;
 
 public class Launcher {
@@ -64,41 +65,7 @@ public class Launcher {
 
 	public static void main(String[] args) {
 
-		// List<String> merkleBranches = new ArrayList<String>();
-		// merkleBranches.add("32bac6b596b722100e6d0d5a451ec78b4252161603e5c140ce61ce29f1451ff9");
-		// merkleBranches.add("0808cdd8a165d9151856258b7ce65c476220afc669e56076f5f7b541099de3d4");
-		// merkleBranches.add("8ecfcf4d911ae073f90af0d63cafc37daf35947f766310df4a37e67339713ee4");
-		// merkleBranches.add("3b33a4f5d3a406c5760415cd2c71442e082dffb261f1f1abcb905180143d7b63");
-		// GetworkJobTemplate arf = new GetworkJobTemplate("1850", "00000002",
-		// "72417428ad46bd3265c270b1d1c2dee6723136c98e3cff7be0b72b8ed00e012f",
-		// "5396f810", "1b0616be", merkleBranches,
-		// "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff230362e608062f503253482f0412f8965308",
-		// "092f7374726174756d2f000000000100c6362a010000001976a914c8f58075fdf2ba12619f34d15385567e5a1cb99488ac00000000",
-		// "0861e04900");
-		//
-		// arf.setDifficulty(700, true);
-		//
-		// arf.getData("000001");
-
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			public void run() {
-				if (LOGGER != null) {
-					if (StratumProxyManager.getInstance() != null) {
-						LOGGER.info("User requested shutdown... Gracefuly kill all connections...");
-						StratumProxyManager.getInstance().stopListeningIncomingConnections();
-						StratumProxyManager.getInstance().stopPools();
-						StratumProxyManager.getInstance().closeAllWorkerConnections();
-					}
-					if (apiHttpServer != null) {
-						apiHttpServer.shutdownNow();
-					}
-					if (getWorkHttpServer != null) {
-						getWorkHttpServer.shutdownNow();
-					}
-					LOGGER.info("Shutdown !");
-				}
-			}
-		});
+		initShutdownHook();
 
 		try {
 			ConfigurationManager configurationManager = ConfigurationManager.getInstance();
@@ -131,6 +98,51 @@ public class Launcher {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	/**
+	 * Initialize the shutdown hook to close gracefully all connections.
+	 */
+	private static void initShutdownHook() {
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			public void run() {
+
+				// Start a timer task that will exit the program after 1 second
+				// if the cleanup is not over.
+				Timer.getInstance().schedule(new Timer.Task() {
+					public void run() {
+						if (LOGGER != null) {
+							LOGGER.error("Force killing of the proxy...");
+						} else {
+							System.err.println("Force killing of the proxy...");
+						}
+						System.exit(0);
+					}
+				}, 1000);
+
+				if (StratumProxyManager.getInstance() != null) {
+					if (LOGGER != null) {
+						LOGGER.info("User requested shutdown... Gracefuly kill all connections...");
+					} else {
+						System.out.println("User requested shutdown... Gracefuly kill all connections...");
+					}
+					StratumProxyManager.getInstance().stopListeningIncomingConnections();
+					StratumProxyManager.getInstance().closeAllWorkerConnections();
+					StratumProxyManager.getInstance().stopPools();
+				}
+				if (apiHttpServer != null) {
+					apiHttpServer.shutdownNow();
+				}
+				if (getWorkHttpServer != null) {
+					getWorkHttpServer.shutdownNow();
+				}
+				if (LOGGER != null) {
+					LOGGER.info("Shutdown !");
+				} else {
+					System.out.println("Shutdown !");
+				}
+			}
+		});
 	}
 
 	/**

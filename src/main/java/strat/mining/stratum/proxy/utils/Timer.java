@@ -24,6 +24,7 @@ import java.util.NoSuchElementException;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,11 +153,19 @@ public class Timer {
 	 */
 	public static abstract class Task implements Runnable {
 
+		private static final AtomicLong taskCounter = new AtomicLong(0);
+
 		volatile boolean isCancelled = false;
 
 		private Long expectedExecutionTime;
 
 		private String name;
+
+		private Long taskId;
+
+		public Task() {
+			this.taskId = taskCounter.getAndIncrement();
+		}
 
 		public void cancel() {
 			LOGGER.debug("Cancelling the task {}.", getName());
@@ -198,6 +207,31 @@ public class Timer {
 			builder.append(name);
 			builder.append("]");
 			return builder.toString();
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((taskId == null) ? 0 : taskId.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Task other = (Task) obj;
+			if (taskId == null) {
+				if (other.taskId != null)
+					return false;
+			} else if (!taskId.equals(other.taskId))
+				return false;
+			return true;
 		}
 
 	}

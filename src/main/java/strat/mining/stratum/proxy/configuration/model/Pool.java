@@ -32,6 +32,8 @@ public class Pool {
 	private String workerNameSeparator;
 	private Boolean useWorkerPassword;
 
+	private Boolean isEnabled;
+
 	public String getName() {
 		return name;
 	}
@@ -94,6 +96,14 @@ public class Pool {
 
 	public void setUseWorkerPassword(Boolean useWorkerPassword) {
 		this.useWorkerPassword = useWorkerPassword;
+	}
+
+	public Boolean getIsEnabled() {
+		return isEnabled;
+	}
+
+	public void setIsEnabled(Boolean isEnabled) {
+		this.isEnabled = isEnabled;
 	}
 
 }

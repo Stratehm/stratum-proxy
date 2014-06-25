@@ -49,6 +49,7 @@ public class Configuration {
 	private Integer hashrateDatabaseHistoryDepth;
 
 	private Boolean isScrypt;
+	private Boolean noMidstate;
 
 	@Valid
 	private List<Pool> pools;
@@ -214,6 +215,14 @@ public class Configuration {
 
 	public void setHashrateDatabaseHistoryDepth(Integer hashrateDatabaseHistoryDepth) {
 		this.hashrateDatabaseHistoryDepth = hashrateDatabaseHistoryDepth;
+	}
+
+	public Boolean getNoMidstate() {
+		return noMidstate;
+	}
+
+	public void setNoMidstate(Boolean noMidstate) {
+		this.noMidstate = noMidstate;
 	}
 
 }

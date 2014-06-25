@@ -126,7 +126,11 @@ public class StratumProxyManager {
 		synchronized (pools) {
 			for (Pool pool : pools) {
 				try {
-					pool.startPool(this);
+					if (pool.isEnabled()) {
+						pool.startPool(this);
+					} else {
+						LOGGER.warn("Do not start pool {} since it is disabled.", pool.getName());
+					}
 				} catch (Exception e) {
 					LOGGER.error("Failed to start the pool {}.", pool, e);
 				}

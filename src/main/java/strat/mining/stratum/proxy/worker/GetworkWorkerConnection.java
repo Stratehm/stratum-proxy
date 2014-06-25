@@ -35,6 +35,7 @@ import org.glassfish.grizzly.utils.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strat.mining.stratum.proxy.callback.ConnectionClosedCallback;
 import strat.mining.stratum.proxy.callback.LongPollingCallback;
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
@@ -52,6 +53,7 @@ import strat.mining.stratum.proxy.utils.AtomicBigInteger;
 import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.utils.Timer.Task;
 import strat.mining.stratum.proxy.utils.WorkerConnectionHashrateDelegator;
+import strat.mining.stratum.proxy.worker.GetworkJobTemplate.GetworkRequestResult;
 
 public class GetworkWorkerConnection implements WorkerConnection {
 
@@ -90,7 +92,9 @@ public class GetworkWorkerConnection implements WorkerConnection {
 
 	private Date isActiveSince;
 
-	public GetworkWorkerConnection(InetAddress remoteAddress, StratumProxyManager manager) {
+	private ConnectionClosedCallback connectionClosedCallback;
+
+	public GetworkWorkerConnection(InetAddress remoteAddress, StratumProxyManager manager, ConnectionClosedCallback connectionClosedCallback) {
 		this.manager = manager;
 		this.remoteAddress = remoteAddress;
 		this.longPollingCallbacks = Collections.synchronizedSet(new HashSet<LongPollingCallback>());
@@ -102,6 +106,8 @@ public class GetworkWorkerConnection implements WorkerConnection {
 
 		this.workerHashrateDelegator = new WorkerConnectionHashrateDelegator();
 		this.isActiveSince = new Date();
+
+		this.connectionClosedCallback = connectionClosedCallback;
 
 		// Start the getwork timeout
 		resetGetworkTimeoutTask();
@@ -117,6 +123,10 @@ public class GetworkWorkerConnection implements WorkerConnection {
 
 		// Cancel all long polling requests
 		cancelAllLongPolling();
+
+		if (connectionClosedCallback != null) {
+			connectionClosedCallback.onConnectionClosed(this);
+		}
 	}
 
 	/**
@@ -272,6 +282,7 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	 * Update the current job template from the stratum notification.
 	 */
 	private void updateCurrentJobTemplateFromStratumJob(MiningNotifyNotification notification) {
+		LOGGER.debug("Update getwork job for connection {}.", getConnectionName());
 		// Update the job only if a clean job is requested and if the connection
 		// is bound to a pool.
 		if (pool != null && notification.getCleanJobs()) {
@@ -304,20 +315,18 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	 * 
 	 * @return
 	 */
-	public String getGetworkData() {
+	public GetworkRequestResult getGetworkData() {
 		resetGetworkTimeoutTask();
 
 		// Retrieve a nex extranonce2 for this conenction
 		String extranonce2String = getExtranonce2();
 
-		// The pair contains the merkleRoot on the left and the data on the
-		// right.
-		Pair<String, String> data = currentJob.getData(extranonce2String);
+		GetworkRequestResult data = currentJob.getData(extranonce2String);
 
 		// Save the merkleroot with the extranonce2/jobId value
-		extranonce2AndJobIdByMerkleRoot.put(data.getFirst(), new Pair<String, String>(extranonce2String, currentJob.getJobId()));
+		extranonce2AndJobIdByMerkleRoot.put(data.getMerkleRoot(), new Pair<String, String>(extranonce2String, currentJob.getJobId()));
 
-		return data.getSecond();
+		return data;
 	}
 
 	/**

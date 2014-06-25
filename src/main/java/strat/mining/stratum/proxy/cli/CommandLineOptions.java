@@ -132,6 +132,9 @@ public class CommandLineOptions {
 	@Option(name = "--hashrate-database-history-depth", usage = "The number of days to keep data in the hashrate database. (Default to 7 days)")
 	private Integer hashrateDatabaseHistoryDepth;
 
+	@Option(name = "--no-midstate", usage = "If set, the midstate for getwork requests will not be calculated. Midsate is only required by some old SHA256 miners. (Default to false)")
+	private boolean noMidstate;
+
 	public CommandLineOptions() {
 		parser = new CmdLineParser(this);
 	}
@@ -266,6 +269,10 @@ public class CommandLineOptions {
 
 	public Integer getHashrateDatabaseHistoryDepth() {
 		return hashrateDatabaseHistoryDepth;
+	}
+
+	public Boolean isNoMidstate() {
+		return noMidstate;
 	}
 
 }

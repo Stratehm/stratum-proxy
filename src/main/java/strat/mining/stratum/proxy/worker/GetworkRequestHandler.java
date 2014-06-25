@@ -38,6 +38,7 @@ import org.glassfish.jersey.internal.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strat.mining.stratum.proxy.callback.ConnectionClosedCallback;
 import strat.mining.stratum.proxy.callback.LongPollingCallback;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.AuthorizationException;
@@ -54,6 +55,7 @@ import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
+import strat.mining.stratum.proxy.worker.GetworkJobTemplate.GetworkRequestResult;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -207,11 +209,15 @@ public class GetworkRequestHandler extends HttpHandler {
 	 */
 	protected void processGetworkRequest(Request request, Response response, GetworkWorkerConnection workerConnection, GetworkRequest getworkRequest)
 			throws JsonProcessingException, IOException {
+
+		GetworkRequestResult requestResult = workerConnection.getGetworkData();
 		// Return the getwork data
 		GetworkResponse jsonResponse = new GetworkResponse();
 		jsonResponse.setId(getworkRequest.getId());
-		jsonResponse.setData(workerConnection.getGetworkData());
-		jsonResponse.setTarget(workerConnection.getGetworkTarget());
+		jsonResponse.setData(requestResult.getData());
+		jsonResponse.setTarget(requestResult.getTarget());
+		jsonResponse.setHash1(requestResult.getHash1());
+		jsonResponse.setMidstate(requestResult.getMidstate());
 
 		String result = jsonUnmarshaller.writeValueAsString(jsonResponse);
 		LOGGER.debug("Returning response to {}@{}: {}", request.getAttribute("username"), request.getRemoteAddr(), result);
@@ -273,14 +279,22 @@ public class GetworkRequestHandler extends HttpHandler {
 	 * @throws NoCredentialsException
 	 * @throws AuthorizationException
 	 */
-	private GetworkWorkerConnection getWorkerConnection(Request request) throws UnknownHostException, NoPoolAvailableException,
+	private synchronized GetworkWorkerConnection getWorkerConnection(Request request) throws UnknownHostException, NoPoolAvailableException,
 			TooManyWorkersException, ChangeExtranonceNotSupportedException, NoCredentialsException, AuthorizationException {
-		InetAddress address = InetAddress.getByName(request.getRemoteAddr());
+		final InetAddress address = InetAddress.getByName(request.getRemoteAddr());
 
 		GetworkWorkerConnection workerConnection = workerConnections.get(address);
+		// If the worker connection is null, try to create it.
 		if (workerConnection == null) {
-			LOGGER.debug("No existing getwork connections for address {}.", request.getRemoteAddr());
-			workerConnection = new GetworkWorkerConnection(address, manager);
+			LOGGER.debug("No existing getwork connections for address {}. Create it.", request.getRemoteAddr());
+			workerConnection = new GetworkWorkerConnection(address, manager, new ConnectionClosedCallback() {
+				public void onConnectionClosed(WorkerConnection connection) {
+					// When the connection is closed, remove it from the
+					// connection list.
+					workerConnections.remove(address);
+					LOGGER.debug("Getwork connection {} removed from Getwork handler.", connection.getConnectionName());
+				}
+			});
 
 			MiningSubscribeRequest subscribeRequest = new MiningSubscribeRequest();
 			Pool pool = manager.onSubscribeRequest(workerConnection, subscribeRequest);
