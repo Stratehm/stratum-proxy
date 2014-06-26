@@ -1,5 +1,11 @@
 package strat.mining.stratum.proxy.test;
 
+import java.math.BigInteger;
+
+import org.glassfish.grizzly.http.util.HexUtils;
+
+import strat.mining.stratum.proxy.utils.HashingUtils;
+
 public class Test {
 
 	public static void main(String[] args) {
@@ -33,5 +39,12 @@ public class Test {
 		// String midstateComputed = HexUtils.convert(hexHash);
 		// String midstate =
 		// "ca9a8af983d2639900381eafe0b724d2ac3dd108f1e216af8cf2eefcc83b7854";
+
+		String target = "00000000000000000000000000000000000000000000000000f0ff0f00000000";
+		BigInteger targetInteger = new BigInteger(HexUtils.convert(target));
+		boolean result = HashingUtils
+				.isBlockHeaderSHA256HashBelowTarget(
+						"00000002628786d847d7f2a8fca81a6efecc417927728df111ad8bd200000000000000008940c01a70f63c3d68b32e1df36c737f14851923fa45afb4a04dd36da2e2229153aab2eb1851aba267d0f624000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000",
+						targetInteger);
 	}
 }

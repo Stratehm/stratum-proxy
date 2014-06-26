@@ -90,6 +90,7 @@ public class ConfigurationManager {
 	private Integer hashrateDatabaseHistoryDepth = Constants.DEFAULT_HASHRATE_DATABASE_HISTORY_DEPTH;
 
 	private boolean noMidsate = false;
+	private boolean validateSha26GetworkShares = false;
 
 	private ObjectMapper jsonParser;
 
@@ -189,6 +190,8 @@ public class ConfigurationManager {
 		hashrateDatabaseHistoryDepth = configuration.getHashrateDatabaseHistoryDepth() != null ? configuration.getHashrateDatabaseHistoryDepth()
 				: hashrateDatabaseHistoryDepth;
 		noMidsate = configuration.getNoMidstate() != null ? configuration.getNoMidstate() : noMidsate;
+		validateSha26GetworkShares = configuration.getValidateSha26GetworkShares() != null ? configuration.getValidateSha26GetworkShares()
+				: validateSha26GetworkShares;
 
 		buildPoolsFromConfigurationFile(configuration);
 	}
@@ -322,6 +325,8 @@ public class ConfigurationManager {
 		hashrateDatabaseHistoryDepth = cliParser.getHashrateDatabaseHistoryDepth() != null ? cliParser.getHashrateDatabaseHistoryDepth()
 				: hashrateDatabaseHistoryDepth;
 		noMidsate = cliParser.isNoMidstate() != null ? cliParser.isNoMidstate() : noMidsate;
+		validateSha26GetworkShares = cliParser.isValidateSha26GetworkShares() != null ? cliParser.isValidateSha26GetworkShares()
+				: validateSha26GetworkShares;
 
 		buildPoolsFromCommandLine(cliParser);
 	}
@@ -602,6 +607,10 @@ public class ConfigurationManager {
 
 	public boolean isNoMidsate() {
 		return noMidsate;
+	}
+
+	public boolean isValidateSha26GetworkShares() {
+		return validateSha26GetworkShares;
 	}
 
 }

@@ -20,6 +20,7 @@ package strat.mining.stratum.proxy.worker;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
@@ -40,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.callback.ConnectionClosedCallback;
 import strat.mining.stratum.proxy.callback.LongPollingCallback;
+import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.AuthorizationException;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
@@ -55,6 +57,7 @@ import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.manager.StratumProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
+import strat.mining.stratum.proxy.utils.HashingUtils;
 import strat.mining.stratum.proxy.worker.GetworkJobTemplate.GetworkRequestResult;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -241,11 +244,24 @@ public class GetworkRequestHandler extends HttpHandler {
 		MiningSubmitResponse jsonResponse = new MiningSubmitResponse();
 		jsonResponse.setId(getworkRequest.getId());
 
-		String errorMesage = workerConnection.submitWork((String) request.getAttribute("username"), getworkRequest.getData());
+		// If the share check is enabled, check if the SHA256 share is
+		// below the target. If so, submit the share. Else do not submit.
+		String errorMessage = null;
+		// Validate the share if the option is set.
+		if (ConfigurationManager.getInstance().isValidateSha26GetworkShares()
+				&& !HashingUtils.isBlockHeaderSHA256HashBelowTarget(getworkRequest.getData(), workerConnection.getGetworkTarget())) {
+			errorMessage = "Share is above the target (proxy check)";
+			LOGGER.debug("Share submitted by {}@{} is above the target. The share is not submitted to the pool.",
+					(String) request.getAttribute("username"), request.getRemoteAddr());
+		} else {
+			// Submit only if the share is not above the target
+			errorMessage = workerConnection.submitWork((String) request.getAttribute("username"), getworkRequest.getData());
+		}
+
 		// If there is an error message, the share submit has
 		// failed/been rejected
-		if (errorMesage != null) {
-			response.setHeader("X-Reject-Reason", errorMesage);
+		if (errorMessage != null) {
+			response.setHeader("X-Reject-Reason", errorMessage);
 			jsonResponse.setIsAccepted(false);
 		} else {
 			jsonResponse.setIsAccepted(true);
@@ -254,6 +270,23 @@ public class GetworkRequestHandler extends HttpHandler {
 		String result = jsonUnmarshaller.writeValueAsString(jsonResponse);
 		LOGGER.debug("Returning response to {}@{}: {}", request.getAttribute("username"), request.getRemoteAddr(), result);
 		response.getOutputBuffer().write(result);
+	}
+
+	/**
+	 * Check if the block header SHA256 hash is below the target.
+	 * 
+	 * @param string
+	 * 
+	 * @return
+	 */
+	private String checkSHA256Target(String blockHeader, BigInteger target) {
+		String result = null;
+
+		if (!HashingUtils.isBlockHeaderSHA256HashBelowTarget(blockHeader, target)) {
+			result = "Share is above the target (proxy check)";
+		}
+
+		return result;
 	}
 
 	/**

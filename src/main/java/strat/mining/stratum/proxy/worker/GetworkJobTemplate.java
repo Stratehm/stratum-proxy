@@ -96,6 +96,7 @@ public class GetworkJobTemplate {
 
 	private volatile double difficulty;
 	private volatile String target;
+	private volatile BigInteger targetInteger;
 
 	private volatile long lastDataTemplateUpdateTime;
 
@@ -116,6 +117,7 @@ public class GetworkJobTemplate {
 		this.lastDataTemplateUpdateTime = System.currentTimeMillis() / 1000;
 
 		this.target = DEFAULT_TARGET;
+		this.targetInteger = BigInteger.ONE;
 
 		computeTemplateData();
 	}
@@ -317,6 +319,10 @@ public class GetworkJobTemplate {
 		return target;
 	}
 
+	public BigInteger getTargetInteger() {
+		return targetInteger;
+	}
+
 	public String getHash1() {
 		return HASH1;
 	}
@@ -329,8 +335,8 @@ public class GetworkJobTemplate {
 	 */
 	private void computeTarget(double difficulty, boolean isScrypt) {
 		BigDecimal difficulty1 = isScrypt ? DIFFICULTY_1_TARGET_SCRYPT : DIFFICULTY_1_TARGET;
-		BigDecimal targetNumber = difficulty1.divide(BigDecimal.valueOf(difficulty), 0, RoundingMode.HALF_EVEN);
-		byte[] bigEndianTargetBytes = targetNumber.toBigInteger().toByteArray();
+		targetInteger = difficulty1.divide(BigDecimal.valueOf(difficulty), 0, RoundingMode.HALF_EVEN).toBigInteger();
+		byte[] bigEndianTargetBytes = targetInteger.toByteArray();
 
 		// Build the target on 32 Bytes
 		byte[] littleEndianTargetBytes = new byte[32];

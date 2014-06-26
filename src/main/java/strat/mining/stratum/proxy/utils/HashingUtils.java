@@ -18,7 +18,11 @@
  */
 package strat.mining.stratum.proxy.utils;
 
+import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.LinkedList;
+
+import org.glassfish.grizzly.http.util.HexUtils;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
@@ -31,6 +35,9 @@ import com.google.common.primitives.Longs;
  * 
  */
 public final class HashingUtils {
+
+	// Array to prepand to a byte array to build a positive bigInteger
+	private static final byte[] BIG_INTEGER_FAKE_SIGN_ARRAY = new byte[] { (byte) 0 };
 
 	// The following constants are used to compute midstates.
 	private static long A0 = 0x6a09e667L;
@@ -216,4 +223,45 @@ public final class HashingUtils {
 		return sha256Hash(sha256Hash(data));
 	}
 
+	/**
+	 * Return true if the block header SHA256 hash is below the given target.
+	 * 
+	 * @param target
+	 * @param blockHeader
+	 * 
+	 * @return
+	 */
+	public static boolean isBlockHeaderSHA256HashBelowTarget(String blockHeader, BigInteger target) {
+		// The block header is just composed of the 80 first bytes (the
+		// remaining is just padding)
+		byte[] blockHeaderBin = HexUtils.convert(blockHeader.substring(0, 160));
+
+		// LittleEndian to BigEndian
+		blockHeaderBin = ArrayUtils.swapBytes(blockHeaderBin, 4);
+
+		// Compute the hash
+		byte[] hashIntegerBytes = doubleSha256Hash(blockHeaderBin);
+
+		// Convert the hashInteger to a 256 bits (32 bytes) bytes array
+		byte[] hashBytes256Bits = new byte[32];
+		Arrays.fill(hashBytes256Bits, (byte) 0);
+		ArrayUtils.copyInto(hashIntegerBytes, hashBytes256Bits, 32 - hashIntegerBytes.length);
+
+		// Then swap bytes from big-endian to little-endian
+		hashBytes256Bits = ArrayUtils.swapBytes(hashBytes256Bits, 4);
+
+		// And reverse the order of 4-bytes words (big-endian to little-endian
+		// 256-bits integer)
+		hashBytes256Bits = ArrayUtils.reverseWords(hashBytes256Bits, 4);
+
+		// Build the integer (with a 0 value byte to fake an unsigned int (sign
+		// bit to 0)
+		BigInteger hashInteger = new BigInteger(org.apache.commons.lang.ArrayUtils.addAll(BIG_INTEGER_FAKE_SIGN_ARRAY, hashBytes256Bits));
+
+		// Check that the hash is less than the target. (The hash is valid if
+		// hash < target)
+		boolean isBelowTarget = hashInteger.compareTo(target) < 0;
+
+		return isBelowTarget;
+	}
 }
