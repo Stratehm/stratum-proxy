@@ -46,7 +46,15 @@ public class Timer {
 	private Timer() {
 		waitingTasks = new TreeSet<Task>(new Comparator<Task>() {
 			public int compare(Task o1, Task o2) {
-				return o1.getExpectedExecutionTime().compareTo(o2.getExpectedExecutionTime());
+				int result = 0;
+				if (o1 == null || o1.getExpectedExecutionTime() == null) {
+					result = -1;
+				} else if (o2 == null || o2.getExpectedExecutionTime() == null) {
+					result = 1;
+				} else {
+					result = o1.getExpectedExecutionTime().compareTo(o2.getExpectedExecutionTime());
+				}
+				return result;
 			}
 		});
 		scheduler = new Scheduler();

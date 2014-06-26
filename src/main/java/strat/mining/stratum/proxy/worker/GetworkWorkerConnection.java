@@ -356,8 +356,8 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	 * 
 	 * @return
 	 */
-	public String getGetworkTarget() {
-		return currentJob.getTarget();
+	public BigInteger getGetworkTarget() {
+		return currentJob.getTargetInteger();
 	}
 
 	/**
