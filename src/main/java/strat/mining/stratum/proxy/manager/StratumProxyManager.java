@@ -107,8 +107,8 @@ public class StratumProxyManager {
 		this.workerConnections = new CopyOnWriteArrayList<WorkerConnection>();
 		this.users = Collections.synchronizedMap(new HashMap<String, User>());
 		this.poolWorkerConnections = Collections.synchronizedMap(new HashMap<Pool, List<WorkerConnection>>());
-		this.switchPoolConnectionsExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(
-				"SwitchPoolConnectionsThread-%d").build());
+		this.switchPoolConnectionsExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
+				.setNameFormat("SwitchPoolConnectionsThread-%d").setDaemon(true).build());
 	}
 
 	public static StratumProxyManager getInstance() {
@@ -192,7 +192,8 @@ public class StratumProxyManager {
 				LOGGER.info("Stop to listen incoming connection on {}.", serverSocket.getLocalSocketAddress());
 			}
 		};
-
+		listeningThread.setName("StratumProxyManagerSeverSocketListener");
+		listeningThread.setDaemon(true);
 		listeningThread.start();
 	}
 

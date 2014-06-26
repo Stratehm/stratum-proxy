@@ -94,7 +94,7 @@ public class Launcher {
 	 * Initialize the shutdown hook to close gracefully all connections.
 	 */
 	private static void initShutdownHook() {
-		Runtime.getRuntime().addShutdownHook(new Thread() {
+		Thread hookThread = new Thread() {
 			public void run() {
 
 				// Start a timer task that will exit the program after 1 second
@@ -106,7 +106,7 @@ public class Launcher {
 						} else {
 							System.err.println("Force killing of the proxy...");
 						}
-						System.exit(0);
+						Runtime.getRuntime().halt(0);
 					}
 				}, 1000);
 
@@ -132,7 +132,10 @@ public class Launcher {
 					System.out.println("Shutdown !");
 				}
 			}
-		});
+		};
+		hookThread.setDaemon(true);
+
+		Runtime.getRuntime().addShutdownHook(hookThread);
 	}
 
 	/**

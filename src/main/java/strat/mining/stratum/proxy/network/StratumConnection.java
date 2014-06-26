@@ -166,6 +166,7 @@ public abstract class StratumConnection {
 			}
 		};
 		readThread.setName(getConnectionName() + "-Thread");
+		readThread.setDaemon(true);
 		readThread.start();
 	}
 
