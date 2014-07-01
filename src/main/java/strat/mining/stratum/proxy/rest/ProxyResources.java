@@ -62,7 +62,7 @@ import strat.mining.stratum.proxy.rest.dto.WorkerConnectionDTO;
 import strat.mining.stratum.proxy.worker.StratumWorkerConnection;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
 
-@Path("proxy")
+@Path("/")
 @Produces("application/json")
 @Consumes("application/json")
 public class ProxyResources {
@@ -333,8 +333,21 @@ public class ProxyResources {
 
 		List<PoolDetailsDTO> result = new ArrayList<>();
 		if (pools != null) {
+			PoolDetailsDTO highestActiveStablePriorityPool = null;
 			for (Pool pool : pools) {
-				result.add(convertPoolToDTO(pool));
+				PoolDetailsDTO poolDTO = convertPoolToDTO(pool);
+				result.add(poolDTO);
+
+				// Save the highest priority pool which is active and stable. It
+				// is the currently mining pool.
+				if (poolDTO.getIsActive() && poolDTO.getIsStable()) {
+					if (highestActiveStablePriorityPool == null || highestActiveStablePriorityPool.getPriority() > poolDTO.getPriority()) {
+						highestActiveStablePriorityPool = poolDTO;
+					}
+				}
+			}
+			if (highestActiveStablePriorityPool != null) {
+				highestActiveStablePriorityPool.setIsMining(true);
 			}
 		}
 
@@ -534,10 +547,15 @@ public class ProxyResources {
 		Pool pool = stratumProxyManager.getPool(poolName.getPoolName());
 
 		if (pool != null) {
-			List<HashrateModel> poolHashrates = databaseManager.getPoolHashrate(pool.getHost());
-			result.setName(poolName.getPoolName());
-			result.setHashrates(convertHashrateToDTO(poolHashrates));
-			response = Response.status(Response.Status.OK).entity(result).build();
+			try {
+				List<HashrateModel> poolHashrates = databaseManager.getPoolHashrate(pool.getHost());
+				result.setName(poolName.getPoolName());
+				result.setHashrates(convertHashrateToDTO(poolHashrates));
+				response = Response.status(Response.Status.OK).entity(result).build();
+			} catch (Exception e) {
+				LOGGER.error("Error during pool hashrate history response build.", e);
+				response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+			}
 		} else {
 			response = Response.status(Response.Status.NOT_FOUND).build();
 		}

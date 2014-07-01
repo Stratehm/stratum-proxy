@@ -26,6 +26,7 @@ import java.util.List;
 import org.neodatis.odb.ODB;
 import org.neodatis.odb.ODBFactory;
 import org.neodatis.odb.Objects;
+import org.neodatis.odb.OdbConfiguration;
 import org.neodatis.odb.core.query.IQuery;
 import org.neodatis.odb.core.query.criteria.Where;
 import org.neodatis.odb.impl.core.query.criteria.CriteriaQuery;
@@ -57,6 +58,8 @@ public class DatabaseManager {
 		File poolDatabaseFile = new File(databaseDirectory, "pools");
 		File userDatabaseFile = new File(databaseDirectory, "users");
 
+		OdbConfiguration.useMultiThread(true);
+		OdbConfiguration.setMultiThreadExclusive(false);
 		poolDatabase = ODBFactory.open(poolDatabaseFile.getAbsolutePath());
 		userDatabase = ODBFactory.open(userDatabaseFile.getAbsolutePath());
 
@@ -79,6 +82,25 @@ public class DatabaseManager {
 			}
 		}
 		return instance;
+	}
+
+	/**
+	 * Close the database manager.
+	 */
+	public static void close() {
+		if (instance != null) {
+			LOGGER.info("Close databases.");
+			instance.closeAllDBs();
+			instance = null;
+		}
+	}
+
+	/**
+	 * Close all the databases
+	 */
+	protected void closeAllDBs() {
+		poolDatabase.close();
+		userDatabase.close();
 	}
 
 	/**

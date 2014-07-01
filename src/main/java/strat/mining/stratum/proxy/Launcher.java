@@ -107,6 +107,9 @@ public class Launcher {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
 
+				// Shutdown the database
+				DatabaseManager.close();
+
 				// Start a timer task that will exit the program after 1 second
 				// if the cleanup is not over.
 				Timer.getInstance().schedule(new Timer.Task() {
@@ -164,21 +167,25 @@ public class Launcher {
 	 * Initialize the HTTP services.
 	 * 
 	 * @param configurationManager
+	 * @throws IOException
 	 */
-	private static void initHttpServices(ConfigurationManager configurationManager) {
+	private static void initHttpServices(ConfigurationManager configurationManager) throws IOException {
 		URI baseUri = UriBuilder.fromUri("http://" + configurationManager.getRestBindAddress()).port(configurationManager.getRestListenPort())
-				.build();
+				.path("/proxy").build();
 		ResourceConfig config = new ResourceConfig(ProxyResources.class);
 		config.register(JacksonFeature.class);
-		apiHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
+		apiHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, config, false);
 		ServerConfiguration serverConfiguration = apiHttpServer.getServerConfiguration();
 		apiHttpServer.getListener("grizzly").getCompressionConfig().setCompressionMode(CompressionMode.ON);
+		apiHttpServer.getListener("grizzly").getCompressionConfig()
+				.setCompressableMimeTypes("text/javascript", "application/json", "text/html", "text/css");
+		apiHttpServer.getListener("grizzly").getCompressionConfig().setCompressionMinSize(1024);
 		HttpHandler staticHandler = getStaticHandler();
 		if (staticHandler != null) {
 			serverConfiguration.addHttpHandler(staticHandler, "/");
 		}
 
-		apiHttpServer.getListener("grizzly").getKeepAlive().setIdleTimeoutInSeconds(1);
+		apiHttpServer.start();
 	}
 
 	/**

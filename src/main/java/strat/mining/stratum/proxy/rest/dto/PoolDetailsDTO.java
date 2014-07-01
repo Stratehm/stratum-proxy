@@ -30,6 +30,7 @@ public class PoolDetailsDTO {
 	private Boolean isActive;
 	private Boolean isEnabled;
 	private Boolean isStable;
+	private Boolean isMining;
 	private String isActiveSince;
 
 	private String difficulty;
@@ -199,6 +200,14 @@ public class PoolDetailsDTO {
 
 	public void setRejectedHashesPerSeconds(Long rejectedHashesPerSeconds) {
 		this.rejectedHashesPerSeconds = rejectedHashesPerSeconds;
+	}
+
+	public Boolean getIsMining() {
+		return isMining;
+	}
+
+	public void setIsMining(Boolean isMining) {
+		this.isMining = isMining;
 	}
 
 }
