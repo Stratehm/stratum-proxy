@@ -18,14 +18,24 @@
  */
 package strat.mining.stratum.proxy;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.List;
 
 import javax.ws.rs.core.UriBuilder;
 
+import org.glassfish.grizzly.http.CompressionConfig.CompressionMode;
+import org.glassfish.grizzly.http.server.CLStaticHttpHandler;
+import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.http.server.Request;
+import org.glassfish.grizzly.http.server.Response;
 import org.glassfish.grizzly.http.server.ServerConfiguration;
+import org.glassfish.grizzly.http.server.StaticHttpHandler;
+import org.glassfish.grizzly.http.server.StaticHttpHandlerBase;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -72,7 +82,7 @@ public class Launcher {
 			initGetwork(configurationManager);
 
 			// Initialize the rest services
-			initRestServices(configurationManager);
+			initHttpServices(configurationManager);
 
 			// Initialize the hashrate recorder
 			initHashrateRecorder();
@@ -96,6 +106,9 @@ public class Launcher {
 	private static void initShutdownHook() {
 		Thread hookThread = new Thread() {
 			public void run() {
+
+				// Shutdown the database
+				DatabaseManager.close();
 
 				// Start a timer task that will exit the program after 1 second
 				// if the cleanup is not over.
@@ -154,16 +167,101 @@ public class Launcher {
 	}
 
 	/**
-	 * Initialize the REST services.
+	 * Initialize the HTTP services.
 	 * 
 	 * @param configurationManager
+	 * @throws IOException
 	 */
-	private static void initRestServices(ConfigurationManager configurationManager) {
+	private static void initHttpServices(ConfigurationManager configurationManager) throws IOException {
 		URI baseUri = UriBuilder.fromUri("http://" + configurationManager.getRestBindAddress()).port(configurationManager.getRestListenPort())
-				.build();
+				.path("/proxy").build();
 		ResourceConfig config = new ResourceConfig(ProxyResources.class);
 		config.register(JacksonFeature.class);
-		apiHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, config);
+		apiHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, config, false);
+		ServerConfiguration serverConfiguration = apiHttpServer.getServerConfiguration();
+		apiHttpServer.getListener("grizzly").getCompressionConfig().setCompressionMode(CompressionMode.ON);
+		apiHttpServer.getListener("grizzly").getCompressionConfig()
+				.setCompressableMimeTypes("text/javascript", "application/json", "text/html", "text/css");
+		apiHttpServer.getListener("grizzly").getCompressionConfig().setCompressionMinSize(1024);
+		HttpHandler staticHandler = getStaticHandler();
+		if (staticHandler != null) {
+			serverConfiguration.addHttpHandler(staticHandler, "/");
+		}
+
+		apiHttpServer.start();
+	}
+
+	/**
+	 * Return the handler to serve static content.
+	 * 
+	 * @return
+	 */
+	private static HttpHandler getStaticHandler() {
+		StaticHttpHandlerBase handler = null;
+		// If the application is running form the jar file, use a Class Loader
+		// to get the web content.
+		if (ConfigurationManager.isRunningFromJar()) {
+			try {
+				File stratumProxyWebappJarFile = new File(ConfigurationManager.getInstallDirectory(), "lib/stratum-proxy-webapp.jar");
+				if (stratumProxyWebappJarFile.exists()) {
+					handler = new CLStaticHttpHandler(new URLClassLoader(
+							new URL[] { new URL("file://" + stratumProxyWebappJarFile.getAbsolutePath()) }), "/") {
+
+						private final Logger SUB_LOGGER = LoggerFactory.getLogger(CLStaticHttpHandler.class);
+
+						protected boolean handle(String resourcePath, Request request, Response response) throws Exception {
+							SUB_LOGGER.trace("Requested resource: {}.", resourcePath);
+							long time = System.currentTimeMillis();
+							String resourcePathFiltered = resourcePath;
+							// If the root is requested, then replace the
+							// requested resource by index.html
+							if ("/".equals(resourcePath)) {
+								resourcePathFiltered = "/index.html";
+							}
+							boolean found = super.handle(resourcePathFiltered, request, response);
+							time = System.currentTimeMillis() - time;
+							if (found) {
+								SUB_LOGGER.trace("Resource sent in {} ms: {}.", time, resourcePath);
+							} else {
+								SUB_LOGGER.trace("Resource not found: {}.", resourcePath);
+							}
+							return found;
+						}
+
+					};
+				} else {
+					LOGGER.warn("lib/stratum-proxy-webapp.jar not found. GUI will not be available.");
+				}
+			} catch (Exception e) {
+				LOGGER.warn("Failed to initialize the Web content loader. GUI will not be available.", e);
+			}
+		} else {
+			// If not running from a jar, it is running from the dev
+			// environment. So use a static handler.
+			File installPath = new File(ConfigurationManager.getInstallDirectory());
+			File docRootPath = new File(installPath.getParentFile(), "src/main/resources/webapp");
+			handler = new StaticHttpHandler(docRootPath.getAbsolutePath()) {
+				private final Logger SUB_LOGGER = LoggerFactory.getLogger(StaticHttpHandler.class);
+
+				protected boolean handle(String uri, Request request, Response response) throws Exception {
+					SUB_LOGGER.trace("Requested resource: {}.", uri);
+					long time = System.currentTimeMillis();
+					boolean found = super.handle(uri, request, response);
+					time = System.currentTimeMillis() - time;
+					if (found) {
+						SUB_LOGGER.trace("Resource sent in {} ms: {}.", time, uri);
+					} else {
+						SUB_LOGGER.trace("Resource not found: {}.", uri);
+					}
+					return found;
+				}
+
+			};
+		}
+		// Disable the file cache if in development.
+		handler.setFileCacheEnabled(!ConfigurationManager.getVersion().equals("Dev"));
+
+		return handler;
 	}
 
 	/**

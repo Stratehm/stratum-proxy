@@ -27,6 +27,7 @@ public class Configuration {
 
 	private String logDirectory;
 	private String logLevel;
+	private String apiLogLevel;
 
 	private Integer stratumListenPort;
 	private String stratumListenAddress;
@@ -69,6 +70,14 @@ public class Configuration {
 
 	public void setLogLevel(String logLevel) {
 		this.logLevel = logLevel;
+	}
+
+	public String getApiLogLevel() {
+		return apiLogLevel;
+	}
+
+	public void setApiLogLevel(String apiLogLevel) {
+		this.apiLogLevel = apiLogLevel;
 	}
 
 	public Integer getStratumListenPort() {

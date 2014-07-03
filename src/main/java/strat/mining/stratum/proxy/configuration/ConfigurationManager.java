@@ -34,6 +34,7 @@ import org.apache.log4j.LogManager;
 import org.kohsuke.args4j.CmdLineException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import strat.mining.stratum.proxy.Launcher;
 import strat.mining.stratum.proxy.cli.CommandLineOptions;
@@ -66,6 +67,7 @@ public class ConfigurationManager {
 
 	private File logDirectory;
 	private Level logLevel = Level.INFO;
+	private Level apiLogLevel = null;
 
 	private Integer numberOfSubmit = 1;
 	private Integer stratumListeningPort = Constants.DEFAULT_STRATUM_LISTENING_PORT;
@@ -155,6 +157,7 @@ public class ConfigurationManager {
 		Configuration configuration = jsonParser.readValue(configurationFile, Configuration.class);
 
 		logLevel = configuration.getLogLevel() != null ? Level.toLevel(configuration.getLogLevel()) : logLevel;
+		apiLogLevel = configuration.getApiLogLevel() != null ? Level.toLevel(configuration.getApiLogLevel()) : apiLogLevel;
 		logDirectory = configuration.getLogDirectory() != null && !configuration.getLogDirectory().trim().isEmpty() ? new File(
 				configuration.getLogDirectory()) : logDirectory;
 		// Initialize the logging system
@@ -293,6 +296,7 @@ public class ConfigurationManager {
 
 		logLevel = cliParser.getLogLevel();
 		logDirectory = cliParser.getLogDirectory();
+		apiLogLevel = cliParser.getApiLogLevel();
 		// Initialize the logging system
 		initLogging();
 
@@ -509,6 +513,29 @@ public class ConfigurationManager {
 		LogManager.getRootLogger().setLevel(logLevel);
 		logger = LoggerFactory.getLogger(Launcher.class);
 		logger.info(logLevelMessage);
+
+		if (apiLogLevel == null) {
+			logger.info("API log level not set. API logging disabled.");
+		} else {
+			if (apiLogLevel == Level.OFF) {
+				logger.info("API log level set to OFF. API logging disabled.");
+			} else {
+				logger.info("API log level set to {}.", apiLogLevel.toString());
+				// Remove existing handlers attached to j.u.l root logger
+				SLF4JBridgeHandler.removeHandlersForRootLogger();
+
+				// Add SLF4JBridgeHandler to j.u.l's root logger
+				SLF4JBridgeHandler.install();
+
+				// Set the log level of the log4j logger to match the log level
+				// of the JUL logger.
+				LogManager.getLogger("org.glassfish").setLevel(apiLogLevel);
+
+				java.util.logging.LogManager.getLogManager().getLogger("").setLevel(getJULLevelFromLOG4JLevel(apiLogLevel));
+			}
+
+		}
+
 	}
 
 	/**
@@ -576,6 +603,24 @@ public class ConfigurationManager {
 	 * Return the installation directory of the application.
 	 */
 	public static final String getInstallDirectory() {
+		return getJarFile().getParent();
+	}
+
+	/**
+	 * Return the path of the application jar file.
+	 * 
+	 * @return
+	 */
+	public static final String getJarFilePath() {
+		return getJarFile().getAbsolutePath();
+	}
+
+	/**
+	 * Return the jar file.
+	 * 
+	 * @return
+	 */
+	private static File getJarFile() {
 		String path = ConfigurationManager.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		String decodedPath = null;
 		try {
@@ -589,8 +634,46 @@ public class ConfigurationManager {
 				e.printStackTrace();
 			}
 		}
-		File jarPath = new File(decodedPath);
-		return jarPath.getParent();
+		return new File(decodedPath);
+	}
+
+	/**
+	 * Return the Java Util Logging level from the Log4J level.
+	 * 
+	 * @param level
+	 * @return
+	 */
+	private static java.util.logging.Level getJULLevelFromLOG4JLevel(Level level) {
+		java.util.logging.Level result = java.util.logging.Level.INFO;
+		if (Level.ALL == level) {
+			result = java.util.logging.Level.ALL;
+		} else if (Level.FATAL == level) {
+			result = java.util.logging.Level.SEVERE;
+		} else if (Level.ERROR == level) {
+			result = java.util.logging.Level.SEVERE;
+		} else if (Level.WARN == level) {
+			result = java.util.logging.Level.WARNING;
+		} else if (Level.INFO == level) {
+			result = java.util.logging.Level.INFO;
+		} else if (Level.DEBUG == level) {
+			result = java.util.logging.Level.FINE;
+		} else if (Level.TRACE == level) {
+			result = java.util.logging.Level.FINEST;
+		} else if (Level.OFF == level) {
+			result = java.util.logging.Level.OFF;
+		}
+		return result;
+	}
+
+	/**
+	 * Return true only if the application is running from the jar file.
+	 * 
+	 * @return
+	 */
+	public static boolean isRunningFromJar() {
+		String className = ConfigurationManager.class.getName().replace('.', '/');
+		String classJar = ConfigurationManager.class.getResource("/" + className + ".class").toString();
+		return classJar.startsWith("jar:");
 	}
 
 	public File getDatabaseDirectory() {

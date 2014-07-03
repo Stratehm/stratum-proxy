@@ -60,8 +60,11 @@ public class CommandLineOptions {
 	@Option(name = "--log-directory", usage = "The directory where logs will be written", handler = FileOptionHandler.class, metaVar = "directory")
 	private File logDirectory;
 
-	@Option(name = "--log-level", usage = "The level of log: OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE. Default is INFO", handler = LogLevelOptionHandler.class, metaVar = "LEVEL")
+	@Option(name = "--log-level", usage = "The level of log: OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE. Default is INFO. DEBUG and TRACE levels may augment rejected shares.", handler = LogLevelOptionHandler.class, metaVar = "LEVEL")
 	private Level logLevel;
+
+	@Option(name = "--api-log-level", usage = "Enable the API logging with the given level. Valid levels are OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE. May degrade performances.", handler = LogLevelOptionHandler.class, metaVar = "LEVEL")
+	private Level apiLogLevel;
 
 	@Option(name = "--stratum-listen-port", usage = "The port number to listen incoming connections. (3333 by default)", metaVar = "portNumber")
 	private Integer stratumListeningPort;
@@ -276,6 +279,10 @@ public class CommandLineOptions {
 
 	public Boolean isNoMidstate() {
 		return noMidstate;
+	}
+
+	public Level getApiLogLevel() {
+		return apiLogLevel;
 	}
 
 	public Boolean isValidateSha26GetworkShares() {

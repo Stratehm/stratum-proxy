@@ -74,6 +74,12 @@
 			<version>1.2.17</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jul-to-slf4j</artifactId>
+			<version>1.7.7</version>
+		</dependency>
+
 		<!-- Utils -->
 		<dependency>
 			<groupId>com.google.guava</groupId>
@@ -97,6 +103,16 @@
 	</dependencies>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>webapp/*</exclude>
+					<exclude>**/headerGPLv3Template.txt</exclude>
+					<exclude>**/*.conf</exclude>
+				</excludes>
+			</resource>
+		</resources>
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -142,6 +158,9 @@
 							<mainClass>strat.mining.stratum.proxy.Launcher</mainClass>
 							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 						</manifest>
+						<manifestEntries>
+							<Class-Path>lib/stratum-proxy-webapp.jar</Class-Path>
+						</manifestEntries>
 					</archive>
 				</configuration>
 			</plugin>
@@ -153,26 +172,40 @@
 					<includes>
 						<include>**/*.java</include>
 					</includes>
-					<header>headerGPLv3Template.txt</header>
+					<header>src/main/resources/headerGPLv3Template.txt</header>
 				</configuration>
 			</plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.4</version>
-				<configuration>
-					<descriptors>
-						<descriptor>assembly.xml</descriptor>
-					</descriptors>
-					<finalName>stratum-proxy-${project.version}</finalName>
-					<appendAssemblyId>false</appendAssemblyId>
-				</configuration>
 				<executions>
 					<execution>
-						<id>zip-package</id>
+						<id>webapp-package</id>
 						<phase>package</phase>
 						<goals>
 							<goal>single</goal>
 						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>assemblies/webappAssembly.xml</descriptor>
+							</descriptors>
+							<finalName>stratum-proxy</finalName>
+							<appendAssemblyId>true</appendAssemblyId>
+						</configuration>
+					</execution>
+					<execution>
+						<id>dist-zip-package</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>assemblies/distAssembly.xml</descriptor>
+							</descriptors>
+							<finalName>stratum-proxy-${project.version}</finalName>
+							<appendAssemblyId>false</appendAssemblyId>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
