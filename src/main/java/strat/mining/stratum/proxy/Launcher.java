@@ -181,7 +181,7 @@ public class Launcher {
 		ServerConfiguration serverConfiguration = apiHttpServer.getServerConfiguration();
 		apiHttpServer.getListener("grizzly").getCompressionConfig().setCompressionMode(CompressionMode.ON);
 		apiHttpServer.getListener("grizzly").getCompressionConfig()
-				.setCompressableMimeTypes("text/javascript", "application/json", "text/html", "text/css");
+				.setCompressableMimeTypes("text/javascript", "application/json", "text/html", "text/css", "text/plain");
 		apiHttpServer.getListener("grizzly").getCompressionConfig().setCompressionMinSize(1024);
 		HttpHandler staticHandler = getStaticHandler();
 		if (staticHandler != null) {

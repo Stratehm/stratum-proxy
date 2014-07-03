@@ -65,8 +65,8 @@ PoolsPageController.prototype.onLoad = function() {
 	});
 
 	// Initialize the auto-refresh countdown
-	var autoRefreshCountDown = this.containerJquery.find(
-			'.autoRefreshCountDown').text('Auto refresh in -- seconds.');
+	this.containerJquery.find('.autoRefreshCountDown').text(
+			'Auto refresh in -- seconds.');
 	this.autoRefreshCountDownValue = autoRefreshDelay / 1000;
 };
 
