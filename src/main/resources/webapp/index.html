@@ -45,8 +45,8 @@
 						class="icon-black glyphicon glyphicon-refresh"></i> Refresh</a>
 				</div>
 			</h1>
-
 		</div>
+		<div class="row poolItemContainer"></div>
 	</div>
 
 	<div id="usersPage" class="container">
@@ -139,9 +139,40 @@
 				<label class="col-sm-3 control-label">Rejected hashreate</label>
 				<div class="col-sm-3 rejectedHashrateValue"></div>
 			</div>
+			<div class="row top20 bottom20">
+				<div class="text-center">
+					<div class="btn-group">
+						<a class="btn btn-primary setHighestPriority">Set highest
+							priority</a> <a class="btn btn-warning enableDisable">Disable</a> <a
+							class="btn btn-danger remove">Remove</a>
+						<!-- 						<a class="btn btn-default edit"><i -->
+						<!-- 						class="glyphicon glyphicon-edit"></i> Edit</a> -->
+					</div>
+				</div>
+			</div>
 			<div class="col-sm-12">
 				<div class="hashrateChart" sytle="width: 100%;">
 					<div class="chartLoader"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="confirmationModal"
+		class="modal fade bs-example-modal-sm removePoolConfirmation"
+		tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-sm">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">
+						<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+					</button>
+					<h4 class="modal-title"></h4>
+				</div>
+				<div class="modal-body"></div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default yesButton">Yes</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">No</button>
 				</div>
 			</div>
 		</div>

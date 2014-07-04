@@ -81,15 +81,33 @@ PoolsPageController.prototype.onUnload = function() {
 
 PoolsPageController.prototype.items = new Array();
 PoolsPageController.prototype.addPool = function(pool) {
-	var item = new PoolItem();
+	var item = new PoolItem(), controller = this;
 	item.setPool(pool);
 	this.items.push(item);
-	this.containerJquery.append(item.poolItemJquery);
-	// Fire a resize event to force the charts to display correctly
-	// $(window).resize();
+	this.containerJquery.find('.poolItemContainer').append(item.poolItemJquery);
+
+	// Initialize all buttons handlers
+	item.getSetHighestPriorityButton().click(function() {
+		controller.setPoolPriority(pool.name, 0);
+	});
+
+	item.getEnableDisableButton().click(
+			function() {
+				controller.setPoolEnabled(pool.name, item
+						.getEnableDisableButton().text() == 'Enable');
+			});
+
+	item.getRemoveButton().click(function() {
+		controller.removePool(pool.name);
+	});
+};
+PoolsPageController.prototype.getPoolItemFromName = function(poolName) {
+	return this.items.find(function(item) {
+		return item.pool.name == poolName;
+	});
 };
 
-PoolsPageController.prototype.refresh = function() {
+PoolsPageController.prototype.refresh = function(onSuccess) {
 	var controller = this;
 	this.setIsRefreshing(true);
 
@@ -130,13 +148,139 @@ PoolsPageController.prototype.refresh = function() {
 				}
 			});
 
+			// Once all pools are present, sort them based on their priority
+			controller.containerJquery.find('.poolItemContainer > .poolItem')
+					.sort(function(a, b) {
+						return $(a).data('priority') - $(b).data('priority');
+					});
+
 			controller.setIsRefreshing(false);
+
+			if (onSuccess != undefined) {
+				onSuccess();
+			}
 		},
 		error : function(request, textStatus, errorThrown) {
 			window.alert('Failed to get pool list. Status: ' + textStatus
 					+ ', error: ' + errorThrown);
 		}
 	});
+};
+
+/**
+ * Set the priority of the pool with the given name
+ * 
+ * @param poolName
+ */
+PoolsPageController.prototype.setPoolPriority = function(poolName, priority) {
+	var controller = this;
+
+	// Reload pool data
+	$.ajax({
+		url : "/proxy/pool/priority",
+		dataType : "json",
+		type : "POST",
+		data : JSON.stringify({
+			poolName : poolName,
+			priority : priority
+		}),
+		contentType : "application/json",
+		success : function(data) {
+			// When priority is set, refresh the list.
+			if (data.status != 'Done') {
+				window.alert('Failed to set the pool priority to 0. Message: '
+						+ data.message);
+			} else {
+				controller.refresh();
+			}
+		},
+		error : function(request, textStatus, errorThrown) {
+			window.alert('Failed to set the pool priority to 0. Status: '
+					+ textStatus + ', error: ' + errorThrown);
+		}
+	});
+};
+
+/**
+ * Set the pool with the given name enabled/disabled
+ * 
+ * @param poolName
+ */
+PoolsPageController.prototype.setPoolEnabled = function(poolName, isEnabled) {
+	var controller = this, url;
+
+	if (isEnabled) {
+		url = "/proxy/pool/enable";
+	} else {
+		url = "/proxy/pool/disable";
+	}
+
+	// Reload pool data
+	$
+			.ajax({
+				url : url,
+				dataType : "json",
+				type : "POST",
+				data : JSON.stringify({
+					poolName : poolName,
+				}),
+				contentType : "application/json",
+				success : function(data) {
+					// When priority is set, refresh the list.
+					if (data.status != 'Done') {
+						window
+								.alert('Failed to change the state of the pool. Message: '
+										+ data.message);
+					} else {
+						controller.refresh();
+					}
+				},
+				error : function(request, textStatus, errorThrown) {
+					window
+							.alert('Failed to change the state of the pool. Status: '
+									+ textStatus + ', error: ' + errorThrown);
+				}
+			});
+};
+
+/**
+ * Remove the pool with the given name. Ask a confirmation.
+ */
+PoolsPageController.prototype.removePool = function(poolName) {
+	var modal = $('#confirmationModal').modal({
+		keyboard : true,
+		backdrop : true
+	}), controller = this;
+	modal.find('.modal-title').text('Confirmation');
+	modal.find('.modal-body').text(
+			'Do you really want to remove the pool ' + poolName + ' ?');
+	modal.find('.yesButton').click(
+			function() {
+				modal.modal('hide');
+				$.ajax({
+					url : '/proxy/pool/remove',
+					dataType : "json",
+					type : "POST",
+					data : JSON.stringify({
+						poolName : poolName,
+					}),
+					contentType : "application/json",
+					success : function(data) {
+						// When priority is set, refresh the list.
+						if (data.status != 'Done') {
+							window.alert('Failed to remove the pool. Message: '
+									+ data.message);
+						} else {
+							controller.refresh();
+						}
+					},
+					error : function(request, textStatus, errorThrown) {
+						window.alert('Failed remove the pool. Status: '
+								+ textStatus + ', error: ' + errorThrown);
+					}
+				});
+			});
+	modal.modal('show');
 };
 
 /**
@@ -165,7 +309,7 @@ PoolsPageController.prototype.lastAutoRefreshCountDownExecution = null;
  * Start the auto-refresh
  */
 PoolsPageController.prototype.startAutoRefresh = function() {
-	var controller = this;
+	var controller = this, updateFunction;
 
 	// Update the auto-refresh countdown
 	var autoRefreshCountDown = this.containerJquery
@@ -174,7 +318,7 @@ PoolsPageController.prototype.startAutoRefresh = function() {
 			+ controller.autoRefreshCountDownValue + ' seconds.');
 	this.lastAutoRefreshCountDownExecution = Date.now();
 	// Define the auto-refresh countdown update function
-	var updateFunction = function() {
+	updateFunction = function() {
 		var secondsSinceLastExecution = Math
 				.round((Date.now() - controller.lastAutoRefreshCountDownExecution) / 1000);
 		controller.lastAutoRefreshCountDownExecution = Date.now();
@@ -188,11 +332,11 @@ PoolsPageController.prototype.startAutoRefresh = function() {
 			controller.startAutoRefresh();
 			controller.autoRefreshCountDownValue = autoRefreshDelay / 1000;
 		}
-	}
+	};
 	// Start the auto-refresh countdown update timer.
 	this.autoRefreshCountDownTimerId = window.setInterval(updateFunction, 1000);
 
-}
+};
 
 /**
  * Reset the delay before next auto-refresh
@@ -384,6 +528,10 @@ PoolItem.prototype.updatePool = function(pool) {
 	this.poolItemJquery.find('.rejectedHashrateValue').text(
 			pool.rejectedHashesPerSeconds);
 
+	// Associate the pool priority to the jQuery object to allow sorting of
+	// pools.
+	this.poolItemJquery.data('priority', pool.priority);
+
 	// Apply the color of the panel header based on the pool status
 	// By default, the color is white (panel-default). This color is the
 	// disabled pool color.
@@ -409,10 +557,42 @@ PoolItem.prototype.updatePool = function(pool) {
 	} else {
 		this.poolItemJquery.addClass('panel-default');
 	}
+
+	// Update the buttons state of the item
+
+	// Update the enableDisable button
+	if (pool.isEnabled) {
+		this.getEnableDisableButton().text("Disable");
+		this.getEnableDisableButton().removeClass("btn-warning").removeClass(
+				"btn-success");
+		this.getEnableDisableButton().addClass("btn-warning");
+	} else {
+		this.getEnableDisableButton().text("Enable");
+		this.getEnableDisableButton().removeClass("btn-warning").removeClass(
+				"btn-success");
+		this.getEnableDisableButton().addClass("btn-success");
+	}
+
 };
 
 PoolItem.prototype.remove = function() {
 	this.poolItemJquery.remove();
+};
+
+PoolItem.prototype.getEditButton = function() {
+	return this.poolItemJquery.find(".edit");
+};
+
+PoolItem.prototype.getSetHighestPriorityButton = function() {
+	return this.poolItemJquery.find(".setHighestPriority");
+};
+
+PoolItem.prototype.getEnableDisableButton = function() {
+	return this.poolItemJquery.find(".enableDisable");
+};
+
+PoolItem.prototype.getRemoveButton = function() {
+	return this.poolItemJquery.find(".remove");
 };
 
 /**
@@ -462,8 +642,8 @@ PoolItem.prototype.setHashrateChartData = function(hashrates) {
 	var rejectedData = new Array();
 
 	hashrates.forEach(function(hashrate) {
-		var time = hashrate.captureTimeUTC * 1000;
-		var hashrateData = [ time, hashrate.acceptedHashrate ];
+		var time = hashrate.captureTimeUTC * 1000, hashrateData;
+		hashrateData = [ time, hashrate.acceptedHashrate ];
 		acceptedData.push(hashrateData);
 
 		hashrateData = [ time, hashrate.rejectedHashrate ];
@@ -623,3 +803,70 @@ Array.prototype.find = function(predicate) {
 	});
 	return result;
 };
+
+/**
+ * jQuery.fn.sort --------------
+ * 
+ * @author James Padolsey (http://james.padolsey.com)
+ * @version 0.1
+ * @updated 18-MAR-2010 --------------
+ * @param Function
+ *            comparator: Exactly the same behaviour as [1,2,3].sort(comparator)
+ * 
+ * @param Function
+ *            getSortable A function that should return the element that is to
+ *            be sorted. The comparator will run on the current collection, but
+ *            you may want the actual resulting sort to occur on a parent or
+ *            another associated element.
+ * 
+ * E.g. $('td').sort(comparator, function(){ return this.parentNode; })
+ * 
+ * The
+ * <td>'s parent (
+ * <tr>) will be sorted instead of the
+ * <td> itself.
+ */
+jQuery.fn.sort = (function() {
+
+	var sort = [].sort;
+
+	return function(comparator, getSortable) {
+
+		getSortable = getSortable || function() {
+			return this;
+		};
+
+		var placements = this
+				.map(function() {
+
+					var sortElement = getSortable.call(this), parentNode = sortElement.parentNode,
+
+					// Since the element itself will change position, we have
+					// to have some way of storing it's original position in
+					// the DOM. The easiest way is to have a 'flag' node:
+					nextSibling = parentNode.insertBefore(document
+							.createTextNode(''), sortElement.nextSibling);
+
+					return function() {
+
+						if (parentNode === this) {
+							throw new Error(
+									"You can't sort elements if any one is a descendant of another.");
+						}
+
+						// Insert before flag:
+						parentNode.insertBefore(this, nextSibling);
+						// Remove flag:
+						parentNode.removeChild(nextSibling);
+
+					};
+
+				});
+
+		return sort.call(this, comparator).each(function(i) {
+			placements[i].call(getSortable.call(this));
+		});
+
+	};
+
+})();

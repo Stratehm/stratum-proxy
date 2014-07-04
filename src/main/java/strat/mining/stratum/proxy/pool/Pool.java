@@ -225,8 +225,10 @@ public class Pool implements Comparable<Pool> {
 			isStable = false;
 			manager.onPoolStateChange(this);
 			LOGGER.debug("Stopping pool {}...", getName());
-			connection.close();
-			connection = null;
+			if (connection != null) {
+				connection.close();
+				connection = null;
+			}
 			LOGGER.info("Pool {} stopped.", getName());
 		}
 	}
