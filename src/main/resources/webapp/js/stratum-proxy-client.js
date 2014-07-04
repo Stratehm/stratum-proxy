@@ -153,7 +153,7 @@ PoolsPageController.prototype.setIsRefreshing = function(isRefreshing) {
 		refreshButton.removeAttr('disabled');
 		refreshButton.find('i').removeClass('spin');
 	}
-}
+};
 
 /**
  * Properties to manage auto-refresh
@@ -200,7 +200,7 @@ PoolsPageController.prototype.startAutoRefresh = function() {
 PoolsPageController.prototype.resetAutoRefresh = function() {
 	this.stopAutoRefresh();
 	this.startAutoRefresh();
-}
+};
 
 /**
  * Stop the auto-refresh
@@ -215,7 +215,7 @@ PoolsPageController.prototype.stopAutoRefresh = function() {
 	var autoRefreshCountDown = this.containerJquery
 			.find('.autoRefreshCountDown');
 	autoRefreshCountDown.text('Auto refresh in -- seconds.');
-}
+};
 
 /*
  * Define a pool item linked to a view
@@ -344,7 +344,7 @@ PoolItem.prototype.initChart = function() {
 
 	// Associate the chart with the poolItem
 	this.chart = this.poolItemJquery.find(".hashrateChart").highcharts();
-}
+};
 
 PoolItem.prototype.updatePool = function(pool) {
 	this.pool = pool;
@@ -500,7 +500,7 @@ PoolItem.prototype.updateHashrateChartData = function(hashrates) {
 			break;
 		}
 	}
-}
+};
 
 /*
  * Global variables
@@ -563,6 +563,7 @@ function initControllers() {
 function loadPageController(pageName) {
 	pagesControllers.forEach(function(controller) {
 		if (controller.pageName == pageName) {
+			controller.unload();
 			controller.load();
 		} else {
 			controller.unload();
@@ -621,4 +622,4 @@ Array.prototype.find = function(predicate) {
 		}
 	});
 	return result;
-}
+};
