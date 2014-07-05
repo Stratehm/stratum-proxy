@@ -530,7 +530,8 @@ PoolItem.prototype.initChart = function() {
 					type : 'datetime',
 					title : {
 						text : 'Date'
-					}
+					},
+					ordinal: false
 				},
 				yAxis : [ {
 					min : 0,
