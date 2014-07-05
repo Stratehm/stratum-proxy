@@ -79,7 +79,7 @@ Return: [ { "remoteHost": string, "authorizedUsers": [ string, ... ], "acceptedH
 
  * pool/add: (POST) Add a new pool
 ```
-Parameters: { "poolName": string (optional=poolHost), "poolHost": string, "username": string, "password": string, "priority": integer (optional=lowestOne), "enableExtranonceSubscribe": boolean (optional=false),  "isEnabled": boolean (optional=true)}
+Parameters: { "poolName": string (optional=poolHost), "poolHost": string, "username": string, "password": string, "priority": integer (optional=lowestOne), "enableExtranonceSubscribe": boolean (optional=false),  "isEnabled": boolean (optional=true), "appendWorkerNames": boolean (optional=false), "workerNameSeparator": string (optional=.), "useWorkerPassword": boolean (optional=false)}
 Return: {"status": string, "message": string}. Returned statuses are DONE, DONE_PARTIALLY (if added but not started) or FAILED.
 ```
 

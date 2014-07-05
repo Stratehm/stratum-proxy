@@ -134,7 +134,7 @@ public class Pool implements Comparable<Pool> {
 
 	public Pool(String name, String host, String username, String password) {
 		super();
-		this.name = name == null ? host : name;
+		this.name = name == null || name.isEmpty() ? host : name;
 		this.host = host;
 		this.username = username;
 		this.password = password;
@@ -258,7 +258,7 @@ public class Pool implements Comparable<Pool> {
 	}
 
 	/**
-	 * Enable/Disable the pool. Throw an exception if cannot enable the pool.
+	 * Enable/Disable the pool. Use the already bound manager.
 	 * 
 	 * @param isEnabled
 	 * @throws URISyntaxException
@@ -266,6 +266,19 @@ public class Pool implements Comparable<Pool> {
 	 * @throws Exception
 	 */
 	public void setEnabled(boolean isEnabled) throws PoolStartException, SocketException, URISyntaxException {
+		setEnabled(isEnabled, manager);
+	}
+
+	/**
+	 * Enable/Disable the pool. Throw an exception if cannot enable the pool.
+	 * Use the given manager to start the pool.
+	 * 
+	 * @param isEnabled
+	 * @throws URISyntaxException
+	 * @throws SocketException
+	 * @throws Exception
+	 */
+	public void setEnabled(boolean isEnabled, StratumProxyManager manager) throws PoolStartException, SocketException, URISyntaxException {
 		if (this.isEnabled != isEnabled) {
 			this.isEnabled = isEnabled;
 			if (isEnabled) {

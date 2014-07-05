@@ -52,7 +52,7 @@ PoolsPageController.prototype.onLoad = function() {
 		success : function(data) {
 			// When pools are retrieved, create the items
 			data.forEach(function(pool) {
-				controller.addPool(pool);
+				controller.addPoolInPage(pool);
 			});
 
 			controller.startAutoRefresh();
@@ -60,7 +60,7 @@ PoolsPageController.prototype.onLoad = function() {
 	});
 
 	// Add the click event on the refresh button
-	this.containerJquery.find('.refresh-button').click(function() {
+	this.containerJquery.find('.refreshButton').click(function() {
 		controller.refresh();
 	});
 
@@ -68,6 +68,11 @@ PoolsPageController.prototype.onLoad = function() {
 	this.containerJquery.find('.autoRefreshCountDown').text(
 			'Auto refresh in -- seconds.');
 	this.autoRefreshCountDownValue = autoRefreshDelay / 1000;
+
+	// Initialize the pool add button
+	this.containerJquery.find('.addPoolButton').click(function() {
+		controller.openAddPool();
+	});
 };
 
 PoolsPageController.prototype.onUnload = function() {
@@ -80,7 +85,7 @@ PoolsPageController.prototype.onUnload = function() {
 };
 
 PoolsPageController.prototype.items = new Array();
-PoolsPageController.prototype.addPool = function(pool) {
+PoolsPageController.prototype.addPoolInPage = function(pool) {
 	var item = new PoolItem(), controller = this;
 	item.setPool(pool);
 	this.items.push(item);
@@ -128,7 +133,7 @@ PoolsPageController.prototype.refresh = function(onSuccess) {
 
 				// If the pool item does not exist, create it.
 				if (poolItem == null) {
-					controller.addPool(pool);
+					controller.addPoolInPage(pool);
 				} else {
 					// Else update the pool and update the chart data.
 					poolItem.updatePool(pool);
@@ -145,6 +150,7 @@ PoolsPageController.prototype.refresh = function(onSuccess) {
 				// If the pool is not in the received pools, then delete it.
 				if (pool == null) {
 					poolItem.remove();
+					controller.items.removeItem(poolItem);
 				}
 			});
 
@@ -161,8 +167,10 @@ PoolsPageController.prototype.refresh = function(onSuccess) {
 			}
 		},
 		error : function(request, textStatus, errorThrown) {
+			var jsonObject = JSON.parse(request.responseText);
 			window.alert('Failed to get pool list. Status: ' + textStatus
-					+ ', error: ' + errorThrown);
+					+ ', error: ' + errorThrown + ', message: '
+					+ jsonObject.message);
 		}
 	});
 };
@@ -195,8 +203,10 @@ PoolsPageController.prototype.setPoolPriority = function(poolName, priority) {
 			}
 		},
 		error : function(request, textStatus, errorThrown) {
+			var jsonObject = JSON.parse(request.responseText);
 			window.alert('Failed to set the pool priority to 0. Status: '
-					+ textStatus + ', error: ' + errorThrown);
+					+ textStatus + ', error: ' + errorThrown + ', message: '
+					+ jsonObject.message);
 		}
 	});
 };
@@ -236,9 +246,13 @@ PoolsPageController.prototype.setPoolEnabled = function(poolName, isEnabled) {
 					}
 				},
 				error : function(request, textStatus, errorThrown) {
+					var jsonObject = JSON.parse(request.responseText);
 					window
 							.alert('Failed to change the state of the pool. Status: '
-									+ textStatus + ', error: ' + errorThrown);
+									+ textStatus
+									+ ', error: '
+									+ errorThrown
+									+ ', message: ' + jsonObject.message);
 				}
 			});
 };
@@ -254,7 +268,7 @@ PoolsPageController.prototype.removePool = function(poolName) {
 	modal.find('.modal-title').text('Confirmation');
 	modal.find('.modal-body').text(
 			'Do you really want to remove the pool ' + poolName + ' ?');
-	modal.find('.yesButton').click(
+	modal.find('.yesButton').off('click').click(
 			function() {
 				modal.modal('hide');
 				$.ajax({
@@ -275,19 +289,20 @@ PoolsPageController.prototype.removePool = function(poolName) {
 						}
 					},
 					error : function(request, textStatus, errorThrown) {
+						var jsonObject = JSON.parse(request.responseText);
 						window.alert('Failed remove the pool. Status: '
-								+ textStatus + ', error: ' + errorThrown);
+								+ textStatus + ', error: ' + errorThrown
+								+ ', message: ' + jsonObject.message);
 					}
 				});
 			});
-	modal.modal('show');
 };
 
 /**
  * Change the appearance of the refresh button and start/stop the auto-refresh.
  */
 PoolsPageController.prototype.setIsRefreshing = function(isRefreshing) {
-	var refreshButton = this.containerJquery.find('.refresh-button');
+	var refreshButton = this.containerJquery.find('.refreshButton');
 	if (isRefreshing) {
 		this.stopAutoRefresh();
 		refreshButton.attr('disabled', 'true');
@@ -359,6 +374,85 @@ PoolsPageController.prototype.stopAutoRefresh = function() {
 	var autoRefreshCountDown = this.containerJquery
 			.find('.autoRefreshCountDown');
 	autoRefreshCountDown.text('Auto refresh in -- seconds.');
+};
+
+/**
+ * Open a pool add popup.
+ */
+PoolsPageController.prototype.openAddPool = function() {
+	var modal = $('#addPoolModal').modal({
+		keyboard : true,
+		backdrop : 'static'
+	}), controller = this;
+	modal.find('.modal-title').text('Add a pool');
+	var modal = $('#addPoolModal');
+	modal
+			.find('.validateButton')
+			.off('click')
+			.click(
+					function() {
+
+						var poolName = modal.find('#poolNameField').val(), poolHost = modal
+								.find('#poolHostField').val(), username = modal
+								.find('#usernameField').val(), password = modal
+								.find('#passwordField').val(), priority = modal
+								.find('#priorityField').val(), enableExtranonceSubscribe = modal
+								.find('#enableExtranonceSubscribeField').is(
+										':checked'), isEnabled = modal.find(
+								'#isEnabledField').is(':checked'), appendWorkerNames = modal
+								.find('#appendWorkerNamesField').is(':checked'), workerNameSeparator = modal
+								.find('#workerNameSeparatorField').val(), useWorkerPassword = modal
+								.find('#useWorkerPasswordField').is(':checked');
+
+						modal.modal('hide');
+						$
+								.ajax({
+									url : '/proxy/pool/add',
+									dataType : "json",
+									type : "POST",
+									data : JSON
+											.stringify({
+												poolName : poolName,
+												poolHost : poolHost,
+												username : username,
+												password : password,
+												priority : priority,
+												enableExtranonceSubscribe : enableExtranonceSubscribe,
+												isEnabled : isEnabled,
+												appendWorkerNames : appendWorkerNames,
+												workerNameSeparator : workerNameSeparator,
+												useWorkerPassword : useWorkerPassword
+											}),
+									contentType : "application/json",
+									success : function(data) {
+										// When priority is set, refresh the
+										// list.
+										if (data.status == 'Failed') {
+											window
+													.alert('Failed to add the pool. Message: '
+															+ data.message);
+										} else if (data.status == 'PartiallyDone') {
+											window
+													.alert('Pool added but not started. Message: '
+															+ data.message);
+										} else {
+											controller.refresh();
+										}
+									},
+									error : function(request, textStatus,
+											errorThrown) {
+										var jsonObject = JSON
+												.parse(request.responseText);
+										window
+												.alert('Failed to add the pool. Status: '
+														+ textStatus
+														+ ', error: '
+														+ errorThrown
+														+ ', message: '
+														+ jsonObject.message);
+									}
+								});
+					});
 };
 
 /*
@@ -627,9 +721,11 @@ PoolItem.prototype.reloadChartData = function(isUpdate) {
 			}
 		},
 		error : function(request, textStatus, errorThrown) {
+			var jsonObject = JSON.parse(request.responseText);
 			window.alert('Failed to get hashrates for pool '
 					+ poolItem.pool.name + '. Status: ' + textStatus
-					+ ', error: ' + errorThrown);
+					+ ', error: ' + errorThrown + ', message: '
+					+ jsonObject.message);
 		}
 	});
 };
@@ -710,7 +806,6 @@ function launchClient() {
 	initControllers();
 
 	initNavBarHandlers();
-
 }
 
 /**
@@ -749,6 +844,21 @@ function loadPageController(pageName) {
 			controller.unload();
 		}
 	});
+}
+
+/**
+ * Return the controller of the given page name
+ * 
+ * @param pageName
+ */
+function getControllerOfPage(pageName) {
+	var result = null;
+	pagesControllers.forEach(function(controller) {
+		if (controller.pageName == pageName) {
+			result = controller;
+		}
+	});
+	return result;
 }
 
 /**
@@ -802,6 +912,16 @@ Array.prototype.find = function(predicate) {
 		}
 	});
 	return result;
+};
+
+Array.prototype.removeItem = function(item) {
+	var deleted = null, index = 0;
+	while ((index = this.indexOf(item, index)) != -1) {
+		deleted = this.splice(index, 1);
+	}
+	if (deleted) {
+		return deleted[0];
+	}
 };
 
 /**

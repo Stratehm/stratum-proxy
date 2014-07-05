@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
+import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.AuthorizationException;
 import strat.mining.stratum.proxy.exception.BadParameterException;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
@@ -620,7 +621,7 @@ public class StratumProxyManager {
 
 		if (pool.isEnabled() != isEnabled) {
 			LOGGER.info("Set pool {} {}", pool.getName(), isEnabled ? "enabled" : "disabled");
-			pool.setEnabled(isEnabled);
+			pool.setEnabled(isEnabled, this);
 		}
 	}
 
@@ -709,6 +710,11 @@ public class StratumProxyManager {
 
 		// By default, does not enable extranonce subscribe.
 		poolToAdd.setExtranonceSubscribeEnabled(addPoolDTO.getEnableExtranonceSubscribe() != null && addPoolDTO.getEnableExtranonceSubscribe());
+
+		poolToAdd.setAppendWorkerNames(addPoolDTO.getAppendWorkerNames() != null ? addPoolDTO.getAppendWorkerNames() : false);
+		poolToAdd.setWorkerSeparator(addPoolDTO.getWorkerNameSeparator() != null ? addPoolDTO.getWorkerNameSeparator()
+				: Constants.DEFAULT_WORKER_NAME_SEPARTOR);
+		poolToAdd.setUseWorkerPassword(addPoolDTO.getUseWorkerPassword() != null ? addPoolDTO.getUseWorkerPassword() : false);
 
 		// Set by default the priority to the lowest over all pools.
 		int minPriority = getMinimumPoolPriority();

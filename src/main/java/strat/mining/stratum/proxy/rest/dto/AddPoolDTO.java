@@ -30,6 +30,9 @@ public class AddPoolDTO {
 	private Integer priority;
 	private Boolean enableExtranonceSubscribe;
 	private Boolean isEnabled;
+	private Boolean appendWorkerNames;
+	private String workerNameSeparator;
+	private Boolean useWorkerPassword;
 
 	public String getPoolName() {
 		return poolName;
@@ -87,6 +90,30 @@ public class AddPoolDTO {
 		this.isEnabled = isEnabled;
 	}
 
+	public Boolean getAppendWorkerNames() {
+		return appendWorkerNames;
+	}
+
+	public void setAppendWorkerNames(Boolean appendWorkerNames) {
+		this.appendWorkerNames = appendWorkerNames;
+	}
+
+	public String getWorkerNameSeparator() {
+		return workerNameSeparator;
+	}
+
+	public void setWorkerNameSeparator(String workerNameSeparator) {
+		this.workerNameSeparator = workerNameSeparator;
+	}
+
+	public Boolean getUseWorkerPassword() {
+		return useWorkerPassword;
+	}
+
+	public void setUseWorkerPassword(Boolean useWorkerPassword) {
+		this.useWorkerPassword = useWorkerPassword;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -104,6 +131,12 @@ public class AddPoolDTO {
 		builder.append(enableExtranonceSubscribe);
 		builder.append(", isEnabled=");
 		builder.append(isEnabled);
+		builder.append(", appendWorkerNames=");
+		builder.append(appendWorkerNames);
+		builder.append(", workerNameSeparator=");
+		builder.append(workerNameSeparator);
+		builder.append(", useWorkerPassword=");
+		builder.append(useWorkerPassword);
 		builder.append("]");
 		return builder.toString();
 	}
