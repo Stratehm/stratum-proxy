@@ -20,7 +20,7 @@
 	</appender>
 
 	<logger name="org.glassfish">
-		<priority value="info" />
+		<level value="info" />
 	</logger>
 
 	<root>
