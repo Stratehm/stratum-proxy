@@ -435,6 +435,7 @@ PoolsPageController.prototype.openAddPool = function() {
 											window
 													.alert('Pool added but not started. Message: '
 															+ data.message);
+											controller.refresh();
 										} else {
 											controller.refresh();
 										}
@@ -453,6 +454,110 @@ PoolsPageController.prototype.openAddPool = function() {
 									}
 								});
 					});
+};
+
+/*
+ * Controller of the logs page.
+ */
+var LogsPageController = function(pageName) {
+	PageController.call(this, pageName);
+};
+
+LogsPageController.prototype = Object.create(PageController.prototype);
+LogsPageController.prototype.constructor = PageController;
+
+/**
+ * Load the logs page
+ */
+LogsPageController.prototype.onLoad = function() {
+	this.refresh();
+	this.startAutoRefresh();
+};
+
+/**
+ * Unload the logs page
+ */
+LogsPageController.prototype.onUnload = function() {
+	this.stopAutoRefresh();
+};
+
+/**
+ * Refresh the logs.
+ */
+LogsPageController.prototype.refresh = function() {
+	var controller = this;
+	$.ajax({
+		url : '/proxy/log/since',
+		dataType : "json",
+		type : "POST",
+		data : JSON.stringify({
+			timestamp : controller.lastLogLineTimestamp
+		}),
+		contentType : "application/json",
+		success : function(data) {
+			if (data != undefined) {
+				controller.appendLogs(data);
+			}
+		},
+		error : function(request, textStatus, errorThrown) {
+			var jsonObject = JSON.parse(request.responseText);
+			window.alert('Failed to get the last log lines. Status: '
+					+ textStatus + ', error: ' + errorThrown + ', message: '
+					+ jsonObject.message);
+		}
+	});
+};
+
+/**
+ * Append the given logs data.
+ */
+LogsPageController.prototype.appendLogs = function(logsData) {
+	var logString = "", controller = this, isScrolledBottom = false, logsPageContainer = $('html');
+
+	// Check if the scroll is already in bottom. If so, keep the scroll at the
+	// bottom after log lines append.
+	isScrolledBottom = logsPageContainer[0].scrollHeight
+			- logsPageContainer[0].scrollTop === logsPageContainer[0].clientHeight;
+
+	logsData.forEach(function(logEntry) {
+		controller.lastLogLineTimestamp = logEntry.key;
+		logString += logEntry.value;
+	});
+
+	this.containerJquery.find('.logsContainer').append(logString);
+
+	// If the page was at the bottom position, keep it in this position. Else do
+	// nothing.
+	if (isScrolledBottom) {
+		logsPageContainer.scrollTop(logsPageContainer[0].scrollHeight);
+	}
+};
+
+/**
+ * Used by auto-refresh
+ */
+LogsPageController.prototype.autoRefreshCountDownTimerId = null;
+LogsPageController.prototype.lastLogLineTimestamp = null;
+
+/**
+ * Start the logs auto-refresh process.
+ */
+LogsPageController.prototype.startAutoRefresh = function() {
+	var controller = this;
+	// Start the auto-refresh countdown update timer.
+	this.autoRefreshCountDownTimerId = window.setInterval(function() {
+		controller.refresh();
+	}, 1000);
+};
+
+/**
+ * Stop the log auto-refresh
+ */
+LogsPageController.prototype.stopAutoRefresh = function() {
+	// Stop the logs auto-refresh
+	if (this.autoRefreshCountDownTimerId != null) {
+		window.clearInterval(this.autoRefreshCountDownTimerId);
+	}
 };
 
 /*
@@ -531,7 +636,7 @@ PoolItem.prototype.initChart = function() {
 					title : {
 						text : 'Date'
 					},
-					ordinal: false
+					ordinal : false
 				},
 				yAxis : [ {
 					min : 0,
@@ -829,6 +934,7 @@ function initControllers() {
 	pagesControllers.push(new PageController('usersPage'));
 	pagesControllers.push(new PageController('connectionsPage'));
 	pagesControllers.push(new PageController('settingsPage'));
+	pagesControllers.push(new LogsPageController('logsPage'));
 
 	poolPageController.load();
 }

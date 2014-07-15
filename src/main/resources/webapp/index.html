@@ -29,6 +29,8 @@
 						page-name="connectionsPage">Connections</a></li>
 					<li><a id="settingsTabButton" href="#settings"
 						page-name="settingsPage">Settings</a></li>
+					<li><a id="settingsTabButton" href="#logs"
+						page-name="logsPage">Logs</a></li>
 				</ul>
 			</div>
 			<!--/.nav-collapse -->
@@ -70,6 +72,16 @@
 	<div id="settingsPage" class="container">
 		<div>
 			<h1>Not yet available</h1>
+		</div>
+	</div>
+	
+	
+	<div id="logsPage" class="container">
+		<div>
+			<h1>Logs</h1>
+		</div>
+		<div class="row logsPageContainer">
+			<pre class="logs logsContainer"></pre>
 		</div>
 	</div>
 
@@ -126,9 +138,8 @@
 				<div class="col-sm-3 isExtranonceSubscribeEnabledValue"></div>
 			</div>
 			<div class="row">
-				<label class="col-sm-3 control-label">Worker extranonce 2
-					size</label>
-				<div class="col-sm-3 workerExtranonce2SizeValue"></div>
+				<label class="col-sm-3 control-label">Last error</label>
+				<div class="col-sm-3 lastErrorValue"></div>
 				<label class="col-sm-3 control-label">Number of workers</label>
 				<div class="col-sm-3 numberOfWorkersValue"></div>
 			</div>

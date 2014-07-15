@@ -23,6 +23,7 @@ import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -56,6 +57,7 @@ import strat.mining.stratum.proxy.rest.dto.LogLevelDTO;
 import strat.mining.stratum.proxy.rest.dto.PoolDetailsDTO;
 import strat.mining.stratum.proxy.rest.dto.PoolNameDTO;
 import strat.mining.stratum.proxy.rest.dto.StatusDTO;
+import strat.mining.stratum.proxy.rest.dto.TimestampDTO;
 import strat.mining.stratum.proxy.rest.dto.UserDetailsDTO;
 import strat.mining.stratum.proxy.rest.dto.UserNameDTO;
 import strat.mining.stratum.proxy.rest.dto.WorkerConnectionDTO;
@@ -74,6 +76,8 @@ public class ProxyResources {
 	private StratumProxyManager stratumProxyManager = StratumProxyManager.getInstance();
 
 	private DatabaseManager databaseManager = DatabaseManager.getInstance();
+
+	private strat.mining.stratum.proxy.manager.LogManager logManager = strat.mining.stratum.proxy.manager.LogManager.getInstance();
 
 	/**
 	 * Get the list of connected users
@@ -558,6 +562,20 @@ public class ProxyResources {
 			}
 		} else {
 			response = Response.status(Response.Status.NOT_FOUND).build();
+		}
+
+		return response;
+	}
+
+	@POST
+	@Path("log/since")
+	public Response getLogSince(TimestampDTO timestamp) {
+		Response response = null;
+		if (timestamp != null) {
+			List<Entry<Long, String>> logs = logManager.getLogSince(timestamp.getTimestamp());
+			response = Response.status(Response.Status.OK).entity(logs).build();
+		} else {
+			response = Response.status(Response.Status.BAD_REQUEST).build();
 		}
 
 		return response;

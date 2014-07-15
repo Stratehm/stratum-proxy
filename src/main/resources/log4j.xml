@@ -9,6 +9,12 @@
 		</layout>
 	</appender>
 
+	<appender name="stream" class="strat.mining.stratum.proxy.manager.LogManager">
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{ISO8601} %-8p [%t]:%C - %m%n" />
+		</layout>
+	</appender>
+
 	<appender name="file" class="org.apache.log4j.RollingFileAppender">
 		<param name="File" value="${log.directory.path}/stratum-proxy.log" />
 		<param name="MaxFileSize" value="100000000" />
@@ -27,6 +33,7 @@
 		<priority value="info" />
 		<appender-ref ref="console" />
 		<appender-ref ref="file" />
+		<appender-ref ref="stream" />
 	</root>
 
 </log4j:configuration>

@@ -49,6 +49,12 @@ When -f option is used, all other command line options are discarded and only th
 
 The files stratum-proxy-minimal-sample.conf and stratum-proxy-full-sample.conf in the package can be used to build your own configuration file.
 
+##WebClient
+
+A WebClient is available at the address: http://127.0.0.1:8888 (The port can be changed with --rest-listen-port or apiListenAddress of configuration file).
+
+![GUI example](http://i.imgur.com/DHvG0jr.jpg)
+
 ##API Details
 
 A REST API is available. Methods parameters or result are in JSON. By default, the methods can be accessed at the URL http://hostIp:8888/proxy/. 

@@ -137,3 +137,8 @@ div[class*="Value"] {
 .col-bottom {
     vertical-align:bottom;
 }
+
+pre {
+    white-space: pre-wrap;
+    word-break: keep-all;
+}
