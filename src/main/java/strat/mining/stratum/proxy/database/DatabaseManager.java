@@ -20,21 +20,17 @@ package strat.mining.stratum.proxy.database;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.List;
 
-import org.neodatis.odb.ODB;
-import org.neodatis.odb.ODBFactory;
-import org.neodatis.odb.Objects;
-import org.neodatis.odb.OdbConfiguration;
-import org.neodatis.odb.core.query.IQuery;
-import org.neodatis.odb.core.query.criteria.Where;
-import org.neodatis.odb.impl.core.query.criteria.CriteriaQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.database.model.HashrateModel;
+
+import com.db4o.Db4oEmbedded;
+import com.db4o.ObjectContainer;
+import com.db4o.query.Predicate;
 
 public class DatabaseManager {
 
@@ -42,8 +38,8 @@ public class DatabaseManager {
 
 	private static DatabaseManager instance;
 
-	private ODB poolDatabase;
-	private ODB userDatabase;
+	private ObjectContainer poolDatabase;
+	private ObjectContainer userDatabase;
 
 	private DatabaseManager() throws FileNotFoundException {
 		LOGGER.info("Starting DatabaseManager...");
@@ -55,13 +51,14 @@ public class DatabaseManager {
 			}
 		}
 
-		File poolDatabaseFile = new File(databaseDirectory, "pools");
-		File userDatabaseFile = new File(databaseDirectory, "users");
+		// Remove the old neodatis files if they exist.
+		removeNeodatisFiles(databaseDirectory);
 
-		OdbConfiguration.useMultiThread(true);
-		OdbConfiguration.setMultiThreadExclusive(false);
-		poolDatabase = ODBFactory.open(poolDatabaseFile.getAbsolutePath());
-		userDatabase = ODBFactory.open(userDatabaseFile.getAbsolutePath());
+		File poolDatabaseFile = new File(databaseDirectory, "dbpools");
+		File userDatabaseFile = new File(databaseDirectory, "dbusers");
+
+		poolDatabase = Db4oEmbedded.openFile(Db4oEmbedded.newConfiguration(), poolDatabaseFile.getAbsolutePath());
+		userDatabase = Db4oEmbedded.openFile(Db4oEmbedded.newConfiguration(), userDatabaseFile.getAbsolutePath());
 
 		LOGGER.info("DatabaseManager started.");
 	}
@@ -110,11 +107,12 @@ public class DatabaseManager {
 	 * @param poolHost
 	 * @return
 	 */
-	public List<HashrateModel> getPoolHashrate(String poolHost) {
-		IQuery query = new CriteriaQuery(HashrateModel.class, Where.equal("name", poolHost));
-		Objects<HashrateModel> hashrates = poolDatabase.getObjects(query);
-		List<HashrateModel> result = new ArrayList<>(hashrates);
-		return result;
+	public List<HashrateModel> getPoolHashrate(final String poolHost) {
+		return poolDatabase.query(new Predicate<HashrateModel>() {
+			public boolean match(HashrateModel hashrateModel) {
+				return hashrateModel.getName().equals(poolHost);
+			}
+		});
 	}
 
 	/**
@@ -124,11 +122,12 @@ public class DatabaseManager {
 	 * @param poolHost
 	 * @return
 	 */
-	public List<HashrateModel> getUserHashrate(String username) {
-		IQuery query = new CriteriaQuery(HashrateModel.class, Where.equal("name", username));
-		Objects<HashrateModel> hashrates = userDatabase.getObjects(query);
-		List<HashrateModel> result = new ArrayList<>(hashrates);
-		return result;
+	public List<HashrateModel> getUserHashrate(final String username) {
+		return userDatabase.query(new Predicate<HashrateModel>() {
+			public boolean match(HashrateModel hashrateModel) {
+				return hashrateModel.getName().equals(username);
+			}
+		});
 	}
 
 	/**
@@ -150,7 +149,7 @@ public class DatabaseManager {
 	 */
 	public void insertUserHashrate(HashrateModel model) {
 		userDatabase.store(model);
-		poolDatabase.commit();
+		userDatabase.commit();
 	}
 
 	/**
@@ -159,14 +158,16 @@ public class DatabaseManager {
 	 * @param username
 	 * @param olderThan
 	 */
-	public void deleteOldPoolsHashrate(Long olderThan) {
-		IQuery query = new CriteriaQuery(HashrateModel.class, Where.lt("captureTime", olderThan));
-		Objects<HashrateModel> hashrates = poolDatabase.getObjects(query);
-		if (hashrates != null) {
-			for (HashrateModel model : hashrates) {
-				poolDatabase.delete(model);
+	public void deleteOldPoolsHashrate(final Long olderThan) {
+		List<HashrateModel> hashrates = poolDatabase.query(new Predicate<HashrateModel>() {
+			public boolean match(HashrateModel hashrateModel) {
+				return hashrateModel.getCaptureTime() < olderThan;
 			}
+		});
+		for (HashrateModel model : hashrates) {
+			poolDatabase.delete(model);
 		}
+
 		poolDatabase.commit();
 	}
 
@@ -176,15 +177,47 @@ public class DatabaseManager {
 	 * @param username
 	 * @param olderThan
 	 */
-	public void deleteOldUsersHashrate(Long olderThan) {
-		IQuery query = new CriteriaQuery(HashrateModel.class, Where.lt("captureTime", olderThan));
-		Objects<HashrateModel> hashrates = userDatabase.getObjects(query);
-		if (hashrates != null) {
-			for (HashrateModel model : hashrates) {
-				poolDatabase.delete(model);
+	public void deleteOldUsersHashrate(final Long olderThan) {
+		List<HashrateModel> hashrates = userDatabase.query(new Predicate<HashrateModel>() {
+			public boolean match(HashrateModel hashrateModel) {
+				return hashrateModel.getCaptureTime() < olderThan;
+			}
+		});
+		for (HashrateModel model : hashrates) {
+			userDatabase.delete(model);
+		}
+
+		userDatabase.commit();
+	}
+
+	/**
+	 * Remove the old Neodatis database files to avoid conflict with db4o
+	 * 
+	 * @param databaseDirectory
+	 */
+	private void removeNeodatisFiles(File databaseDirectory) {
+		File poolDatabaseFile = new File(databaseDirectory, "pools");
+		File userDatabaseFile = new File(databaseDirectory, "users");
+
+		if (poolDatabaseFile.exists() && poolDatabaseFile.isFile()) {
+			boolean isRemoved = poolDatabaseFile.delete();
+			if (isRemoved) {
+				LOGGER.info("Old Neodatis pools database file {} removed.", poolDatabaseFile.getAbsolutePath());
+			} else {
+				LOGGER.warn("Failed to remove the old Neodatis pools database file {}. You can remove it manually.",
+						poolDatabaseFile.getAbsolutePath());
 			}
 		}
-		poolDatabase.commit();
+
+		if (userDatabaseFile.exists() && userDatabaseFile.isFile()) {
+			boolean isRemoved = userDatabaseFile.delete();
+			if (isRemoved) {
+				LOGGER.info("Old Neodatis users database file {} removed.", userDatabaseFile.getAbsolutePath());
+			} else {
+				LOGGER.warn("Failed to remove the old Neodatis users database file {}. You can remove it manually.",
+						userDatabaseFile.getAbsolutePath());
+			}
+		}
 	}
 
 }

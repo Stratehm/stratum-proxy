@@ -20,6 +20,13 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>project-lib-repository</id>
+			<url>file://${basedir}/lib</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
 
 		<!-- REST server -->
@@ -93,11 +100,11 @@
 			<version>2.6</version>
 		</dependency>
 
-		<!-- NeoDatis DB -->
+		<!-- DB4O -->
 		<dependency>
-			<groupId>org.neodatis.odb</groupId>
-			<artifactId>neodatis-odb</artifactId>
-			<version>1.9.30.689</version>
+			<groupId>com.db4o</groupId>
+			<artifactId>db4o-all-java5</artifactId>
+			<version>8.0.249.16098</version>
 		</dependency>
 
 	</dependencies>
