@@ -479,6 +479,7 @@ LogsPageController.prototype.onLoad = function() {
  */
 LogsPageController.prototype.onUnload = function() {
 	this.stopAutoRefresh();
+	this.clear();
 };
 
 /**
@@ -509,15 +510,23 @@ LogsPageController.prototype.refresh = function() {
 };
 
 /**
+ * Clear the logs panel
+ */
+LogsPageController.prototype.clear = function() {
+	this.containerJquery.find('.logsContainer').text("");
+	this.lastLogLineTimestamp = null;
+};
+
+/**
  * Append the given logs data.
  */
 LogsPageController.prototype.appendLogs = function(logsData) {
-	var logString = "", controller = this, isScrolledBottom = false, logsPageContainer = $('html');
+	var logString = "", controller = this, isScrolledBottom = false, scrollContainer = $('html');
 
 	// Check if the scroll is already in bottom. If so, keep the scroll at the
 	// bottom after log lines append.
-	isScrolledBottom = logsPageContainer[0].scrollHeight
-			- logsPageContainer[0].scrollTop === logsPageContainer[0].clientHeight;
+	isScrolledBottom = scrollContainer[0].scrollHeight
+			- scrollContainer[0].scrollTop === scrollContainer[0].clientHeight;
 
 	logsData.forEach(function(logEntry) {
 		controller.lastLogLineTimestamp = logEntry.key;
@@ -529,7 +538,7 @@ LogsPageController.prototype.appendLogs = function(logsData) {
 	// If the page was at the bottom position, keep it in this position. Else do
 	// nothing.
 	if (isScrolledBottom) {
-		logsPageContainer.scrollTop(logsPageContainer[0].scrollHeight);
+		scrollContainer.scrollTop(scrollContainer[0].scrollHeight);
 	}
 };
 
