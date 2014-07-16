@@ -57,7 +57,7 @@ import strat.mining.stratum.proxy.json.MiningSubmitRequest;
 import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.json.MiningSubscribeResponse;
-import strat.mining.stratum.proxy.manager.StratumProxyManager;
+import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.utils.HashrateUtils;
 import strat.mining.stratum.proxy.utils.Timer;
@@ -65,11 +65,11 @@ import strat.mining.stratum.proxy.utils.Timer.Task;
 
 import com.google.common.util.concurrent.AtomicDouble;
 
-public class Pool implements Comparable<Pool> {
+public class Pool {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Pool.class);
 
-	private StratumProxyManager manager;
+	private ProxyManager manager;
 
 	private String name;
 	private String host;
@@ -155,7 +155,7 @@ public class Pool implements Comparable<Pool> {
 		this.authorizedWorkers = Collections.synchronizedList(new ArrayList<String>());
 	}
 
-	public void startPool(StratumProxyManager manager) throws PoolStartException, URISyntaxException, SocketException {
+	public void startPool(ProxyManager manager) throws PoolStartException, URISyntaxException, SocketException {
 		if (manager != null) {
 			if (!isEnabled) {
 				throw new PoolStartException("Do not start the pool " + getName() + " since it is disabled.");
@@ -278,7 +278,7 @@ public class Pool implements Comparable<Pool> {
 	 * @throws SocketException
 	 * @throws Exception
 	 */
-	public void setEnabled(boolean isEnabled, StratumProxyManager manager) throws PoolStartException, SocketException, URISyntaxException {
+	public void setEnabled(boolean isEnabled, ProxyManager manager) throws PoolStartException, SocketException, URISyntaxException {
 		if (this.isEnabled != isEnabled) {
 			this.isEnabled = isEnabled;
 			if (isEnabled) {
@@ -690,11 +690,6 @@ public class Pool implements Comparable<Pool> {
 		builder.append(priority);
 		builder.append("]");
 		return builder.toString();
-	}
-
-	@Override
-	public int compareTo(Pool o) {
-		return getPriority().compareTo(o.getPriority());
 	}
 
 	public Double getAcceptedDifficulty() {

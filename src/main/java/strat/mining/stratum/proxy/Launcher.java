@@ -47,7 +47,7 @@ import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.database.DatabaseManager;
 import strat.mining.stratum.proxy.manager.HashrateRecorder;
-import strat.mining.stratum.proxy.manager.StratumProxyManager;
+import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.ProxyResources;
 import strat.mining.stratum.proxy.utils.Timer;
@@ -123,15 +123,15 @@ public class Launcher {
 					}
 				}, 1000);
 
-				if (StratumProxyManager.getInstance() != null) {
+				if (ProxyManager.getInstance() != null) {
 					if (LOGGER != null) {
 						LOGGER.info("User requested shutdown... Gracefuly kill all connections...");
 					} else {
 						System.out.println("User requested shutdown... Gracefuly kill all connections...");
 					}
-					StratumProxyManager.getInstance().stopListeningIncomingConnections();
-					StratumProxyManager.getInstance().closeAllWorkerConnections();
-					StratumProxyManager.getInstance().stopPools();
+					ProxyManager.getInstance().stopListeningIncomingConnections();
+					ProxyManager.getInstance().closeAllWorkerConnections();
+					ProxyManager.getInstance().stopPools();
 				}
 				if (apiHttpServer != null) {
 					apiHttpServer.shutdownNow();
@@ -289,10 +289,10 @@ public class Launcher {
 		LOGGER.info("Using pools: {}.", pools);
 
 		// Start the pools.
-		StratumProxyManager.getInstance().startPools(pools);
+		ProxyManager.getInstance().startPools(pools);
 
 		// Start to accept incoming workers connections
-		StratumProxyManager.getInstance().startListeningIncomingConnections(configurationManager.getStratumBindAddress(),
+		ProxyManager.getInstance().startListeningIncomingConnections(configurationManager.getStratumBindAddress(),
 				configurationManager.getStratumListeningPort());
 	}
 

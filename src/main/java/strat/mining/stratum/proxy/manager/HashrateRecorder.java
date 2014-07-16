@@ -46,13 +46,13 @@ public class HashrateRecorder {
 	private static Integer CAPTURE_PERIOD = ConfigurationManager.getInstance().getHashrateDatabaseSamplingPeriod() * 1000;
 	private static Long OLD_RECORDS_OFFSET = ConfigurationManager.getInstance().getHashrateDatabaseHistoryDepth() * 86400L * 1000;
 
-	private StratumProxyManager stratumProxyManager;
+	private ProxyManager stratumProxyManager;
 	private DatabaseManager databaseManager;
 
 	private Task captureTask;
 
 	private HashrateRecorder() {
-		stratumProxyManager = StratumProxyManager.getInstance();
+		stratumProxyManager = ProxyManager.getInstance();
 		databaseManager = DatabaseManager.getInstance();
 	}
 

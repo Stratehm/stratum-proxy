@@ -45,7 +45,7 @@ import strat.mining.stratum.proxy.json.MiningNotifyNotification;
 import strat.mining.stratum.proxy.json.MiningSetDifficultyNotification;
 import strat.mining.stratum.proxy.json.MiningSubmitRequest;
 import strat.mining.stratum.proxy.json.MiningSubmitResponse;
-import strat.mining.stratum.proxy.manager.StratumProxyManager;
+import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.utils.ArrayUtils;
@@ -61,7 +61,7 @@ public class GetworkWorkerConnection implements WorkerConnection {
 
 	private static final byte[] ZERO_BIG_INTEGER_BYTES = { 0 };
 
-	private StratumProxyManager manager;
+	private ProxyManager manager;
 
 	private Pool pool;
 
@@ -94,7 +94,7 @@ public class GetworkWorkerConnection implements WorkerConnection {
 
 	private ConnectionClosedCallback connectionClosedCallback;
 
-	public GetworkWorkerConnection(InetAddress remoteAddress, StratumProxyManager manager, ConnectionClosedCallback connectionClosedCallback) {
+	public GetworkWorkerConnection(InetAddress remoteAddress, ProxyManager manager, ConnectionClosedCallback connectionClosedCallback) {
 		this.manager = manager;
 		this.remoteAddress = remoteAddress;
 		this.longPollingCallbacks = Collections.synchronizedSet(new HashSet<LongPollingCallback>());

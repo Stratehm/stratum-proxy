@@ -22,6 +22,8 @@ import java.net.SocketException;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -44,7 +46,7 @@ import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
 import strat.mining.stratum.proxy.exception.NotConnectedException;
 import strat.mining.stratum.proxy.exception.NotFoundException;
 import strat.mining.stratum.proxy.exception.PoolStartException;
-import strat.mining.stratum.proxy.manager.StratumProxyManager;
+import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.model.User;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.dto.AddPoolDTO;
@@ -73,7 +75,7 @@ public class ProxyResources {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProxyResources.class);
 
-	private StratumProxyManager stratumProxyManager = StratumProxyManager.getInstance();
+	private ProxyManager stratumProxyManager = ProxyManager.getInstance();
 
 	private DatabaseManager databaseManager = DatabaseManager.getInstance();
 
@@ -353,6 +355,12 @@ public class ProxyResources {
 			if (highestActiveStablePriorityPool != null) {
 				highestActiveStablePriorityPool.setIsMining(true);
 			}
+
+			Collections.sort(result, new Comparator<PoolDetailsDTO>() {
+				public int compare(PoolDetailsDTO o1, PoolDetailsDTO o2) {
+					return o1.getPriority().compareTo(o2.getPriority());
+				}
+			});
 		}
 
 		Response response = Response.status(Response.Status.OK).entity(result).build();

@@ -49,7 +49,7 @@ import strat.mining.stratum.proxy.json.MiningSubmitRequest;
 import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.json.MiningSubscribeResponse;
-import strat.mining.stratum.proxy.manager.StratumProxyManager;
+import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.network.StratumConnection;
 import strat.mining.stratum.proxy.pool.Pool;
@@ -63,7 +63,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 
 	private Pool pool;
 
-	private StratumProxyManager manager;
+	private ProxyManager manager;
 
 	private Task subscribeTimeoutTask;
 	private Integer subscribeReceiveTimeout = Constants.DEFAULT_SUBSCRIBE_RECEIVE_TIMEOUT;
@@ -81,7 +81,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 
 	private WorkerConnectionHashrateDelegator workerHashrateDelegator;
 
-	public StratumWorkerConnection(Socket socket, StratumProxyManager manager) {
+	public StratumWorkerConnection(Socket socket, ProxyManager manager) {
 		super(socket);
 		this.manager = manager;
 		this.authorizedWorkers = Collections.synchronizedSet(new HashSet<String>());

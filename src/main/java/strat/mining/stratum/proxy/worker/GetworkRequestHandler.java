@@ -55,7 +55,7 @@ import strat.mining.stratum.proxy.json.JsonRpcResponse;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
-import strat.mining.stratum.proxy.manager.StratumProxyManager;
+import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.utils.HashingUtils;
 import strat.mining.stratum.proxy.worker.GetworkJobTemplate.GetworkRequestResult;
@@ -69,14 +69,14 @@ public class GetworkRequestHandler extends HttpHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GetworkRequestHandler.class);
 
-	private StratumProxyManager manager;
+	private ProxyManager manager;
 
 	private static ObjectMapper jsonUnmarshaller = new ObjectMapper();;
 
 	private Map<InetAddress, GetworkWorkerConnection> workerConnections;
 
 	public GetworkRequestHandler() {
-		this.manager = StratumProxyManager.getInstance();
+		this.manager = ProxyManager.getInstance();
 		this.workerConnections = Collections.synchronizedMap(new HashMap<InetAddress, GetworkWorkerConnection>());
 
 	}
