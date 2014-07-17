@@ -22,15 +22,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
-import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
-import strat.mining.stratum.proxy.worker.WorkerConnection;
 
 /**
  * A pool switching manager which uses a priority based strategy to manage pool
@@ -39,16 +33,12 @@ import strat.mining.stratum.proxy.worker.WorkerConnection;
  * @author Strat
  * 
  */
-public class PriorityFailoverStrategyManager implements PoolSwitchingStrategyManager {
+public class PriorityFailoverStrategyManager extends MonoCurrentPoolStrategyManager {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(PriorityFailoverStrategyManager.class);
-
-	private ProxyManager proxyManager;
-
-	private Pool currentPool;
+	public static final String NAME = "priorityFailover";
 
 	public PriorityFailoverStrategyManager(ProxyManager proxyManager) {
-		this.proxyManager = proxyManager;
+		super(proxyManager);
 
 		checkConnectionsBinding();
 	}
@@ -61,18 +51,13 @@ public class PriorityFailoverStrategyManager implements PoolSwitchingStrategyMan
 			pool.setPriority(minPriority + 1);
 		}
 
-		checkConnectionsBinding();
+		super.onPoolAdded(pool);
 
-	}
-
-	@Override
-	public void onPoolRemoved(Pool pool) {
-		checkConnectionsBinding();
 	}
 
 	@Override
 	public void onPoolUpdated(Pool poolUpdated) {
-		List<Pool> pools = proxyManager.getPools();
+		List<Pool> pools = getProxyManager().getPools();
 		int newPriority = poolUpdated.getPriority();
 		for (Pool pool : pools) {
 			// Move the priority of other pools with lower or
@@ -82,31 +67,7 @@ public class PriorityFailoverStrategyManager implements PoolSwitchingStrategyMan
 			}
 		}
 
-		checkConnectionsBinding();
-	}
-
-	@Override
-	public void onPoolDown(Pool pool) {
-		checkConnectionsBinding();
-	}
-
-	@Override
-	public void onPoolUp(Pool pool) {
-		// Nothing to do.
-	}
-
-	@Override
-	public void onPoolStable(Pool pool) {
-		checkConnectionsBinding();
-
-	}
-
-	@Override
-	public Pool getPoolForConnection(WorkerConnection connection) throws NoPoolAvailableException {
-		if (currentPool == null) {
-			computeCurrentPool();
-		}
-		return currentPool;
+		super.onPoolUpdated(poolUpdated);
 	}
 
 	/**
@@ -117,7 +78,7 @@ public class PriorityFailoverStrategyManager implements PoolSwitchingStrategyMan
 	 */
 	private int getMinimumPoolPriority() {
 		int minPriority = 0;
-		List<Pool> pools = proxyManager.getPools();
+		List<Pool> pools = getProxyManager().getPools();
 		for (Pool pool : pools) {
 			if (pool.getPriority() > minPriority) {
 				minPriority = pool.getPriority();
@@ -127,53 +88,16 @@ public class PriorityFailoverStrategyManager implements PoolSwitchingStrategyMan
 	}
 
 	/**
-	 * Check if connections are bound to the good pool. If not, rebind the
-	 * worker connection to the pool with highest priority.
-	 */
-	private void checkConnectionsBinding() {
-		LOGGER.info("Check all worker connections binding.");
-		List<WorkerConnection> workerConnections = proxyManager.getWorkerConnections();
-		// Try to rebind connections only if there is at least one conenction.
-		if (workerConnections.size() > 0) {
-			try {
-				computeCurrentPool();
-
-				for (WorkerConnection connection : workerConnections) {
-					// If the connection is not bound to the poolToBind, switch
-					// the pool.
-					if (!connection.getPool().equals(currentPool)) {
-						try {
-							proxyManager.switchPoolForConnection(connection, currentPool);
-						} catch (TooManyWorkersException e) {
-							LOGGER.warn("Failed to rebind worker connection {} on pool {}. Too many workers on this pool.",
-									connection.getConnectionName(), currentPool.getName());
-						} catch (ChangeExtranonceNotSupportedException e) {
-							LOGGER.info("Close connection {} since the on-the-fly extranonce change is not supported.",
-									connection.getConnectionName(), currentPool.getName());
-							connection.close();
-							proxyManager.onWorkerDisconnection(connection, e);
-						}
-					}
-				}
-
-			} catch (NoPoolAvailableException e) {
-				LOGGER.error("Failed to rebind workers connections. No pool is available. Closing all workers connections.", e);
-				// If no more pool available, close all worker connections
-				proxyManager.closeAllWorkerConnections();
-				currentPool = null;
-			}
-		}
-	}
-
-	/**
 	 * Compute the and set the current pool. Based on the pool priority and pool
 	 * state.
 	 * 
 	 * @param connection
 	 * @return
 	 */
-	private void computeCurrentPool() throws NoPoolAvailableException {
-		List<Pool> pools = proxyManager.getPools();
+	@Override
+	protected void computeCurrentPool() throws NoPoolAvailableException {
+		List<Pool> pools = getProxyManager().getPools();
+		Pool newPool = null;
 		Collections.sort(pools, new Comparator<Pool>() {
 			public int compare(Pool o1, Pool o2) {
 				return o1.getPriority().compareTo(o2.getPriority());
@@ -181,14 +105,21 @@ public class PriorityFailoverStrategyManager implements PoolSwitchingStrategyMan
 		});
 		for (Pool pool : pools) {
 			if (pool.isActive() && pool.isEnabled() && pool.isStable()) {
-				currentPool = pool;
+				newPool = pool;
 				break;
 			}
 		}
 
-		if (currentPool == null) {
+		if (newPool == null) {
 			throw new NoPoolAvailableException("No pool available. " + pools);
+		} else {
+			setCurrentPool(newPool);
 		}
+	}
+
+	@Override
+	public String getName() {
+		return NAME;
 	}
 
 }

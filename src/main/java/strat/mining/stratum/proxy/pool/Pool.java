@@ -108,6 +108,7 @@ public class Pool {
 	private Integer numberOfSubmit = 1;
 
 	private Integer priority;
+	private Integer weight;
 
 	private AtomicDouble acceptedDifficulty;
 	private AtomicDouble rejectedDifficulty;
@@ -663,6 +664,14 @@ public class Pool {
 		this.priority = priority;
 	}
 
+	public Integer getWeight() {
+		return weight;
+	}
+
+	public void setWeight(Integer weight) {
+		this.weight = weight;
+	}
+
 	public int getNumberOfWorkersConnections() {
 		return manager != null ? manager.getNumberOfWorkerConnectionsOnPool(getName()) : 0;
 	}
@@ -688,6 +697,8 @@ public class Pool {
 		builder.append(isStable);
 		builder.append(", priority=");
 		builder.append(priority);
+		builder.append(", weight=");
+		builder.append(weight);
 		builder.append("]");
 		return builder.toString();
 	}

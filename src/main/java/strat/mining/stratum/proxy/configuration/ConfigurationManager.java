@@ -41,6 +41,7 @@ import strat.mining.stratum.proxy.cli.CommandLineOptions;
 import strat.mining.stratum.proxy.configuration.model.Configuration;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.BadParameterException;
+import strat.mining.stratum.proxy.manager.strategy.PriorityFailoverStrategyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -93,6 +94,8 @@ public class ConfigurationManager {
 
 	private boolean noMidsate = false;
 	private boolean validateSha26GetworkShares = false;
+
+	private String poolSwitchingStrategy = PriorityFailoverStrategyManager.NAME;
 
 	private ObjectMapper jsonParser;
 
@@ -196,6 +199,8 @@ public class ConfigurationManager {
 		validateSha26GetworkShares = configuration.getValidateSha26GetworkShares() != null ? configuration.getValidateSha26GetworkShares()
 				: validateSha26GetworkShares;
 
+		poolSwitchingStrategy = configuration.getPoolSwitchingStrategy() != null ? configuration.getPoolSwitchingStrategy() : poolSwitchingStrategy;
+
 		buildPoolsFromConfigurationFile(configuration);
 	}
 
@@ -220,6 +225,7 @@ public class ConfigurationManager {
 				String workerNameSeparator = Constants.DEFAULT_WORKER_NAME_SEPARTOR;
 				Boolean useWorkerPassword = Boolean.FALSE;
 				Boolean isEnabled = Boolean.TRUE;
+				Integer poolWeight = Constants.DEFAULT_POOL_WEIGHT;
 
 				if (confPool.getName() != null && !confPool.getName().trim().isEmpty()) {
 					poolName = confPool.getName();
@@ -261,6 +267,10 @@ public class ConfigurationManager {
 					isEnabled = confPool.getIsEnabled();
 				}
 
+				if (confPool.getWeight() != null) {
+					poolWeight = confPool.getWeight();
+				}
+
 				Pool pool = new Pool(poolName, poolHost, username, password);
 				pool.setExtranonceSubscribeEnabled(isExtranonceSubscribe);
 				pool.setNumberOfSubmit(numberOfSubmit);
@@ -273,6 +283,7 @@ public class ConfigurationManager {
 				pool.setAppendWorkerNames(isAppendWorkerNames);
 				pool.setWorkerSeparator(workerNameSeparator);
 				pool.setUseWorkerPassword(useWorkerPassword);
+				pool.setWeight(poolWeight);
 				try {
 					pool.setEnabled(isEnabled);
 				} catch (Exception e) {
@@ -332,6 +343,8 @@ public class ConfigurationManager {
 		validateSha26GetworkShares = cliParser.isValidateSha26GetworkShares() != null ? cliParser.isValidateSha26GetworkShares()
 				: validateSha26GetworkShares;
 
+		poolSwitchingStrategy = cliParser.getPoolSwitchingStrategy() != null ? cliParser.getPoolSwitchingStrategy() : poolSwitchingStrategy;
+
 		buildPoolsFromCommandLine(cliParser);
 	}
 
@@ -367,6 +380,7 @@ public class ConfigurationManager {
 					Boolean isAppendWorkerNames = Boolean.FALSE;
 					String workerNameSeparator = Constants.DEFAULT_WORKER_NAME_SEPARTOR;
 					Boolean useWorkerPassword = Boolean.FALSE;
+					Integer poolWeight = Constants.DEFAULT_POOL_WEIGHT;
 
 					if (cliParser.getPoolNames() != null && cliParser.getPoolNames().size() > index) {
 						poolName = cliParser.getPoolNames().get(index);
@@ -402,6 +416,10 @@ public class ConfigurationManager {
 						workerNameSeparator = cliParser.getPoolsWorkerNameSeparator().get(index);
 					}
 
+					if (cliParser.getPoolsWeight() != null && cliParser.getPoolsWeight().size() > index) {
+						poolWeight = cliParser.getPoolsWeight().get(index);
+					}
+
 					Pool pool = new Pool(poolName, poolHost, username, password);
 					pool.setExtranonceSubscribeEnabled(isExtranonceSubscribe);
 					pool.setNumberOfSubmit(numberOfSubmit);
@@ -414,6 +432,7 @@ public class ConfigurationManager {
 					pool.setAppendWorkerNames(isAppendWorkerNames);
 					pool.setWorkerSeparator(workerNameSeparator);
 					pool.setUseWorkerPassword(useWorkerPassword);
+					pool.setWeight(poolWeight);
 					pools.add(pool);
 
 					index++;
@@ -694,6 +713,10 @@ public class ConfigurationManager {
 
 	public boolean isValidateSha26GetworkShares() {
 		return validateSha26GetworkShares;
+	}
+
+	public String getPoolSwitchingStrategy() {
+		return poolSwitchingStrategy;
 	}
 
 }

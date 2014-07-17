@@ -18,6 +18,8 @@
  */
 package strat.mining.stratum.proxy.manager.strategy;
 
+import java.util.Map;
+
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
@@ -30,6 +32,11 @@ import strat.mining.stratum.proxy.worker.WorkerConnection;
  * 
  */
 public interface PoolSwitchingStrategyManager {
+
+	/**
+	 * Stop the strategy manager
+	 */
+	public void stop();
 
 	/**
 	 * Called when a pool is added.
@@ -81,5 +88,19 @@ public interface PoolSwitchingStrategyManager {
 	 * @throws NoPoolAvailableException
 	 */
 	public Pool getPoolForConnection(WorkerConnection connection) throws NoPoolAvailableException;
+
+	/**
+	 * Return the parameters used to configure this strategy manager.
+	 * 
+	 * @return
+	 */
+	public Map<String, String> getConfigurationParameters();
+
+	/**
+	 * Return the name of this strategy.
+	 * 
+	 * @return
+	 */
+	public String getName();
 
 }

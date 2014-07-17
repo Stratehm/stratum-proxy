@@ -53,6 +53,8 @@ public class Configuration {
 	private Boolean noMidstate;
 	private Boolean validateSha26GetworkShares;
 
+	private String poolSwitchingStrategy;
+
 	@Valid
 	private List<Pool> pools;
 
@@ -241,6 +243,14 @@ public class Configuration {
 
 	public void setValidateSha26GetworkShares(Boolean validateSha26GetworkShares) {
 		this.validateSha26GetworkShares = validateSha26GetworkShares;
+	}
+
+	public String getPoolSwitchingStrategy() {
+		return poolSwitchingStrategy;
+	}
+
+	public void setPoolSwitchingStrategy(String poolSwitchingStrategy) {
+		this.poolSwitchingStrategy = poolSwitchingStrategy;
 	}
 
 }

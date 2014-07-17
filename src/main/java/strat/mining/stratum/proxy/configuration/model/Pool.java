@@ -31,6 +31,7 @@ public class Pool {
 	private Boolean appendWorkerNames;
 	private String workerNameSeparator;
 	private Boolean useWorkerPassword;
+	private Integer weight;
 
 	private Boolean isEnabled;
 
@@ -104,6 +105,14 @@ public class Pool {
 
 	public void setIsEnabled(Boolean isEnabled) {
 		this.isEnabled = isEnabled;
+	}
+
+	public Integer getWeight() {
+		return weight;
+	}
+
+	public void setWeight(Integer weight) {
+		this.weight = weight;
 	}
 
 }

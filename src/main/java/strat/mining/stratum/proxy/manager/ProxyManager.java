@@ -47,6 +47,7 @@ import strat.mining.stratum.proxy.exception.NotConnectedException;
 import strat.mining.stratum.proxy.exception.NotFoundException;
 import strat.mining.stratum.proxy.exception.PoolStartException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
+import strat.mining.stratum.proxy.exception.UnsupportedPoolSwitchingStrategyException;
 import strat.mining.stratum.proxy.json.JsonRpcError;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
@@ -55,8 +56,8 @@ import strat.mining.stratum.proxy.json.MiningSetExtranonceNotification;
 import strat.mining.stratum.proxy.json.MiningSubmitRequest;
 import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
+import strat.mining.stratum.proxy.manager.strategy.PoolSwitchingStrategyFactory;
 import strat.mining.stratum.proxy.manager.strategy.PoolSwitchingStrategyManager;
-import strat.mining.stratum.proxy.manager.strategy.PriorityFailoverStrategyManager;
 import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.model.User;
 import strat.mining.stratum.proxy.pool.Pool;
@@ -94,7 +95,7 @@ public class ProxyManager {
 
 	private AuthorizationManager stratumAuthorizationManager;
 
-	private PoolSwitchingStrategyManager poolSwitchingStrategyManager;
+	private volatile PoolSwitchingStrategyManager poolSwitchingStrategyManager;
 
 	private ProxyManager() {
 		this.stratumAuthorizationManager = new AuthorizationManager();
@@ -102,7 +103,8 @@ public class ProxyManager {
 		this.workerConnections = new CopyOnWriteArrayList<WorkerConnection>();
 		this.users = Collections.synchronizedMap(new HashMap<String, User>());
 		this.poolWorkerConnections = Collections.synchronizedMap(new HashMap<Pool, List<WorkerConnection>>());
-		this.poolSwitchingStrategyManager = new PriorityFailoverStrategyManager(this);
+
+		setPoolSwitchingStrategy(ConfigurationManager.getInstance().getPoolSwitchingStrategy());
 	}
 
 	public static ProxyManager getInstance() {
@@ -859,6 +861,19 @@ public class ProxyManager {
 	 */
 	public List<String> getBannedAddresses() {
 		return stratumAuthorizationManager.getBannedAddresses();
+	}
+
+	/**
+	 * Change the pool switching strategy used.
+	 * 
+	 * @param strategyName
+	 * @throws NotFoundException
+	 */
+	public void setPoolSwitchingStrategy(String strategyName) throws UnsupportedPoolSwitchingStrategyException {
+		if (!poolSwitchingStrategyManager.getName().equalsIgnoreCase(strategyName)) {
+			poolSwitchingStrategyManager.stop();
+			poolSwitchingStrategyManager = PoolSwitchingStrategyFactory.getPoolSwitchingStrategyManagerByName(strategyName);
+		}
 	}
 
 }

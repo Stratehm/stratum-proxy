@@ -65,4 +65,6 @@ public class Constants {
 	public static final Integer DEFAULT_HASHRATE_DATABASE_SAMPLING_PERIOD = 60;
 	public static final Integer DEFAULT_HASHRATE_DATABASE_HISTORY_DEPTH = 7;
 
+	public static final Integer DEFAULT_POOL_WEIGHT = 1;
+
 }

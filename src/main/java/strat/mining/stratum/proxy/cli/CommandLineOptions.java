@@ -114,6 +114,9 @@ public class CommandLineOptions {
 	@Option(name = "--pool-use-worker-password", usage = "Use the worker password instead of the pool password to authorize workers. (false by default)", handler = BooleanArrayOptionHandler.class, metaVar = "boolean1 [boolean2] [boolean3]...")
 	private List<Boolean> poolsUseWorkerPassword;
 
+	@Option(name = "--pool-weight", usage = "Specify the weight of the pool compared to each other. Only used when the Pool Switching strategy is WeightedRoundRobin. (1 by default)", handler = IntegerArrayOptionHandler.class, metaVar = "pool1Weight [pool2Weight] [pool3Weight]...")
+	private List<Integer> poolsWeight;
+
 	@Option(name = "--pool-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate on pools. (600 seconds by default)")
 	private Integer poolHashrateSamplingPeriod;
 
@@ -140,6 +143,9 @@ public class CommandLineOptions {
 
 	@Option(name = "--validate-sha256-getowrk-shares", usage = "If set, the proxy will check that SHA256 shares submitted by getwork miners are valide (the share is below the target). If not valid, the share is discarded and not submitted to the pool. Increase the CPU load of the proxy if set. (Default to false).")
 	private boolean validateSha26GetworkShares;
+
+	@Option(name = "--pool-switching-strategy", usage = "Set the pool switching strategy. The strategy defines on which pool workers will mine. It also define when a pool switch occurs. By default, the priorityFailover is used. Strategies available are: priorityFailover, weightedRoundRobin.")
+	private String poolSwitchingStrategy;
 
 	public CommandLineOptions() {
 		parser = new CmdLineParser(this);
@@ -287,6 +293,14 @@ public class CommandLineOptions {
 
 	public Boolean isValidateSha26GetworkShares() {
 		return validateSha26GetworkShares;
+	}
+
+	public List<Integer> getPoolsWeight() {
+		return poolsWeight;
+	}
+
+	public String getPoolSwitchingStrategy() {
+		return poolSwitchingStrategy;
 	}
 
 }
