@@ -519,7 +519,7 @@ public class ProxyResources {
 
 	@POST
 	@Path("log/level")
-	public Response changeLogLevel(LogLevelDTO logLevel) {
+	public Response setLogLevel(LogLevelDTO logLevel) {
 		Response response = null;
 		StatusDTO status = new StatusDTO();
 
@@ -536,6 +536,18 @@ public class ProxyResources {
 		}
 
 		return response;
+	}
+
+	@GET
+	@Path("log/level")
+	public Response getLogLevel() {
+
+		LogLevelDTO logLevel = new LogLevelDTO();
+		Level level = LogManager.getRootLogger().getLevel();
+		logLevel.setLogLevel(level.toString());
+
+		return Response.status(Response.Status.OK).entity(logLevel).build();
+
 	}
 
 	@POST

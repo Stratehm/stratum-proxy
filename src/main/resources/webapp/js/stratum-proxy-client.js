@@ -60,6 +60,7 @@ PoolsPageController.prototype.onLoad = function() {
 	});
 
 	// Add the click event on the refresh button
+	this.containerJquery.find('.refreshButton').off('click');
 	this.containerJquery.find('.refreshButton').click(function() {
 		controller.refresh();
 	});
@@ -70,6 +71,7 @@ PoolsPageController.prototype.onLoad = function() {
 	this.autoRefreshCountDownValue = autoRefreshDelay / 1000;
 
 	// Initialize the pool add button
+	this.containerJquery.find('.addPoolButton').off('click');
 	this.containerJquery.find('.addPoolButton').click(function() {
 		controller.openAddPool();
 	});
@@ -82,6 +84,7 @@ PoolsPageController.prototype.onUnload = function() {
 	});
 	this.items.clear();
 	this.stopAutoRefresh();
+
 };
 
 PoolsPageController.prototype.items = new Array();
@@ -470,6 +473,7 @@ LogsPageController.prototype.constructor = PageController;
  * Load the logs page
  */
 LogsPageController.prototype.onLoad = function() {
+	this.loadLevel();
 	this.refresh();
 	this.startAutoRefresh();
 };
@@ -480,6 +484,59 @@ LogsPageController.prototype.onLoad = function() {
 LogsPageController.prototype.onUnload = function() {
 	this.stopAutoRefresh();
 	this.clear();
+};
+
+/**
+ * Load and select the log level.
+ */
+LogsPageController.prototype.loadLevel = function() {
+	var selectPicker = this.containerJquery.find('.logLevelSelectPicker'), controller = this;
+	selectPicker.prop('disabled', true);
+	selectPicker.selectpicker('refresh');
+
+	$.ajax({
+		url : '/proxy/log/level',
+		dataType : "json",
+		type : "GET",
+		contentType : "application/json",
+		success : function(data) {
+			if (data != undefined) {
+				selectPicker.selectpicker('val', data.logLevel);
+				selectPicker.prop('disabled', false);
+				selectPicker.selectpicker('refresh');
+				controller.initLogLevelSelect();
+			}
+		},
+		error : function(request, textStatus, errorThrown) {
+			window.alert('Failed to get the log level. Status: ' + textStatus
+					+ ', error: ' + errorThrown);
+		}
+	});
+};
+
+/**
+ * Initialize the select input to change the log level
+ */
+LogsPageController.prototype.initLogLevelSelect = function() {
+	var selectPicker = this.containerJquery.find('.logLevelSelectPicker');
+	selectPicker.off('change');
+	selectPicker.change(function() {
+		var selectedValue = selectPicker.find('option:selected').text();
+		selectPicker.selectpicker('refresh');
+		$.ajax({
+			url : '/proxy/log/level',
+			dataType : "json",
+			type : "POST",
+			data : JSON.stringify({
+				logLevel: selectedValue
+			}),
+			contentType : "application/json",
+			error : function(request, textStatus, errorThrown) {
+				window.alert('Failed to change the log level. Status: ' + textStatus
+						+ ', error: ' + errorThrown);
+			}
+		});
+	});
 };
 
 /**
@@ -916,11 +973,20 @@ $(function() {
  * Launch the client.
  */
 function launchClient() {
+	initBootstrapSelect();
+
 	initHighcharts();
 
 	initControllers();
 
 	initNavBarHandlers();
+}
+
+/**
+ * Initialize the bootstrap-select plugin
+ */
+function initBootstrapSelect() {
+	$('.selectpicker').selectpicker();
 }
 
 /**
