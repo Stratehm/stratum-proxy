@@ -528,12 +528,12 @@ LogsPageController.prototype.initLogLevelSelect = function() {
 			dataType : "json",
 			type : "POST",
 			data : JSON.stringify({
-				logLevel: selectedValue
+				logLevel : selectedValue
 			}),
 			contentType : "application/json",
 			error : function(request, textStatus, errorThrown) {
-				window.alert('Failed to change the log level. Status: ' + textStatus
-						+ ', error: ' + errorThrown);
+				window.alert('Failed to change the log level. Status: '
+						+ textStatus + ', error: ' + errorThrown);
 			}
 		});
 	});
@@ -973,6 +973,8 @@ $(function() {
  * Launch the client.
  */
 function launchClient() {
+	initToTopScroller();
+	
 	initBootstrapSelect();
 
 	initHighcharts();
@@ -980,6 +982,37 @@ function launchClient() {
 	initControllers();
 
 	initNavBarHandlers();
+}
+
+/**
+ * Init the to top/bottom scroller plugin
+ */
+var toTopBottomScroller;
+function initToTopScroller() {
+	toTopBottomScroller = $('#totopscroller').totopscroller({
+		showToBottom : true,
+		link : false,
+		linkTarget : '_self',
+		toTopHtml : '<a href="#"></a>',
+		toBottomHtml : '<a href="#"></a>',
+		toPrevHtml : '<a href="#"></a>',
+		linkHtml : '<a href="#"></a>',
+		toTopClass : 'totopscroller-top',
+		toBottomClass : 'totopscroller-bottom',
+		toPrevClass : 'totopscroller-prev',
+		linkClass : 'totopscroller-lnk',
+	});
+	
+	$(document).ajaxComplete(function() {
+		refreshToTopScroller();
+	});
+}
+
+/**
+ * Refresh the to Top/Bottom scroller
+ */
+function refreshToTopScroller() {
+	toTopBottomScroller.refresh();
 }
 
 /**
