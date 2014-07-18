@@ -97,12 +97,15 @@ public class ProxyManager {
 
 	private volatile PoolSwitchingStrategyManager poolSwitchingStrategyManager;
 
+	private PoolSwitchingStrategyFactory poolSwitchingStrategyFactory;
+
 	private ProxyManager() {
 		this.stratumAuthorizationManager = new AuthorizationManager();
 		this.pools = Collections.synchronizedList(new ArrayList<Pool>());
 		this.workerConnections = new CopyOnWriteArrayList<WorkerConnection>();
 		this.users = Collections.synchronizedMap(new HashMap<String, User>());
 		this.poolWorkerConnections = Collections.synchronizedMap(new HashMap<Pool, List<WorkerConnection>>());
+		this.poolSwitchingStrategyFactory = new PoolSwitchingStrategyFactory(this);
 
 		setPoolSwitchingStrategy(ConfigurationManager.getInstance().getPoolSwitchingStrategy());
 	}
@@ -870,9 +873,11 @@ public class ProxyManager {
 	 * @throws NotFoundException
 	 */
 	public void setPoolSwitchingStrategy(String strategyName) throws UnsupportedPoolSwitchingStrategyException {
-		if (!poolSwitchingStrategyManager.getName().equalsIgnoreCase(strategyName)) {
-			poolSwitchingStrategyManager.stop();
-			poolSwitchingStrategyManager = PoolSwitchingStrategyFactory.getPoolSwitchingStrategyManagerByName(strategyName);
+		if (poolSwitchingStrategyManager == null || !poolSwitchingStrategyManager.getName().equalsIgnoreCase(strategyName)) {
+			if (poolSwitchingStrategyManager != null) {
+				poolSwitchingStrategyManager.stop();
+			}
+			poolSwitchingStrategyManager = poolSwitchingStrategyFactory.getPoolSwitchingStrategyManagerByName(strategyName);
 		}
 	}
 
