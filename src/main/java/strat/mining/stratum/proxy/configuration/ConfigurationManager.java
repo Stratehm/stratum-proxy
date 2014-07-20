@@ -514,10 +514,21 @@ public class ConfigurationManager {
 	 * @param cliParser
 	 */
 	private void initLogging() {
-		if (logDirectory == null || !logDirectory.isDirectory() || !logDirectory.exists()) {
-			System.err.println("Log directory not set or available. Use the tmp OS directory.");
+		if (logDirectory == null) {
+			System.err.println("Log directory not set. Use the tmp OS directory.");
 			logDirectory = new File(System.getProperty("java.io.tmpdir"));
+		} else {
+			if (!logDirectory.exists()) {
+				System.err.println("Log directory " + logDirectory.getAbsolutePath() + "does not exist. Create it.");
+				boolean isCreated = logDirectory.mkdirs();
+				if (!isCreated) {
+					System.err.println("Failed to create the log directory " + logDirectory.getAbsolutePath() + ". Use the tmp OS directory.");
+					logDirectory = new File(System.getProperty("java.io.tmpdir"));
+				}
+			}
 		}
+
+		System.out.println("Use log directory " + logDirectory.getAbsolutePath());
 
 		// Set the directory used for logging.
 		System.setProperty("log.directory.path", logDirectory.getAbsolutePath());
