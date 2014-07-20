@@ -136,7 +136,7 @@ public class Timer {
 
 							// Run the task only if it is not cancelled.
 							if (!nextTask.isCancelled()) {
-								LOGGER.trace("Executing task {} now.", nextTask.getName());
+								LOGGER.debug("Executing task {} now.", nextTask.getName());
 								executor.execute(nextTask);
 							} else {
 								LOGGER.trace("Task {} cancelled. Do not execute.", nextTask.getName());

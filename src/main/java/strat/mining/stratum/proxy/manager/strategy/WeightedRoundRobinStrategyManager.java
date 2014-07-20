@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
@@ -46,8 +47,6 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WeightedRoundRobinStrategyManager.class);
 
-	private static final Integer TASK_EXECUTION_DELAY = 1000;
-
 	// The duration of a round. (In milliseconds)
 	private static Integer roundDuration = ConfigurationManager.getInstance().getWeightedRoundRobinRoundDuration();
 
@@ -55,12 +54,14 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 
 	private volatile int totalWeight = 0;
 
-	private PoolRunningTimeUpdater poolRunningTimeUpdater;
-	private CheckConnectionBindindsTask checkConnectionBinfingsDelayTask;
+	private CheckConnectionBindingsTask checkConnectionBindingsTask;
 
 	// All counters will be reset at this date (the round is over)
 	private Long endOfRoundTime;
 	private Long startOfRoundTime;
+
+	// Keep the time of the last pool switching function execution time.
+	private Long lastExecutionTime;
 
 	public WeightedRoundRobinStrategyManager(ProxyManager proxyManager) {
 		super(proxyManager);
@@ -68,10 +69,7 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 		this.poolsRunningTimes = Collections.synchronizedMap(new HashMap<Pool, AtomicLong>());
 
 		resetRound();
-
-		// Start the pool running time updater.
-		this.poolRunningTimeUpdater = new PoolRunningTimeUpdater();
-		Timer.getInstance().schedule(poolRunningTimeUpdater, TASK_EXECUTION_DELAY);
+		checkConnectionsBinding();
 	}
 
 	/**
@@ -117,8 +115,8 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 
 	@Override
 	public void stop() {
-		if (poolRunningTimeUpdater != null) {
-			poolRunningTimeUpdater.cancel();
+		if (checkConnectionBindingsTask != null) {
+			checkConnectionBindingsTask.cancel();
 		}
 	}
 
@@ -126,25 +124,54 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 	 * Compute and set the current pool.
 	 */
 	protected void computeCurrentPool() throws NoPoolAvailableException {
+		// Cancel the task which call this function. It will be rescheduled at
+		// the end of this function.
+		if (checkConnectionBindingsTask != null) {
+			checkConnectionBindingsTask.cancel();
+		}
+
 		List<Pool> pools = getProxyManager().getPools();
 		LOGGER.debug("Compute current pool with pools: {}", pools);
 
+		// Compute the total weight of all ready pools.
 		computeTotalWeight(pools);
-		Pool newPool = null;
 
+		// Sort the pools by weight. The highest weight will be active first.
 		Collections.sort(pools, Collections.reverseOrder(new Comparator<Pool>() {
 			public int compare(Pool o1, Pool o2) {
 				return o1.getWeight().compareTo(o2.getWeight());
 			}
 		}));
 
+		// Compute the time the current pool has mined. The time of mining is
+		// the time between the last execution of this function and now.
+		Long currentTime = System.currentTimeMillis();
+		if (lastExecutionTime == null) {
+			lastExecutionTime = currentTime;
+		}
+		Long timeSinceLastExecution = currentTime - lastExecutionTime;
+		incrementCurrentPoolRunningTime(timeSinceLastExecution);
+		lastExecutionTime = currentTime;
+
+		// If the round is over, reset all counters.
+		if (isRoundOver()) {
+			LOGGER.debug("Round is over. Reset the round.");
+			resetRound();
+		}
+
 		if (LOGGER.isDebugEnabled()) {
 			synchronized (poolsRunningTimes) {
-				LOGGER.debug("Running times: {}", poolsRunningTimes);
+				for (Entry<Pool, AtomicLong> entry : poolsRunningTimes.entrySet()) {
+					LOGGER.debug("Running times: {}={}", entry.getKey().getName(), entry.getValue().get());
+				}
 			}
 		}
 
+		// Then define the next pool to mine by computing the remaining time to
+		// mine for each pool. The first pool that has not yet end its mining
+		// time is the next pool to mine (can be the same as the current one).
 		Long remainingMiningTime = 0L;
+		Pool newPool = null;
 		for (Pool pool : pools) {
 			AtomicLong poolRunningTime = poolsRunningTimes.get(pool);
 			if (poolRunningTime == null) {
@@ -162,15 +189,13 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 			}
 		}
 
+		// If the new pool is null, there is no more pool available.
 		if (newPool == null) {
 			throw new NoPoolAvailableException("No pool available. " + pools);
 		} else {
-			if (checkConnectionBinfingsDelayTask != null) {
-				checkConnectionBinfingsDelayTask.cancel();
-			} else {
-				checkConnectionBinfingsDelayTask = new CheckConnectionBindindsTask();
-			}
-			Timer.getInstance().schedule(checkConnectionBinfingsDelayTask, remainingMiningTime);
+			// Else, call this function once again when the current pool mining
+			// time is over.
+			Timer.getInstance().schedule(new CheckConnectionBindingsTask(), remainingMiningTime);
 			setCurrentPool(newPool);
 		}
 
@@ -193,7 +218,7 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 	 * @return
 	 */
 	private boolean isRoundOver() {
-		return System.currentTimeMillis() > endOfRoundTime;
+		return System.currentTimeMillis() >= endOfRoundTime;
 	}
 
 	/**
@@ -202,8 +227,8 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 	 * @return
 	 */
 	private void resetRound() {
-		long currentTime = System.currentTimeMillis();
-		startOfRoundTime = currentTime;
+		LOGGER.debug("Reset the round.");
+		startOfRoundTime = System.currentTimeMillis();
 		endOfRoundTime = startOfRoundTime + roundDuration;
 
 		// Reset all running time counters of pools
@@ -216,8 +241,6 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 				initPool(pool);
 			}
 		}
-
-		checkConnectionsBinding();
 	}
 
 	/**
@@ -251,44 +274,15 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 	}
 
 	/**
-	 * The task that update the running times of pools and reset the manager
-	 * when the round is over.
-	 * 
-	 * @author Strat
-	 * 
-	 */
-	private class PoolRunningTimeUpdater extends Timer.Task {
-
-		private Long lastExecutionTime = System.currentTimeMillis();
-
-		public PoolRunningTimeUpdater() {
-			setName("PoolRunningTimeUpdater");
-		}
-
-		public void run() {
-			if (isRoundOver()) {
-				resetRound();
-			}
-
-			long currentTime = System.currentTimeMillis();
-			Long timeSinceLastExecution = currentTime - lastExecutionTime;
-
-			incrementCurrentPoolRunningTime(timeSinceLastExecution);
-			Timer.getInstance().schedule(this, TASK_EXECUTION_DELAY);
-		}
-
-	}
-
-	/**
 	 * The task that schedule a pool switch if needed.
 	 * 
 	 * @author Strat
 	 * 
 	 */
-	private class CheckConnectionBindindsTask extends Timer.Task {
+	private class CheckConnectionBindingsTask extends Timer.Task {
 
-		public CheckConnectionBindindsTask() {
-			setName("CheckConnectionBinfindsDelayTask");
+		public CheckConnectionBindingsTask() {
+			setName("CheckConnectionBindingsTask");
 		}
 
 		public void run() {
