@@ -97,6 +97,8 @@ public class ConfigurationManager {
 
 	private String poolSwitchingStrategy = PriorityFailoverStrategyManager.NAME;
 
+	private Integer weightedRoundRobinRoundDuration = Constants.DEFAULT_WEIGHTED_ROUND_ROBIN_ROUND_DURATION;
+
 	private ObjectMapper jsonParser;
 
 	public static ConfigurationManager getInstance() {
@@ -200,6 +202,8 @@ public class ConfigurationManager {
 				: validateSha26GetworkShares;
 
 		poolSwitchingStrategy = configuration.getPoolSwitchingStrategy() != null ? configuration.getPoolSwitchingStrategy() : poolSwitchingStrategy;
+		weightedRoundRobinRoundDuration = configuration.getWeightedRoundRobinRoundDuration() != null ? configuration
+				.getWeightedRoundRobinRoundDuration() * 60000 : weightedRoundRobinRoundDuration;
 
 		buildPoolsFromConfigurationFile(configuration);
 	}
@@ -344,6 +348,8 @@ public class ConfigurationManager {
 				: validateSha26GetworkShares;
 
 		poolSwitchingStrategy = cliParser.getPoolSwitchingStrategy() != null ? cliParser.getPoolSwitchingStrategy() : poolSwitchingStrategy;
+		weightedRoundRobinRoundDuration = cliParser.getWeightedRoundRobinRoundDuration() != null ? cliParser.getWeightedRoundRobinRoundDuration() * 60000
+				: weightedRoundRobinRoundDuration;
 
 		buildPoolsFromCommandLine(cliParser);
 	}
@@ -728,6 +734,10 @@ public class ConfigurationManager {
 
 	public String getPoolSwitchingStrategy() {
 		return poolSwitchingStrategy;
+	}
+
+	public Integer getWeightedRoundRobinRoundDuration() {
+		return weightedRoundRobinRoundDuration;
 	}
 
 }

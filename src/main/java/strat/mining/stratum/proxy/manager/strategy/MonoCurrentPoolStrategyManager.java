@@ -38,7 +38,7 @@ public abstract class MonoCurrentPoolStrategyManager implements PoolSwitchingStr
 	 * worker connection to the pool with highest priority.
 	 */
 	protected void checkConnectionsBinding() {
-		LOGGER.info("Check all worker connections binding.");
+		LOGGER.debug("Check all worker connections binding.");
 		List<WorkerConnection> workerConnections = proxyManager.getWorkerConnections();
 		// Try to rebind connections only if there is at least one connection.
 		if (workerConnections.size() > 0) {
@@ -135,6 +135,7 @@ public abstract class MonoCurrentPoolStrategyManager implements PoolSwitchingStr
 	 * Set the current pool.
 	 */
 	protected void setCurrentPool(Pool pool) {
+		LOGGER.debug("Current pool: {}", pool.getName());
 		currentPool = pool;
 	}
 

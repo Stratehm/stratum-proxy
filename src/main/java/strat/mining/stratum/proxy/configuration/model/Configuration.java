@@ -54,6 +54,7 @@ public class Configuration {
 	private Boolean validateSha26GetworkShares;
 
 	private String poolSwitchingStrategy;
+	private Integer weightedRoundRobinRoundDuration;
 
 	@Valid
 	private List<Pool> pools;
@@ -251,6 +252,14 @@ public class Configuration {
 
 	public void setPoolSwitchingStrategy(String poolSwitchingStrategy) {
 		this.poolSwitchingStrategy = poolSwitchingStrategy;
+	}
+
+	public Integer getWeightedRoundRobinRoundDuration() {
+		return weightedRoundRobinRoundDuration;
+	}
+
+	public void setWeightedRoundRobinRoundDuration(Integer weightedRoundRobinRoundDuration) {
+		this.weightedRoundRobinRoundDuration = weightedRoundRobinRoundDuration;
 	}
 
 }

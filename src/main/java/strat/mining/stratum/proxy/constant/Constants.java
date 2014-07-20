@@ -66,5 +66,6 @@ public class Constants {
 	public static final Integer DEFAULT_HASHRATE_DATABASE_HISTORY_DEPTH = 7;
 
 	public static final Integer DEFAULT_POOL_WEIGHT = 1;
+	public static final Integer DEFAULT_WEIGHTED_ROUND_ROBIN_ROUND_DURATION = 3600000;
 
 }

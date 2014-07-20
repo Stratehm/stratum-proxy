@@ -147,6 +147,9 @@ public class CommandLineOptions {
 	@Option(name = "--pool-switching-strategy", usage = "Set the pool switching strategy. The strategy defines on which pool workers will mine. It also define when a pool switch occurs. By default, the priorityFailover is used. Strategies available are: priorityFailover, weightedRoundRobin.")
 	private String poolSwitchingStrategy;
 
+	@Option(name = "--weighted-round-robin-round-duration", usage = "Set the duration (in minutes) of a round for the weightedRoundRobin pool switching strategy. (60 minutes by default)")
+	private Integer weightedRoundRobinRoundDuration;
+
 	public CommandLineOptions() {
 		parser = new CmdLineParser(this);
 	}
@@ -301,6 +304,10 @@ public class CommandLineOptions {
 
 	public String getPoolSwitchingStrategy() {
 		return poolSwitchingStrategy;
+	}
+
+	public Integer getWeightedRoundRobinRoundDuration() {
+		return weightedRoundRobinRoundDuration;
 	}
 
 }
