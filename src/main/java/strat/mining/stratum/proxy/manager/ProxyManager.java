@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.slf4j.Logger;
@@ -90,7 +92,7 @@ public class ProxyManager {
 
 	private Map<String, User> users;
 
-	private Map<Pool, List<WorkerConnection>> poolWorkerConnections;
+	private Map<Pool, Set<WorkerConnection>> poolWorkerConnections;
 
 	private boolean closeRequested = false;
 
@@ -105,7 +107,7 @@ public class ProxyManager {
 		this.pools = Collections.synchronizedList(new ArrayList<Pool>());
 		this.workerConnections = new CopyOnWriteArrayList<WorkerConnection>();
 		this.users = Collections.synchronizedMap(new HashMap<String, User>());
-		this.poolWorkerConnections = Collections.synchronizedMap(new HashMap<Pool, List<WorkerConnection>>());
+		this.poolWorkerConnections = Collections.synchronizedMap(new HashMap<Pool, Set<WorkerConnection>>());
 		this.poolSwitchingStrategyFactory = new PoolSwitchingStrategyFactory(this);
 
 		setPoolSwitchingStrategy(ConfigurationManager.getInstance().getPoolSwitchingStrategy());
@@ -231,7 +233,7 @@ public class ProxyManager {
 	public Pool onSubscribeRequest(WorkerConnection connection, MiningSubscribeRequest request) throws NoPoolAvailableException {
 		Pool pool = poolSwitchingStrategyManager.getPoolForConnection(connection);
 
-		List<WorkerConnection> workerConnections = getPoolWorkerConnections(pool);
+		Set<WorkerConnection> workerConnections = getPoolWorkerConnections(pool);
 		workerConnections.add(connection);
 		this.workerConnections.add(connection);
 		LOGGER.info("New WorkerConnection {} subscribed. {} connections active on pool {}.", connection.getConnectionName(),
@@ -345,7 +347,7 @@ public class ProxyManager {
 		MiningSetDifficultyNotification notification = new MiningSetDifficultyNotification();
 		notification.setDifficulty(setDifficulty.getDifficulty());
 
-		List<WorkerConnection> connections = getPoolWorkerConnections(pool);
+		Set<WorkerConnection> connections = getPoolWorkerConnections(pool);
 
 		if (connections == null || connections.isEmpty()) {
 			LOGGER.debug("No worker connections on pool {}. Do not send setDifficulty.", pool.getName());
@@ -365,7 +367,7 @@ public class ProxyManager {
 	public void onPoolSetExtranonce(Pool pool, MiningSetExtranonceNotification setExtranonce) {
 		LOGGER.info("Set the extranonce on pool {}.", pool.getName());
 
-		List<WorkerConnection> connections = getPoolWorkerConnections(pool);
+		Set<WorkerConnection> connections = getPoolWorkerConnections(pool);
 
 		if (connections == null || connections.isEmpty()) {
 			LOGGER.debug("No worker connections on pool {}. Do not send setExtranonce.", pool.getName());
@@ -404,7 +406,7 @@ public class ProxyManager {
 		notification.setNetworkDifficultyBits(notify.getNetworkDifficultyBits());
 		notification.setPreviousHash(notify.getPreviousHash());
 
-		List<WorkerConnection> connections = getPoolWorkerConnections(pool);
+		Set<WorkerConnection> connections = getPoolWorkerConnections(pool);
 
 		if (connections == null || connections.isEmpty()) {
 			LOGGER.debug("No worker connections on pool {}. Do not send notify.", pool.getName());
@@ -422,7 +424,7 @@ public class ProxyManager {
 	 * @param cause
 	 */
 	public void onWorkerDisconnection(final WorkerConnection workerConnection, final Throwable cause) {
-		List<WorkerConnection> connections = getPoolWorkerConnections(workerConnection.getPool());
+		Set<WorkerConnection> connections = getPoolWorkerConnections(workerConnection.getPool());
 		if (connections != null) {
 			connections.remove(workerConnection);
 		}
@@ -466,7 +468,7 @@ public class ProxyManager {
 		// If the old pool is the same as the new pool, do nothing.
 		if (!newPool.equals(connection.getPool())) {
 			// Remove the connection from the old pool connection list.
-			List<WorkerConnection> oldPoolConnections = getPoolWorkerConnections(connection.getPool());
+			Set<WorkerConnection> oldPoolConnections = getPoolWorkerConnections(connection.getPool());
 			if (oldPoolConnections != null) {
 				oldPoolConnections.remove(connection);
 			}
@@ -478,7 +480,7 @@ public class ProxyManager {
 
 			// And finally add the worker connection to the pool's worker
 			// connections
-			List<WorkerConnection> newPoolConnections = getPoolWorkerConnections(newPool);
+			Set<WorkerConnection> newPoolConnections = getPoolWorkerConnections(newPool);
 			newPoolConnections.add(connection);
 
 			// Ask to the pool to authorize the worker
@@ -585,7 +587,7 @@ public class ProxyManager {
 	 */
 	public int getNumberOfWorkerConnectionsOnPool(String poolName) {
 		Pool pool = getPool(poolName);
-		List<WorkerConnection> connections = getPoolWorkerConnections(pool);
+		Set<WorkerConnection> connections = getPoolWorkerConnections(pool);
 		return connections == null ? 0 : connections.size();
 	}
 
@@ -904,10 +906,10 @@ public class ProxyManager {
 	 * 
 	 * @param pool
 	 */
-	protected List<WorkerConnection> getPoolWorkerConnections(Pool pool) {
-		List<WorkerConnection> workerConnections = poolWorkerConnections.get(pool);
+	protected Set<WorkerConnection> getPoolWorkerConnections(Pool pool) {
+		Set<WorkerConnection> workerConnections = poolWorkerConnections.get(pool);
 		if (workerConnections == null) {
-			workerConnections = new CopyOnWriteArrayList<WorkerConnection>();
+			workerConnections = Collections.newSetFromMap(new ConcurrentHashMap<WorkerConnection, Boolean>());
 			poolWorkerConnections.put(pool, workerConnections);
 		}
 		return workerConnections;
