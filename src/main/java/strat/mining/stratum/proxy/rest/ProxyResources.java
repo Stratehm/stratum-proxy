@@ -649,6 +649,8 @@ public class ProxyResources {
 		result.setIsExtranonceSubscribeEnabled(pool.isExtranonceSubscribeEnabled());
 		result.setAcceptedHashesPerSeconds(Double.valueOf(pool.getAcceptedHashesPerSeconds()).longValue());
 		result.setRejectedHashesPerSeconds(Double.valueOf(pool.getRejectedHashesPerSeconds()).longValue());
+		result.setLastStopCause(pool.getLastStopCause());
+		result.setLastStopDate(pool.getLastStopDate() != null ? simpleDateFormat.format(pool.getLastStopDate()) : null);
 
 		return result;
 	}
@@ -660,7 +662,7 @@ public class ProxyResources {
 		result.setAcceptedHashesPerSeconds(Double.valueOf(connection.getAcceptedHashrate()).longValue());
 		result.setRejectedHashesPerSeconds(Double.valueOf(connection.getRejectedHashrate()).longValue());
 		result.setPoolName(connection.getPool().getName());
-		result.setAuthorizedUsers(new ArrayList<>(connection.getAuthorizedWorkers()));
+		result.setAuthorizedUsers(new ArrayList<>(connection.getAuthorizedWorkers().keySet()));
 		result.setIsActiveSince(simpleDateFormat.format(connection.getActiveSince()));
 
 		if (connection instanceof StratumWorkerConnection) {

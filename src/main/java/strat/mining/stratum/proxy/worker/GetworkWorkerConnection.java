@@ -67,7 +67,7 @@ public class GetworkWorkerConnection implements WorkerConnection {
 
 	private Set<LongPollingCallback> longPollingCallbacks;
 
-	private Set<String> authorizedUsername;
+	private Map<String, String> authorizedWorkers;
 
 	private InetAddress remoteAddress;
 
@@ -98,7 +98,7 @@ public class GetworkWorkerConnection implements WorkerConnection {
 		this.manager = manager;
 		this.remoteAddress = remoteAddress;
 		this.longPollingCallbacks = Collections.synchronizedSet(new HashSet<LongPollingCallback>());
-		this.authorizedUsername = Collections.synchronizedSet(new HashSet<String>());
+		this.authorizedWorkers = Collections.synchronizedMap(new HashMap<String, String>());
 		this.extranonce2Counter = new AtomicBigInteger(ZERO_BIG_INTEGER_BYTES);
 		this.extranonce2AndJobIdByMerkleRoot = Collections.synchronizedMap(new HashMap<String, Pair<String, String>>());
 		this.submitResponseLatches = Collections.synchronizedMap(new HashMap<Long, CountDownLatch>());
@@ -224,8 +224,8 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	 * 
 	 * @param username
 	 */
-	public void addAuthorizedUsername(String username) {
-		authorizedUsername.add(username);
+	public void addAuthorizedUsername(String username, String password) {
+		authorizedWorkers.put(username, password);
 	}
 
 	/**
@@ -435,8 +435,12 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	}
 
 	@Override
-	public Set<String> getAuthorizedWorkers() {
-		return Collections.unmodifiableSet(authorizedUsername);
+	public Map<String, String> getAuthorizedWorkers() {
+		Map<String, String> result = null;
+		synchronized (authorizedWorkers) {
+			result = new HashMap<>(authorizedWorkers);
+		}
+		return result;
 	}
 
 	@Override

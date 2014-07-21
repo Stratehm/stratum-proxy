@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.slf4j.Logger;
@@ -143,7 +144,7 @@ public class ProxyManager {
 	public void stopPools() {
 		synchronized (pools) {
 			for (Pool pool : pools) {
-				pool.stopPool();
+				pool.stopPool("Proxy is shutting down!");
 			}
 		}
 	}
@@ -470,12 +471,34 @@ public class ProxyManager {
 				oldPoolConnections.remove(connection);
 			}
 
-			// Then rebind the connection to this pool
+			// Then rebind the connection to this pool. An exception is thrown
+			// if the rebind fails since the connection does not support the
+			// extranonce change.
 			connection.rebindToPool(newPool);
+
 			// And finally add the worker connection to the pool's worker
 			// connections
 			List<WorkerConnection> newPoolConnections = getPoolWorkerConnections(newPool);
 			newPoolConnections.add(connection);
+
+			// Ask to the pool to authorize the worker
+			// Create a fake authorization request since when a connection is
+			// rebound, the miner does not send auhtorization request (since it
+			// has already done it). But it may be the first time this
+			// connection is bound to this pool, so the username on this
+			// connection is not yet authorized on the pool.
+			for (Entry<String, String> entry : connection.getAuthorizedWorkers().entrySet()) {
+				MiningAuthorizeRequest fakeRequest = new MiningAuthorizeRequest();
+				fakeRequest.setUsername(entry.getKey());
+				fakeRequest.setPassword(entry.getValue());
+				try {
+					onAuthorizeRequest(connection, fakeRequest);
+				} catch (AuthorizationException e) {
+					LOGGER.error("Authorization of user {} failed on pool {} when rebinding connection {}. Closing the connection. Cause: {}",
+							entry.getKey(), newPool.getName(), connection.getConnectionName(), e.getMessage());
+					connection.close();
+				}
+			}
 		}
 	}
 
@@ -650,7 +673,7 @@ public class ProxyManager {
 			throw new NoPoolAvailableException("Pool with name " + poolName + " is not found");
 		}
 
-		pool.stopPool();
+		pool.stopPool("Pool removed");
 		pools.remove(pool);
 
 		poolSwitchingStrategyManager.onPoolRemoved(pool);

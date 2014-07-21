@@ -18,6 +18,7 @@
  */
 package strat.mining.stratum.proxy.pool;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -135,6 +136,9 @@ public class Pool {
 
 	private List<String> authorizedWorkers;
 
+	private String lastStopCause;
+	private Date lastStopDate;
+
 	public Pool(String name, String host, String username, String password) {
 		super();
 		this.name = name == null || name.isEmpty() ? host : name;
@@ -185,7 +189,7 @@ public class Pool {
 					connection.sendRequest(request);
 				} catch (IOException e) {
 					LOGGER.error("Failed to connect the pool {}.", getName(), e);
-					stopPool();
+					stopPool("Connection failed: " + e.getMessage());
 					retryConnect(true);
 				}
 			}
@@ -201,7 +205,7 @@ public class Pool {
 		subscribeResponseTimeoutTask = new Timer.Task() {
 			public void run() {
 				LOGGER.warn("Subscribe response timeout. Stopping the pool");
-				stopPool();
+				stopPool("Pool subscribe response timed out.");
 				retryConnect(true);
 			}
 		};
@@ -219,8 +223,10 @@ public class Pool {
 		}
 	}
 
-	public void stopPool() {
+	public void stopPool(String cause) {
 		if (connection != null) {
+			this.lastStopCause = cause;
+			lastStopDate = new Date();
 			cancelTimers();
 			authorizedWorkers.clear();
 
@@ -287,7 +293,7 @@ public class Pool {
 			if (isEnabled) {
 				startPool(manager);
 			} else {
-				stopPool();
+				stopPool("Pool disabled by user.");
 			}
 		}
 	}
@@ -333,7 +339,7 @@ public class Pool {
 		// the pool.
 		if (clientReconnect.getHost() == null || clientReconnect.getHost().isEmpty()) {
 			LOGGER.info("Received client.reconnect from pool {}.", getName());
-			stopPool();
+			stopPool("Pool asked reconnection.");
 			try {
 				startPool(manager);
 			} catch (Exception e) {
@@ -351,12 +357,12 @@ public class Pool {
 				LOGGER.warn(
 						"Stopping the pool {} after a client.reconnect notification with requested host {} and port {} since option --pool-no-reconnect-different-host is true and host is different.",
 						getName(), clientReconnect.getHost(), clientReconnect.getPort());
-				stopPool();
+				stopPool("Pool asked reconnection on untrusted host. (" + newUri.toString() + ")");
 				retryConnect(true);
 			} else {
 				// Else reconnect to the new host/port
 				LOGGER.warn("Reconnect the pool {} to the host {} and port {}.", getName(), newUri.getHost(), newUri.getPort());
-				stopPool();
+				stopPool("Pool asked reconnection on " + newUri.toString());
 				host = newUri.getHost() + ":" + newUri.getPort();
 				try {
 					startPool(manager);
@@ -376,7 +382,8 @@ public class Pool {
 			// unique extranonce for workers, so deactivate the pool.
 			LOGGER.error("The extranonce2Size for the pool {} is to low. Size: {}, mininum needed {}.", getName(), extranonce2Size,
 					Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1);
-			stopPool();
+			stopPool("Pool asked extranonce change with too small extranonce2 size (" + extranonce2Size + ". Minimum needed is "
+					+ (Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1));
 			retryConnect(true);
 		} else {
 			extranonce2Size = setExtranonce.getExtranonce2Size();
@@ -394,9 +401,9 @@ public class Pool {
 		if (extranonce2Size - Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE < 1) {
 			// If the extranonce2size is not big enough, we cannot generate
 			// unique extranonce for workers, so deactivate the pool.
-			LOGGER.error("The extranonce2Size for the pool {} is to low. Size: {}, mininum needed {}.", getName(), extranonce2Size,
+			LOGGER.error("The extranonce2Size for the pool {} is too low. Size: {}, mininum needed {}.", getName(), extranonce2Size,
 					Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1);
-			stopPool();
+			stopPool("The pool extranonce2 size is too low (" + extranonce2Size + "). Minimum is " + (Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1));
 			retryConnect(true);
 		} else {
 			if (isExtranonceSubscribeEnabled) {
@@ -454,7 +461,7 @@ public class Pool {
 				setPoolAsReady();
 			} else {
 				LOGGER.error("Stopping pool {} since user {} is not authorized.", getName(), username);
-				stopPool();
+				stopPool("User " + username + " not authorized.");
 				retryConnect(true);
 			}
 		}
@@ -550,7 +557,15 @@ public class Pool {
 
 	public void onDisconnectWithError(Throwable cause) {
 		LOGGER.error("Disconnect of pool {}.", this, cause);
-		stopPool();
+
+		String causeMessage = null;
+		if (cause instanceof EOFException) {
+			causeMessage = "Pool has claused the connection (Unknown reason).";
+		} else {
+			causeMessage = cause.getMessage();
+		}
+
+		stopPool(causeMessage);
 
 		retryConnect(true);
 	}
@@ -757,7 +772,7 @@ public class Pool {
 					LOGGER.warn("No mining.notify received from pool {} for {} ms. Stopping the pool...", getName(), noNotifyTimeout);
 					// If we have not received notify notification since DEALY,
 					// stop the pool and try to reconnect.
-					stopPool();
+					stopPool("No work notification for " + noNotifyTimeout / 1000 + " seconds.");
 					retryConnect(false);
 				}
 			};
@@ -854,12 +869,15 @@ public class Pool {
 	 * @param callback
 	 */
 	public void authorizeWorker(MiningAuthorizeRequest workerRequest) throws AuthorizationException {
+		// Authorize the worker only if isAppendWorkerNames is true. If true, it
+		// means that each worker has to be authorized. If false, the
+		// authorization has already been done with the configured username.
 		if (isAppendWorkerNames) {
 			String finalUserName = username + workerSeparator + workerRequest.getUsername();
 
 			// If the worker is already authorized, do nothing
 			if (authorizedWorkers.contains(finalUserName)) {
-				LOGGER.info("Worker {} already authorized on the pool {}.", finalUserName, getName());
+				LOGGER.debug("Worker {} already authorized on the pool {}.", finalUserName, getName());
 			} else {
 
 				LOGGER.debug("Authorize worker {} on pool {}.", finalUserName, getName());
@@ -936,4 +954,13 @@ public class Pool {
 	public Date getActiveSince() {
 		return this.activeSince;
 	}
+
+	public String getLastStopCause() {
+		return lastStopCause;
+	}
+
+	public Date getLastStopDate() {
+		return lastStopDate;
+	}
+
 }

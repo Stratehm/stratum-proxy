@@ -52,6 +52,9 @@ public class PoolDetailsDTO {
 	private Long acceptedHashesPerSeconds;
 	private Long rejectedHashesPerSeconds;
 
+	private String lastStopCause;
+	private String lastStopDate;
+
 	public String getName() {
 		return name;
 	}
@@ -226,6 +229,22 @@ public class PoolDetailsDTO {
 
 	public void setWeight(Integer weight) {
 		this.weight = weight;
+	}
+
+	public String getLastStopCause() {
+		return lastStopCause;
+	}
+
+	public void setLastStopCause(String lastStopCause) {
+		this.lastStopCause = lastStopCause;
+	}
+
+	public String getLastStopDate() {
+		return lastStopDate;
+	}
+
+	public void setLastStopDate(String lastStopDate) {
+		this.lastStopDate = lastStopDate;
 	}
 
 }

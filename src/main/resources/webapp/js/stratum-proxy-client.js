@@ -797,7 +797,12 @@ PoolItem.prototype.updatePool = function(pool) {
 			pool.acceptedHashesPerSeconds);
 	this.poolItemJquery.find('.rejectedHashrateValue').text(
 			pool.rejectedHashesPerSeconds);
-
+	
+	this.poolItemJquery.find('.lastStopCauseValue').text(
+			pool.lastStopCause != undefined ? pool.lastStopCause : "Never stopped");
+	this.poolItemJquery.find('.lastStopDateValue').text(
+			pool.lastStopDate != undefined ? pool.lastStopDate : "Never stopped");
+	
 	// Associate the pool priority to the jQuery object to allow sorting of
 	// pools.
 	this.poolItemJquery.data('priority', pool.priority);

@@ -20,7 +20,6 @@ package strat.mining.stratum.proxy.worker;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
@@ -273,23 +272,6 @@ public class GetworkRequestHandler extends HttpHandler {
 	}
 
 	/**
-	 * Check if the block header SHA256 hash is below the target.
-	 * 
-	 * @param string
-	 * 
-	 * @return
-	 */
-	private String checkSHA256Target(String blockHeader, BigInteger target) {
-		String result = null;
-
-		if (!HashingUtils.isBlockHeaderSHA256HashBelowTarget(blockHeader, target)) {
-			result = "Share is above the target (proxy check)";
-		}
-
-		return result;
-	}
-
-	/**
 	 * Check if the request is authorized. If not authorized, throw an
 	 * exception. The response status code and headers are modified.
 	 * 
@@ -340,7 +322,7 @@ public class GetworkRequestHandler extends HttpHandler {
 
 		try {
 			checkAuthorization(workerConnection, request);
-			workerConnection.addAuthorizedUsername((String) request.getAttribute("username"));
+			workerConnection.addAuthorizedUsername((String) request.getAttribute("username"), (String) request.getAttribute("password"));
 		} catch (AuthorizationException e) {
 			workerConnections.remove(address);
 			manager.onWorkerDisconnection(workerConnection, e);

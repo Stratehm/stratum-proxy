@@ -22,9 +22,9 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +75,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 	private String extranonce1Tail;
 	private Integer extranonce2Size;
 
-	private Set<String> authorizedWorkers;
+	private Map<String, String> authorizedWorkers;
 
 	private boolean isSetExtranonceNotificationSupported = false;
 
@@ -84,7 +84,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 	public StratumWorkerConnection(Socket socket, ProxyManager manager) {
 		super(socket);
 		this.manager = manager;
-		this.authorizedWorkers = Collections.synchronizedSet(new HashSet<String>());
+		this.authorizedWorkers = Collections.synchronizedMap(new HashMap<String, String>());
 		this.workerHashrateDelegator = new WorkerConnectionHashrateDelegator();
 	}
 
@@ -142,7 +142,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 			// Throws an exception if the worker is not authorized
 			manager.onAuthorizeRequest(this, request);
 			response.setIsAuthorized(true);
-			authorizedWorkers.add(request.getUsername());
+			authorizedWorkers.put(request.getUsername(), request.getPassword());
 		} catch (AuthorizationException e) {
 			response.setIsAuthorized(false);
 			JsonRpcError error = new JsonRpcError();
@@ -211,7 +211,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 		MiningSubmitResponse response = new MiningSubmitResponse();
 		response.setId(request.getId());
 		JsonRpcError error = null;
-		if (authorizedWorkers.contains(request.getWorkerName())) {
+		if (authorizedWorkers.get(request.getWorkerName()) != null) {
 			// Modify the request to add the tail of extranonce1 to the
 			// submitted extranonce2
 			request.setExtranonce2(extranonce1Tail + request.getExtranonce2());
@@ -403,8 +403,12 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 	}
 
 	@Override
-	public Set<String> getAuthorizedWorkers() {
-		return Collections.unmodifiableSet(authorizedWorkers);
+	public Map<String, String> getAuthorizedWorkers() {
+		Map<String, String> result = null;
+		synchronized (authorizedWorkers) {
+			result = new HashMap<>(authorizedWorkers);
+		}
+		return result;
 	}
 
 	@Override
