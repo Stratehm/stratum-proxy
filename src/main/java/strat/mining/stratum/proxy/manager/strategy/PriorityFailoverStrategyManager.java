@@ -104,7 +104,7 @@ public class PriorityFailoverStrategyManager extends MonoCurrentPoolStrategyMana
 			}
 		});
 		for (Pool pool : pools) {
-			if (pool.isActive() && pool.isEnabled() && pool.isStable()) {
+			if (pool.isReady() && pool.isEnabled() && pool.isStable()) {
 				newPool = pool;
 				break;
 			}

@@ -284,7 +284,7 @@ public class ProxyManager {
 	 * @param workerRequest
 	 */
 	public void onSubmitRequest(final WorkerConnection workerConnection, final MiningSubmitRequest workerRequest) {
-		if (workerConnection.getPool() != null && workerConnection.getPool().isActive()) {
+		if (workerConnection.getPool() != null && workerConnection.getPool().isReady()) {
 			for (int i = 0; i < workerConnection.getPool().getNumberOfSubmit(); i++) {
 				workerConnection.getPool().submitShare(workerRequest, new ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>() {
 					public void onResponseReceived(MiningSubmitRequest request, MiningSubmitResponse response) {
@@ -295,16 +295,16 @@ public class ProxyManager {
 
 			}
 		} else {
-			LOGGER.warn("REJECTED share. Share submit from {}@{} dropped since pool {} is inactive.", workerRequest.getWorkerName(),
+			LOGGER.warn("REJECTED share. Share submit from {}@{} dropped since pool {} is not ready.", workerRequest.getWorkerName(),
 					workerConnection.getConnectionName(), workerConnection.getPool());
 
-			// Notify the worker that the target pool is no more active
+			// Notify the worker that the target pool is no more ready
 			MiningSubmitResponse fakePoolResponse = new MiningSubmitResponse();
 			fakePoolResponse.setId(workerRequest.getId());
 			fakePoolResponse.setIsAccepted(false);
 			JsonRpcError error = new JsonRpcError();
 			error.setCode(JsonRpcError.ErrorCode.UNKNOWN.getCode());
-			error.setMessage("The target pool is no more active.");
+			error.setMessage("The target pool is no more ready.");
 			fakePoolResponse.setErrorRpc(error);
 			workerConnection.onPoolSubmitResponse(workerRequest, fakePoolResponse);
 		}
@@ -439,7 +439,7 @@ public class ProxyManager {
 	 * Called by pool when its state changes
 	 */
 	public void onPoolStateChange(Pool pool) {
-		if (pool.isActive()) {
+		if (pool.isReady()) {
 			LOGGER.warn("Pool {} is UP.", pool.getName());
 			poolSwitchingStrategyManager.onPoolUp(pool);
 		} else {

@@ -339,21 +339,9 @@ public class ProxyResources {
 
 		List<PoolDetailsDTO> result = new ArrayList<>();
 		if (pools != null) {
-			PoolDetailsDTO highestActiveStablePriorityPool = null;
 			for (Pool pool : pools) {
 				PoolDetailsDTO poolDTO = convertPoolToDTO(pool);
 				result.add(poolDTO);
-
-				// Save the highest priority pool which is active and stable. It
-				// is the currently mining pool.
-				if (poolDTO.getIsActive() && poolDTO.getIsStable()) {
-					if (highestActiveStablePriorityPool == null || highestActiveStablePriorityPool.getPriority() > poolDTO.getPriority()) {
-						highestActiveStablePriorityPool = poolDTO;
-					}
-				}
-			}
-			if (highestActiveStablePriorityPool != null) {
-				highestActiveStablePriorityPool.setIsMining(true);
 			}
 
 			Collections.sort(result, new Comparator<PoolDetailsDTO>() {
@@ -643,16 +631,19 @@ public class ProxyResources {
 		} else {
 			result.setHost(pool.getHost());
 		}
-		result.setIsActive(pool.isActive());
+		result.setIsReady(pool.isReady());
 		result.setIsEnabled(pool.isEnabled());
 		result.setIsStable(pool.isStable());
+		result.setIsActive(pool.isActive());
 		result.setName(pool.getName());
 		result.setNumberOfWorkerConnections(pool.getNumberOfWorkersConnections());
 		result.setPassword(pool.getPassword());
 		result.setUsername(pool.getUsername());
 		result.setWorkerExtranonce2Size(pool.getWorkerExtranonce2Size());
 		result.setPriority(pool.getPriority());
+		result.setWeight(pool.getWeight());
 		result.setAcceptedDifficulty(pool.getAcceptedDifficulty());
+		result.setIsReadySince(pool.getReadySince() != null ? simpleDateFormat.format(pool.getReadySince()) : null);
 		result.setIsActiveSince(pool.getActiveSince() != null ? simpleDateFormat.format(pool.getActiveSince()) : null);
 		result.setRejectedDifficulty(pool.getRejectedDifficulty());
 		result.setIsExtranonceSubscribeEnabled(pool.isExtranonceSubscribeEnabled());

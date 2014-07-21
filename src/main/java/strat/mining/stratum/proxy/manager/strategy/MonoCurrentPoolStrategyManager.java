@@ -136,6 +136,12 @@ public abstract class MonoCurrentPoolStrategyManager implements PoolSwitchingStr
 	 */
 	protected void setCurrentPool(Pool pool) {
 		LOGGER.debug("Current pool: {}", pool.getName());
+		if (pool != currentPool && currentPool != null) {
+			currentPool.setIsActive(false);
+		}
+		if (pool != null) {
+			pool.setIsActive(true);
+		}
 		currentPool = pool;
 	}
 

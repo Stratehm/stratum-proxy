@@ -763,11 +763,14 @@ PoolItem.prototype.updatePool = function(pool) {
 	this.poolItemJquery.find('.hostValue').text(pool.host);
 	this.poolItemJquery.find('.usernameValue').text(pool.username);
 	this.poolItemJquery.find('.passwordValue').text(pool.password);
+	this.poolItemJquery.find('.isReadyValue').text(pool.isReady);
 	this.poolItemJquery.find('.isActiveValue').text(pool.isActive);
 	this.poolItemJquery.find('.isEnabledValue').text(pool.isEnabled);
 	this.poolItemJquery.find('.isStableValue').text(pool.isStable);
+	this.poolItemJquery.find('.isReadySinceValue').text(
+			pool.isReadySince != undefined ? pool.isReadySince : "Never");
 	this.poolItemJquery.find('.isActiveSinceValue').text(
-			pool.isActiveSince != undefined ? pool.isActiveSince : "Never");
+			pool.isActiveSince != undefined ? pool.isActiveSince : "Not active");
 	this.poolItemJquery.find('.difficultyValue').text(
 			pool.difficulty != undefined ? pool.difficulty : "Not set");
 	this.poolItemJquery.find('.extranonce1Value').text(
@@ -783,6 +786,7 @@ PoolItem.prototype.updatePool = function(pool) {
 	this.poolItemJquery.find('.numberOfWorkersValue').text(
 			pool.numberOfWorkerConnections);
 	this.poolItemJquery.find('.priorityValue').text(pool.priority);
+	this.poolItemJquery.find('.weightValue').text(pool.weight);
 	this.poolItemJquery.find('.isExtranonceSubscribeEnabledValue').text(
 			pool.isExtranonceSubscribeEnabled);
 	this.poolItemJquery.find('.acceptedDifficultyValue').text(
@@ -807,10 +811,10 @@ PoolItem.prototype.updatePool = function(pool) {
 	this.poolItemJquery.removeClass('panel-warning');
 	this.poolItemJquery.removeClass('panel-success');
 	if (pool.isEnabled) {
-		if (!pool.isActive) {
+		if (!pool.isReady) {
 			this.poolItemJquery.addClass('panel-danger');
 		} else {
-			if (pool.isMining) {
+			if (pool.isActive) {
 				this.poolItemJquery.addClass('panel-primary');
 			} else {
 				if (!pool.isStable) {

@@ -75,16 +75,18 @@
 			<h1>Not yet available</h1>
 		</div>
 	</div>
-	
-	
+
+
 	<div id="logsPage" class="container">
 		<div class="container container-sm-height">
 			<div class="row row-sm-height">
 				<div class="col-sm-3 col-sm-height col-middle">
 					<h1>Logs</h1>
 				</div>
-				<div class="col-sm-9 autoRefreshContainer col-sm-height col-middle text-right">
-					<select class="selectpicker show-tick logLevelSelectPicker" data-header="Select the new log level">
+				<div
+					class="col-sm-9 autoRefreshContainer col-sm-height col-middle text-right">
+					<select class="selectpicker show-tick logLevelSelectPicker"
+						data-header="Select the new log level">
 						<option>TRACE</option>
 						<option>DEBUG</option>
 						<option>INFO</option>
@@ -117,8 +119,8 @@
 			<div class="row">
 				<label class="col-sm-3 control-label">Password</label>
 				<div class="col-sm-3 passwordValue tooltipOnOverflow"></div>
-				<label class="col-sm-3 control-label">Is active</label>
-				<div class="col-sm-3 isActiveValue tooltipOnOverflow"></div>
+				<label class="col-sm-3 control-label">Difficulty</label>
+				<div class="col-sm-3 difficultyValue"></div>
 			</div>
 
 			<div class="row">
@@ -128,10 +130,16 @@
 				<div class="col-sm-3 isStableValue"></div>
 			</div>
 			<div class="row">
+				<label class="col-sm-3 control-label">Is ready</label>
+				<div class="col-sm-3 isReadyValue tooltipOnOverflow"></div>
+				<label class="col-sm-3 control-label">Is ready since</label>
+				<div class="col-sm-3 isReadySinceValue"></div>
+			</div>
+			<div class="row">
+				<label class="col-sm-3 control-label">Is active</label>
+				<div class="col-sm-3 isActiveValue tooltipOnOverflow"></div>
 				<label class="col-sm-3 control-label">Is active since</label>
 				<div class="col-sm-3 isActiveSinceValue"></div>
-				<label class="col-sm-3 control-label">Difficulty</label>
-				<div class="col-sm-3 difficultyValue"></div>
 			</div>
 			<div class="row">
 				<label class="col-sm-3 control-label">Extranonce 1</label>
@@ -149,15 +157,15 @@
 			<div class="row">
 				<label class="col-sm-3 control-label">Priority</label>
 				<div class="col-sm-3 priorityValue"></div>
-				<label class="col-sm-3 control-label">Is extranonce
-					subscribe enabled</label>
-				<div class="col-sm-3 isExtranonceSubscribeEnabledValue"></div>
+				<label class="col-sm-3 control-label">Weight</label>
+				<div class="col-sm-3 weightValue"></div>
 			</div>
 			<div class="row">
 				<label class="col-sm-3 control-label">Last error</label>
 				<div class="col-sm-3 lastErrorValue"></div>
-				<label class="col-sm-3 control-label">Number of workers</label>
-				<div class="col-sm-3 numberOfWorkersValue"></div>
+				<label class="col-sm-3 control-label">Is extranonce
+					subscribe enabled</label>
+				<div class="col-sm-3 isExtranonceSubscribeEnabledValue"></div>
 			</div>
 			<div class="row">
 				<label class="col-sm-3 control-label">Accepted difficulty</label>
@@ -344,8 +352,8 @@
 			</div>
 		</div>
 	</div>
-	
-	<div id="totopscroller"> </div>
+
+	<div id="totopscroller"></div>
 
 	<script src="js/json2.js"></script>
 	<script src="js/jquery-2.1.1.min.js"></script>

@@ -79,7 +79,7 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 		totalWeight = 0;
 
 		for (Pool pool : pools) {
-			if (pool.isActive()) {
+			if (pool.isReady()) {
 				totalWeight += pool.getWeight();
 			}
 		}

@@ -27,10 +27,11 @@ public class PoolDetailsDTO {
 	private String host;
 	private String username;
 	private String password;
-	private Boolean isActive;
+	private Boolean isReady;
 	private Boolean isEnabled;
 	private Boolean isStable;
-	private Boolean isMining;
+	private String isReadySince;
+	private Boolean isActive;
 	private String isActiveSince;
 
 	private String difficulty;
@@ -41,6 +42,7 @@ public class PoolDetailsDTO {
 	private Integer numberOfWorkerConnections;
 
 	private Integer priority;
+	private Integer weight;
 
 	private Double acceptedDifficulty;
 	private Double rejectedDifficulty;
@@ -82,12 +84,12 @@ public class PoolDetailsDTO {
 		this.password = password;
 	}
 
-	public Boolean getIsActive() {
-		return isActive;
+	public Boolean getIsReady() {
+		return isReady;
 	}
 
-	public void setIsActive(Boolean isActive) {
-		this.isActive = isActive;
+	public void setIsReady(Boolean isReady) {
+		this.isReady = isReady;
 	}
 
 	public Boolean getIsEnabled() {
@@ -154,12 +156,12 @@ public class PoolDetailsDTO {
 		this.priority = priority;
 	}
 
-	public String getIsActiveSince() {
-		return isActiveSince;
+	public String getIsReadySince() {
+		return isReadySince;
 	}
 
-	public void setIsActiveSince(String isActiveSince) {
-		this.isActiveSince = isActiveSince;
+	public void setIsReadySince(String isReadySince) {
+		this.isReadySince = isReadySince;
 	}
 
 	public Double getAcceptedDifficulty() {
@@ -202,12 +204,28 @@ public class PoolDetailsDTO {
 		this.rejectedHashesPerSeconds = rejectedHashesPerSeconds;
 	}
 
-	public Boolean getIsMining() {
-		return isMining;
+	public Boolean getIsActive() {
+		return isActive;
 	}
 
-	public void setIsMining(Boolean isMining) {
-		this.isMining = isMining;
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public String getIsActiveSince() {
+		return isActiveSince;
+	}
+
+	public void setIsActiveSince(String isActiveSince) {
+		this.isActiveSince = isActiveSince;
+	}
+
+	public Integer getWeight() {
+		return weight;
+	}
+
+	public void setWeight(Integer weight) {
+		this.weight = weight;
 	}
 
 }

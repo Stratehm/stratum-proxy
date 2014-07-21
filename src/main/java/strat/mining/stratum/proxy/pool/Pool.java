@@ -81,13 +81,15 @@ public class Pool {
 	private String extranonce1;
 	private Integer extranonce2Size;
 
-	private Date activeSince;
-	private boolean isActive;
+	private Date readySince;
+	private boolean isReady;
 	private boolean isEnabled;
 	private boolean isStable;
 	private boolean isFirstRun;
 	private boolean isAppendWorkerNames;
 	private boolean isUseWorkerPassword;
+	private boolean isActive;
+	private Date activeSince;
 
 	private String workerSeparator;
 
@@ -139,7 +141,7 @@ public class Pool {
 		this.host = host;
 		this.username = username;
 		this.password = password;
-		this.isActive = false;
+		this.isReady = false;
 		this.isEnabled = true;
 		this.isStable = false;
 		this.isFirstRun = true;
@@ -222,7 +224,7 @@ public class Pool {
 			cancelTimers();
 			authorizedWorkers.clear();
 
-			isActive = false;
+			isReady = false;
 			isStable = false;
 			manager.onPoolStateChange(this);
 			LOGGER.debug("Stopping pool {}...", getName());
@@ -298,8 +300,8 @@ public class Pool {
 		return extranonce2Size;
 	}
 
-	public boolean isActive() {
-		return isActive;
+	public boolean isReady() {
+		return isReady;
 	}
 
 	public boolean isStable() {
@@ -408,9 +410,9 @@ public class Pool {
 
 			// If appendWorkerNames is true, do not try to authorize the pool
 			// username. Workers will be authorized on connection. So, just
-			// declare the pool as active.
+			// declare the pool as ready.
 			if (isAppendWorkerNames) {
-				setPoolAsActive();
+				setPoolAsReady();
 			} else {
 				// Send the authorize request if worker names are not appended.
 				MiningAuthorizeRequest authorizeRequest = new MiningAuthorizeRequest();
@@ -449,7 +451,7 @@ public class Pool {
 			// If the appendWorkerName is false and the authorization succeed,
 			// then set the pool as started
 			if (isAuthorized(request, response)) {
-				setPoolAsActive();
+				setPoolAsReady();
 			} else {
 				LOGGER.error("Stopping pool {} since user {} is not authorized.", getName(), username);
 				stopPool();
@@ -477,12 +479,12 @@ public class Pool {
 	}
 
 	/**
-	 * Set the pool as active.
+	 * Set the pool as ready.
 	 */
-	private void setPoolAsActive() {
+	private void setPoolAsReady() {
 		LOGGER.info("Pool {} started", getName());
-		this.isActive = true;
-		activeSince = new Date();
+		this.isReady = true;
+		readySince = new Date();
 		testStability();
 		isFirstRun = false;
 		manager.onPoolStateChange(this);
@@ -687,10 +689,10 @@ public class Pool {
 		builder.append(username);
 		builder.append(", password=");
 		builder.append(password);
-		builder.append(", activeSince=");
-		builder.append(activeSince);
-		builder.append(", isActive=");
-		builder.append(isActive);
+		builder.append(", readySince=");
+		builder.append(readySince);
+		builder.append(", isReady=");
+		builder.append(isReady);
 		builder.append(", isEnabled=");
 		builder.append(isEnabled);
 		builder.append(", isStable=");
@@ -711,8 +713,8 @@ public class Pool {
 		return rejectedDifficulty.get();
 	}
 
-	public Date getActiveSince() {
-		return activeSince;
+	public Date getReadySince() {
+		return readySince;
 	}
 
 	public Boolean getIsExtranonceSubscribeEnabled() {
@@ -920,5 +922,18 @@ public class Pool {
 
 	public void setWorkerSeparator(String workerSeparator) {
 		this.workerSeparator = workerSeparator;
+	}
+
+	public void setIsActive(boolean isActive) {
+		this.isActive = isActive;
+		this.activeSince = isActive ? new Date() : null;
+	}
+
+	public boolean isActive() {
+		return this.isActive;
+	}
+
+	public Date getActiveSince() {
+		return this.activeSince;
 	}
 }
