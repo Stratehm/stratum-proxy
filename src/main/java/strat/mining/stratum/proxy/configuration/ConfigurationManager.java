@@ -99,6 +99,10 @@ public class ConfigurationManager {
 
 	private Integer weightedRoundRobinRoundDuration = Constants.DEFAULT_WEIGHTED_ROUND_ROBIN_ROUND_DURATION;
 
+	private boolean disableGetwork = false;
+	private boolean disableStratum = false;
+	private boolean disableApi = false;
+
 	private ObjectMapper jsonParser;
 
 	public static ConfigurationManager getInstance() {
@@ -204,6 +208,10 @@ public class ConfigurationManager {
 		poolSwitchingStrategy = configuration.getPoolSwitchingStrategy() != null ? configuration.getPoolSwitchingStrategy() : poolSwitchingStrategy;
 		weightedRoundRobinRoundDuration = configuration.getWeightedRoundRobinRoundDuration() != null ? configuration
 				.getWeightedRoundRobinRoundDuration() * 60000 : weightedRoundRobinRoundDuration;
+
+		disableGetwork = configuration.isDisableGetwork() != null ? configuration.isDisableGetwork() : disableGetwork;
+		disableStratum = configuration.isDisableStratum() != null ? configuration.isDisableStratum() : disableStratum;
+		disableApi = configuration.isDisableApi() != null ? configuration.isDisableApi() : disableApi;
 
 		buildPoolsFromConfigurationFile(configuration);
 	}
@@ -350,6 +358,10 @@ public class ConfigurationManager {
 		poolSwitchingStrategy = cliParser.getPoolSwitchingStrategy() != null ? cliParser.getPoolSwitchingStrategy() : poolSwitchingStrategy;
 		weightedRoundRobinRoundDuration = cliParser.getWeightedRoundRobinRoundDuration() != null ? cliParser.getWeightedRoundRobinRoundDuration() * 60000
 				: weightedRoundRobinRoundDuration;
+
+		disableGetwork = cliParser.isDisableGetwork() != null ? cliParser.isDisableGetwork() : disableGetwork;
+		disableStratum = cliParser.isDisableStratum() != null ? cliParser.isDisableStratum() : disableStratum;
+		disableApi = cliParser.isDisableApi() != null ? cliParser.isDisableApi() : disableApi;
 
 		buildPoolsFromCommandLine(cliParser);
 	}
@@ -738,6 +750,18 @@ public class ConfigurationManager {
 
 	public Integer getWeightedRoundRobinRoundDuration() {
 		return weightedRoundRobinRoundDuration;
+	}
+
+	public boolean isDisableGetwork() {
+		return disableGetwork;
+	}
+
+	public boolean isDisableStratum() {
+		return disableStratum;
+	}
+
+	public boolean isDisableApi() {
+		return disableApi;
 	}
 
 }

@@ -173,22 +173,26 @@ public class Launcher {
 	 * @throws IOException
 	 */
 	private static void initHttpServices(ConfigurationManager configurationManager) throws IOException {
-		URI baseUri = UriBuilder.fromUri("http://" + configurationManager.getRestBindAddress()).port(configurationManager.getRestListenPort())
-				.path("/proxy").build();
-		ResourceConfig config = new ResourceConfig(ProxyResources.class);
-		config.register(JacksonFeature.class);
-		apiHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, config, false);
-		ServerConfiguration serverConfiguration = apiHttpServer.getServerConfiguration();
-		apiHttpServer.getListener("grizzly").getCompressionConfig().setCompressionMode(CompressionMode.ON);
-		apiHttpServer.getListener("grizzly").getCompressionConfig()
-				.setCompressableMimeTypes("text/javascript", "application/json", "text/html", "text/css", "text/plain");
-		apiHttpServer.getListener("grizzly").getCompressionConfig().setCompressionMinSize(1024);
-		HttpHandler staticHandler = getStaticHandler();
-		if (staticHandler != null) {
-			serverConfiguration.addHttpHandler(staticHandler, "/");
-		}
+		if (!ConfigurationManager.getInstance().isDisableApi()) {
+			URI baseUri = UriBuilder.fromUri("http://" + configurationManager.getRestBindAddress()).port(configurationManager.getRestListenPort())
+					.path("/proxy").build();
+			ResourceConfig config = new ResourceConfig(ProxyResources.class);
+			config.register(JacksonFeature.class);
+			apiHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, config, false);
+			ServerConfiguration serverConfiguration = apiHttpServer.getServerConfiguration();
+			apiHttpServer.getListener("grizzly").getCompressionConfig().setCompressionMode(CompressionMode.ON);
+			apiHttpServer.getListener("grizzly").getCompressionConfig()
+					.setCompressableMimeTypes("text/javascript", "application/json", "text/html", "text/css", "text/plain");
+			apiHttpServer.getListener("grizzly").getCompressionConfig().setCompressionMinSize(1024);
+			HttpHandler staticHandler = getStaticHandler();
+			if (staticHandler != null) {
+				serverConfiguration.addHttpHandler(staticHandler, "/");
+			}
 
-		apiHttpServer.start();
+			apiHttpServer.start();
+		} else {
+			LOGGER.info("API port disabled. GUI will not be available.");
+		}
 	}
 
 	/**
@@ -269,12 +273,16 @@ public class Launcher {
 	 * 
 	 * @param configurationManager
 	 */
-	private static void initGetwork(ConfigurationManager configurationManager) {
-		URI baseUri = UriBuilder.fromUri("http://" + configurationManager.getGetworkBindAddress()).port(configurationManager.getGetworkListenPort())
-				.build();
-		getWorkHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri);
-		ServerConfiguration serverConfiguration = getWorkHttpServer.getServerConfiguration();
-		serverConfiguration.addHttpHandler(new GetworkRequestHandler(), "/", Constants.DEFAULT_GETWORK_LONG_POLLING_URL);
+	private static void initGetwork(ConfigurationManager configurationManager) throws IOException {
+		if (!ConfigurationManager.getInstance().isDisableGetwork()) {
+			URI baseUri = UriBuilder.fromUri("http://" + configurationManager.getGetworkBindAddress())
+					.port(configurationManager.getGetworkListenPort()).build();
+			getWorkHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri);
+			ServerConfiguration serverConfiguration = getWorkHttpServer.getServerConfiguration();
+			serverConfiguration.addHttpHandler(new GetworkRequestHandler(), "/", Constants.DEFAULT_GETWORK_LONG_POLLING_URL);
+		} else {
+			LOGGER.info("Getwork port disabled.");
+		}
 	}
 
 	/**
@@ -291,9 +299,13 @@ public class Launcher {
 		// Start the pools.
 		ProxyManager.getInstance().startPools(pools);
 
-		// Start to accept incoming workers connections
-		ProxyManager.getInstance().startListeningIncomingConnections(configurationManager.getStratumBindAddress(),
-				configurationManager.getStratumListeningPort());
+		if (!ConfigurationManager.getInstance().isDisableStratum()) {
+			// Start to accept incoming workers connections
+			ProxyManager.getInstance().startListeningIncomingConnections(configurationManager.getStratumBindAddress(),
+					configurationManager.getStratumListeningPort());
+		} else {
+			LOGGER.info("Stratum port disabled.");
+		}
 	}
 
 	/**

@@ -75,10 +75,10 @@ public class CommandLineOptions {
 	@Option(name = "--number-of-submit", usage = "The number of submit for each share. (Only for debug use)", metaVar = "number")
 	private Integer numberOfSubmit;
 
-	@Option(name = "--rest-listen-port", usage = "The port number to listen REST requests. (8888 by default)", metaVar = "portNumber")
+	@Option(name = "--rest-listen-port", aliases = { "--api-listen-port" }, usage = "The port number to listen REST requests. (8888 by default)", metaVar = "portNumber")
 	private Integer restListenPort;
 
-	@Option(name = "--rest-listen-address", usage = "The address to bind to listen REST requests. (0.0.0.0 by default)", metaVar = "ipAddress")
+	@Option(name = "--rest-listen-address", aliases = { "--api-listen-address" }, usage = "The address to bind to listen REST requests. (0.0.0.0 by default)", metaVar = "ipAddress")
 	private String restBindAddress;
 
 	@Option(name = "--getwork-listen-port", usage = "The port number to listen Getwork requests. (8332 by default)", metaVar = "portNumber")
@@ -149,6 +149,15 @@ public class CommandLineOptions {
 
 	@Option(name = "--weighted-round-robin-round-duration", usage = "Set the duration (in minutes) of a round for the weightedRoundRobin pool switching strategy. (60 minutes by default)")
 	private Integer weightedRoundRobinRoundDuration;
+
+	@Option(name = "--disable-getwork", usage = "Disable the Getwork listening port. (false by default)")
+	private boolean disableGetwork;
+
+	@Option(name = "--disable-stratum", usage = "Disable the Stratum listening port. (false by default)")
+	private boolean disableStratum;
+
+	@Option(name = "--disable-api", usage = "Disable the API listening port. (false by default)")
+	private boolean disableApi;
 
 	public CommandLineOptions() {
 		parser = new CmdLineParser(this);
@@ -308,6 +317,18 @@ public class CommandLineOptions {
 
 	public Integer getWeightedRoundRobinRoundDuration() {
 		return weightedRoundRobinRoundDuration;
+	}
+
+	public Boolean isDisableGetwork() {
+		return disableGetwork;
+	}
+
+	public Boolean isDisableStratum() {
+		return disableStratum;
+	}
+
+	public Boolean isDisableApi() {
+		return disableApi;
 	}
 
 }
