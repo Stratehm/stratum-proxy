@@ -182,7 +182,7 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 			LOGGER.debug("Expected running time for pool {}: {} ms", pool.getName(), expectedRunningTime);
 			// If the pool has not ended its mining time, it is the pool that
 			// will mine next (it may be the same as the current one)
-			if (remainingMiningTime > 1) {
+			if (pool.isReady() && remainingMiningTime > 1) {
 				newPool = pool;
 				break;
 			}
