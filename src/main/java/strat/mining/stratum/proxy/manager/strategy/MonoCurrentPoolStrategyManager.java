@@ -41,11 +41,12 @@ public abstract class MonoCurrentPoolStrategyManager implements PoolSwitchingStr
 		LOGGER.debug("Check all worker connections binding.");
 		List<WorkerConnection> workerConnections = proxyManager.getWorkerConnections();
 		// Try to rebind connections only if there is at least one connection.
-		if (workerConnections.size() > 0) {
-			try {
-				Pool oldCurrentPool = currentPool;
-				computeCurrentPool();
 
+		try {
+			Pool oldCurrentPool = currentPool;
+			computeCurrentPool();
+
+			if (workerConnections.size() > 0) {
 				if (oldCurrentPool != currentPool) {
 					LOGGER.info("Switching worker connections from pool {} to pool {}.", oldCurrentPool.getName(), currentPool.getName());
 					for (WorkerConnection connection : workerConnections) {
@@ -66,13 +67,17 @@ public abstract class MonoCurrentPoolStrategyManager implements PoolSwitchingStr
 						}
 					}
 				}
+			}
 
-			} catch (NoPoolAvailableException e) {
+		} catch (NoPoolAvailableException e) {
+			// Close worker connections only if there are worker connections (of
+			// course, so obvious...nnnaaaaarrrrhhhh)
+			if (workerConnections.size() > 0) {
 				LOGGER.error("Failed to rebind workers connections. No pool is available. Closing all workers connections.", e);
 				// If no more pool available, close all worker connections
 				proxyManager.closeAllWorkerConnections();
-				currentPool = null;
 			}
+			currentPool = null;
 		}
 	}
 

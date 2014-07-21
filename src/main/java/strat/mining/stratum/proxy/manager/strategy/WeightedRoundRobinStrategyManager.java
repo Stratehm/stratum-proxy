@@ -69,7 +69,6 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 		this.poolsRunningTimes = Collections.synchronizedMap(new HashMap<Pool, AtomicLong>());
 
 		resetRound();
-		checkConnectionsBinding();
 	}
 
 	/**
