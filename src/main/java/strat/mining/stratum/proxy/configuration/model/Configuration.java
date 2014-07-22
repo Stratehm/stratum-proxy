@@ -56,9 +56,10 @@ public class Configuration {
 	private String poolSwitchingStrategy;
 	private Integer weightedRoundRobinRoundDuration;
 
-	private boolean disableGetwork;
-	private boolean disableStratum;
-	private boolean disableApi;
+	private Boolean disableGetwork;
+	private Boolean disableStratum;
+	private Boolean disableApi;
+	private Boolean disableLogAppend;
 
 	@Valid
 	private List<Pool> pools;
@@ -270,7 +271,7 @@ public class Configuration {
 		return disableGetwork;
 	}
 
-	public void setDisableGetwork(boolean disableGetwork) {
+	public void setDisableGetwork(Boolean disableGetwork) {
 		this.disableGetwork = disableGetwork;
 	}
 
@@ -278,7 +279,7 @@ public class Configuration {
 		return disableStratum;
 	}
 
-	public void setDisableStratum(boolean disableStratum) {
+	public void setDisableStratum(Boolean disableStratum) {
 		this.disableStratum = disableStratum;
 	}
 
@@ -286,8 +287,16 @@ public class Configuration {
 		return disableApi;
 	}
 
-	public void setDisableApi(boolean disableApi) {
+	public void setDisableApi(Boolean disableApi) {
 		this.disableApi = disableApi;
+	}
+
+	public Boolean isDisableLogAppend() {
+		return disableLogAppend;
+	}
+
+	public void setDisableLogAppend(Boolean disableLogAppend) {
+		this.disableLogAppend = disableLogAppend;
 	}
 
 }

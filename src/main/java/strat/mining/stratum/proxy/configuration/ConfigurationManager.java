@@ -29,8 +29,10 @@ import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+import org.apache.log4j.FileAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
+import org.apache.log4j.RollingFileAppender;
 import org.kohsuke.args4j.CmdLineException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +71,7 @@ public class ConfigurationManager {
 	private File logDirectory;
 	private Level logLevel = Level.INFO;
 	private Level apiLogLevel = null;
+	private boolean disableLogAppend = false;
 
 	private Integer numberOfSubmit = 1;
 	private Integer stratumListeningPort = Constants.DEFAULT_STRATUM_LISTENING_PORT;
@@ -169,6 +172,7 @@ public class ConfigurationManager {
 		apiLogLevel = configuration.getApiLogLevel() != null ? Level.toLevel(configuration.getApiLogLevel()) : apiLogLevel;
 		logDirectory = configuration.getLogDirectory() != null && !configuration.getLogDirectory().trim().isEmpty() ? new File(
 				configuration.getLogDirectory()) : logDirectory;
+		disableLogAppend = configuration.isDisableLogAppend() != null ? configuration.isDisableLogAppend() : disableLogAppend;
 		// Initialize the logging system
 		initLogging();
 
@@ -320,6 +324,7 @@ public class ConfigurationManager {
 		logLevel = cliParser.getLogLevel();
 		logDirectory = cliParser.getLogDirectory();
 		apiLogLevel = cliParser.getApiLogLevel();
+		disableLogAppend = cliParser.isDisableLogAppend() != null ? cliParser.isDisableLogAppend() : disableLogAppend;
 		// Initialize the logging system
 		initLogging();
 
@@ -551,6 +556,22 @@ public class ConfigurationManager {
 		// Set the directory used for logging.
 		System.setProperty("log.directory.path", logDirectory.getAbsolutePath());
 
+		// If disableLogAppend is true, do not use the rollingFileAppender
+		// but a simple fileAppender with append to false.
+		if (disableLogAppend) {
+			RollingFileAppender rollingFileAppender = (RollingFileAppender) LogManager.getRootLogger().getAppender("file");
+			LogManager.getRootLogger().removeAppender(rollingFileAppender);
+			try {
+				FileAppender fileAppender = new FileAppender(rollingFileAppender.getLayout(), rollingFileAppender.getFile(), false);
+				fileAppender.setName(rollingFileAppender.getName());
+				LogManager.getRootLogger().addAppender(fileAppender);
+			} catch (IOException e) {
+				System.out.println("Failed to create the log appender with append=false.");
+				e.printStackTrace();
+			}
+		}
+
+		// Set the log level.
 		String logLevelMessage = null;
 		if (logLevel == null) {
 			logLevel = Level.INFO;
@@ -559,9 +580,11 @@ public class ConfigurationManager {
 			logLevelMessage = "Using " + logLevel.toString() + " LogLevel.";
 		}
 		LogManager.getRootLogger().setLevel(logLevel);
+
 		logger = LoggerFactory.getLogger(Launcher.class);
 		logger.info(logLevelMessage);
 
+		// Set the API log level
 		if (apiLogLevel == null) {
 			logger.info("API log level not set. API logging disabled.");
 		} else {
@@ -762,6 +785,10 @@ public class ConfigurationManager {
 
 	public boolean isDisableApi() {
 		return disableApi;
+	}
+
+	public boolean isDisableLogAppend() {
+		return disableLogAppend;
 	}
 
 }

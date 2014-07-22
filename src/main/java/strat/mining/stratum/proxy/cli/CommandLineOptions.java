@@ -159,6 +159,9 @@ public class CommandLineOptions {
 	@Option(name = "--disable-api", usage = "Disable the API listening port. (false by default)")
 	private boolean disableApi;
 
+	@Option(name = "--disable-log-append", usage = "If set, do not append log file on each run. The current log file will be cleared before writing logs.")
+	private boolean disableLogAppend;
+
 	public CommandLineOptions() {
 		parser = new CmdLineParser(this);
 	}
@@ -329,6 +332,10 @@ public class CommandLineOptions {
 
 	public Boolean isDisableApi() {
 		return disableApi;
+	}
+
+	public Boolean isDisableLogAppend() {
+		return disableLogAppend;
 	}
 
 }

@@ -18,7 +18,6 @@
 	<appender name="file" class="org.apache.log4j.RollingFileAppender">
 		<param name="File" value="${log.directory.path}/stratum-proxy.log" />
 		<param name="MaxFileSize" value="100000000" />
-		<param name="Append" value="true" />
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%d{ISO8601} %-5p [%t]: [%c{1}] 
 		%m%n" />
