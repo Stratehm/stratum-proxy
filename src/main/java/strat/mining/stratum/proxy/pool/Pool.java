@@ -164,7 +164,7 @@ public class Pool {
 		this.pendingAuthorizeRequests = Collections.synchronizedMap(new HashMap<String, CountDownLatch>());
 	}
 
-	public void startPool(ProxyManager manager) throws PoolStartException, URISyntaxException, SocketException {
+	public synchronized void startPool(ProxyManager manager) throws PoolStartException, URISyntaxException, SocketException {
 		if (manager != null) {
 			if (!isEnabled) {
 				throw new PoolStartException("Do not start the pool " + getName() + " since it is disabled.");
@@ -225,7 +225,7 @@ public class Pool {
 		}
 	}
 
-	public void stopPool(String cause) {
+	public synchronized void stopPool(String cause) {
 		if (connection != null) {
 			this.lastStopCause = cause;
 			lastStopDate = new Date();
@@ -635,7 +635,7 @@ public class Pool {
 	 * 
 	 * @param delayFirstRetry
 	 */
-	private void retryConnect(boolean delayFirstRetry) {
+	private synchronized void retryConnect(boolean delayFirstRetry) {
 		if (connectionRetryDelay > 0) {
 			if (reconnectTask != null) {
 				reconnectTask.cancel();
@@ -830,7 +830,7 @@ public class Pool {
 	/**
 	 * Cancel all active timers
 	 */
-	private void cancelTimers() {
+	private synchronized void cancelTimers() {
 		LOGGER.debug("Cancel all timers of pool {}.", getName());
 
 		if (stabilityTestTask != null) {
