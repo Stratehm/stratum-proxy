@@ -162,6 +162,12 @@ public class CommandLineOptions {
 	@Option(name = "--disable-log-append", usage = "If set, do not append log file on each run. The current log file will be cleared before writing logs.")
 	private boolean disableLogAppend;
 
+	@Option(name = "--api-user", usage = "If set, the API (and GUI) will require an authentication with this user name.")
+	private String apiUser;
+
+	@Option(name = "--api-password", usage = "If set, define the password to provide with the --api-user name to access the API (and GUI)")
+	private String apiPassword;
+
 	public CommandLineOptions() {
 		parser = new CmdLineParser(this);
 	}
@@ -336,6 +342,14 @@ public class CommandLineOptions {
 
 	public Boolean isDisableLogAppend() {
 		return disableLogAppend;
+	}
+
+	public String getApiUser() {
+		return apiUser;
+	}
+
+	public String getApiPassword() {
+		return apiPassword;
 	}
 
 }

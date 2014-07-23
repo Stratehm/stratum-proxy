@@ -19,14 +19,27 @@
 package strat.mining.stratum.proxy;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.cert.X509Certificate;
+import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.core.UriBuilder;
 
+import org.bouncycastle.jce.X509Principal;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.x509.X509V3CertificateGenerator;
 import org.glassfish.grizzly.http.CompressionConfig.CompressionMode;
 import org.glassfish.grizzly.http.server.CLStaticHttpHandler;
 import org.glassfish.grizzly.http.server.HttpHandler;
@@ -36,6 +49,8 @@ import org.glassfish.grizzly.http.server.Response;
 import org.glassfish.grizzly.http.server.ServerConfiguration;
 import org.glassfish.grizzly.http.server.StaticHttpHandler;
 import org.glassfish.grizzly.http.server.StaticHttpHandlerBase;
+import org.glassfish.grizzly.ssl.SSLContextConfigurator;
+import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -50,10 +65,15 @@ import strat.mining.stratum.proxy.manager.HashrateRecorder;
 import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.ProxyResources;
+import strat.mining.stratum.proxy.rest.authentication.AuthenticationAddOn;
 import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.worker.GetworkRequestHandler;
 
 public class Launcher {
+
+	static {
+		Security.addProvider(new BouncyCastleProvider());
+	}
 
 	public static Logger LOGGER = null;
 
@@ -171,10 +191,11 @@ public class Launcher {
 	 * 
 	 * @param configurationManager
 	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
 	 */
-	private static void initHttpServices(ConfigurationManager configurationManager) throws IOException {
+	private static void initHttpServices(ConfigurationManager configurationManager) throws IOException, NoSuchAlgorithmException {
 		if (!ConfigurationManager.getInstance().isDisableApi()) {
-			URI baseUri = UriBuilder.fromUri("http://" + configurationManager.getRestBindAddress()).port(configurationManager.getRestListenPort())
+			URI baseUri = UriBuilder.fromUri("https://" + configurationManager.getRestBindAddress()).port(configurationManager.getRestListenPort())
 					.path("/proxy").build();
 			ResourceConfig config = new ResourceConfig(ProxyResources.class);
 			config.register(JacksonFeature.class);
@@ -188,6 +209,19 @@ public class Launcher {
 			if (staticHandler != null) {
 				serverConfiguration.addHttpHandler(staticHandler, "/");
 			}
+			// createCertificate();
+
+			SSLContextConfigurator sslContext = new SSLContextConfigurator();
+			// sslContext.setKeyStoreFile("<path to keystore>");
+			// sslContext.setKeyStorePass("<password>");
+			// sslContext.setTrustStoreFile("<path to truststore>");
+			// sslContext.setTrustStorePass("<password>");
+
+			apiHttpServer.getListener("grizzly").setSecure(true);
+			apiHttpServer.getListener("grizzly").setSSLEngineConfig(
+					new SSLEngineConfigurator(sslContext).setClientMode(false).setNeedClientAuth(true));
+
+			apiHttpServer.getListener("grizzly").registerAddOn(new AuthenticationAddOn());
 
 			apiHttpServer.start();
 		} else {
@@ -318,6 +352,45 @@ public class Launcher {
 			}
 		} catch (Exception e) {
 			LOGGER.info("Closing proxy...");
+		}
+	}
+
+	private static void createCertificate() {
+		try {
+			KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+			keyPairGenerator.initialize(1024);
+			KeyPair KPair = keyPairGenerator.generateKeyPair();
+			X509V3CertificateGenerator v3CertGen = new X509V3CertificateGenerator();
+			Integer randomNumber = new SecureRandom().nextInt();
+			v3CertGen.setSerialNumber(BigInteger.valueOf(randomNumber >= 0 ? randomNumber : randomNumber * -1));
+			v3CertGen.setIssuerDN(new X509Principal("CN=" + "localhost" + ", OU=None, O=None L=None, C=None"));
+			v3CertGen.setNotBefore(new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30));
+			v3CertGen.setNotAfter(new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 365 * 10)));
+			v3CertGen.setSubjectDN(new X509Principal("CN=" + "localhost" + ", OU=None, O=None L=None, C=None"));
+			v3CertGen.setPublicKey(KPair.getPublic());
+			v3CertGen.setSignatureAlgorithm("MD5WithRSAEncryption");
+			X509Certificate PKCertificate = v3CertGen.generateX509Certificate(KPair.getPrivate());
+			// File certFile = new File("c:\\arf\\testCert.cert");
+			// if (!certFile.exists()) {
+			// certFile.createNewFile();
+			// }
+			// FileOutputStream fos = new FileOutputStream(certFile);
+			// fos.write(PKCertificate.getEncoded());
+			// fos.close();
+
+			File storeFile = new File("c:\\arf\\sample-key-store.jks");
+			if (!storeFile.exists()) {
+				storeFile.createNewFile();
+			}
+			KeyStore privateKS = KeyStore.getInstance("JKS");
+			privateKS.load(null, null);
+
+			privateKS.setKeyEntry("sample.alias", KPair.getPrivate(), "charette".toCharArray(),
+					new java.security.cert.Certificate[] { PKCertificate });
+
+			privateKS.store(new FileOutputStream(storeFile), "charette".toCharArray());
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 

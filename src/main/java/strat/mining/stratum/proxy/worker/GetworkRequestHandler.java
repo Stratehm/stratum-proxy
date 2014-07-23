@@ -22,7 +22,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +33,7 @@ import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.grizzly.http.server.Response;
 import org.glassfish.grizzly.http.util.Header;
 import org.glassfish.grizzly.http.util.HttpStatus;
-import org.glassfish.jersey.internal.util.Base64;
+import org.glassfish.grizzly.utils.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +56,7 @@ import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.utils.HashingUtils;
+import strat.mining.stratum.proxy.utils.HttpUtils;
 import strat.mining.stratum.proxy.worker.GetworkJobTemplate.GetworkRequestResult;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -340,20 +340,9 @@ public class GetworkRequestHandler extends HttpHandler {
 	 * @return
 	 */
 	private void setRequestCredentials(Request request) throws NoCredentialsException {
-		String authorization = request.getAuthorization();
-		if (authorization != null && authorization.startsWith("Basic")) {
-			// Authorization: Basic base64credentials
-			String base64Credentials = authorization.substring("Basic".length()).trim();
-			String credentialsString = new String(Base64.decode(base64Credentials.getBytes()), Charset.forName("UTF-8"));
-			// credentials = username:password
-			String[] values = credentialsString.split(":", 2);
-
-			request.setAttribute("username", values[0]);
-			request.setAttribute("password", values[1]);
-
-		} else {
-			throw new NoCredentialsException();
-		}
+		Pair<String, String> credentials = HttpUtils.getCredentials(request);
+		request.setAttribute("username", credentials.getFirst());
+		request.setAttribute("password", credentials.getSecond());
 	}
 
 	/**

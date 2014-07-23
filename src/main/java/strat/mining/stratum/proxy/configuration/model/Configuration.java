@@ -61,6 +61,9 @@ public class Configuration {
 	private Boolean disableApi;
 	private Boolean disableLogAppend;
 
+	private String apiUser;
+	private String apiPassword;
+
 	@Valid
 	private List<Pool> pools;
 
@@ -297,6 +300,26 @@ public class Configuration {
 
 	public void setDisableLogAppend(Boolean disableLogAppend) {
 		this.disableLogAppend = disableLogAppend;
+	}
+
+	public String getApiUser() {
+		return apiUser;
+	}
+
+	public void setApiUser(String apiUser) {
+		this.apiUser = apiUser;
+	}
+
+	public String getApiPassword() {
+		return apiPassword;
+	}
+
+	public void setApiPassword(String apiPassword) {
+		this.apiPassword = apiPassword;
+	}
+
+	public Boolean getDisableLogAppend() {
+		return disableLogAppend;
 	}
 
 }
