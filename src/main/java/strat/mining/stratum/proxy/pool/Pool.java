@@ -992,8 +992,10 @@ public class Pool {
 	}
 
 	public void setIsActive(boolean isActive) {
+		if (isActive != this.isActive) {
+			this.activeSince = isActive ? new Date() : null;
+		}
 		this.isActive = isActive;
-		this.activeSince = isActive ? new Date() : null;
 	}
 
 	public boolean isActive() {
