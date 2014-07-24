@@ -192,10 +192,12 @@ public abstract class StratumConnection {
 	 * @throws Exception
 	 */
 	private DataOutputStream ensureStream() throws IOException {
-		if (socket.isConnected() && !socket.isClosed()) {
-			outputStream = new DataOutputStream(socket.getOutputStream());
-		} else {
-			throw new IOException("Socket not connected.");
+		if (outputStream == null) {
+			if (socket.isConnected() && !socket.isClosed()) {
+				outputStream = new DataOutputStream(socket.getOutputStream());
+			} else {
+				throw new IOException("Socket not connected.");
+			}
 		}
 		return outputStream;
 	}
