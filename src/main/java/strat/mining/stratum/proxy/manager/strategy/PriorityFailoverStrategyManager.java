@@ -21,6 +21,7 @@ package strat.mining.stratum.proxy.manager.strategy;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
 import strat.mining.stratum.proxy.manager.ProxyManager;
@@ -36,6 +37,8 @@ import strat.mining.stratum.proxy.pool.Pool;
 public class PriorityFailoverStrategyManager extends MonoCurrentPoolStrategyManager {
 
 	public static final String NAME = "priorityFailover";
+
+	public static final String DESCRIPTION = "Always mine on the highest priority pool (highest priority is 0). Only switch pool when current pool fails or when a higher priority pool is back.";
 
 	public PriorityFailoverStrategyManager(ProxyManager proxyManager) {
 		super(proxyManager);
@@ -120,6 +123,21 @@ public class PriorityFailoverStrategyManager extends MonoCurrentPoolStrategyMana
 	@Override
 	public String getName() {
 		return NAME;
+	}
+
+	@Override
+	public Map<String, String> getDetails() {
+		return super.getDetails();
+	}
+
+	@Override
+	public String getDescription() {
+		return DESCRIPTION;
+	}
+
+	@Override
+	public void setParameter(String parameterKey, String value) {
+		// No parameters can be changed.
 	}
 
 }

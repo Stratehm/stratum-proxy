@@ -184,6 +184,13 @@ public abstract class MonoCurrentPoolStrategyManager implements PoolSwitchingStr
 	}
 
 	@Override
+	public Map<String, String> getDetails() {
+		Map<String, String> details = new HashMap<String, String>();
+		details.put("Current pool", getCurrentPool() != null ? getCurrentPool().getName() : "None");
+		return details;
+	}
+
+	@Override
 	public void stop() {
 		// Nothing to do.
 	}

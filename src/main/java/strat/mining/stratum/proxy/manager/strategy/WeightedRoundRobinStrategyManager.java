@@ -20,10 +20,10 @@ package strat.mining.stratum.proxy.manager.strategy;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
@@ -44,6 +44,8 @@ import strat.mining.stratum.proxy.utils.Timer;
 public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyManager {
 
 	public static final String NAME = "weightedRoundRobin";
+
+	public static final String DESCRIPTION = "Mine on pool alternatively for an amount of time. The time a pool will mine is based on its weight value and the duration of the round.<br>For example, with 2 pools (pool1, weight=9) and (pool2, weight=1) and a round duration of 60 minutes: first pool will mine for 9/10*60=54 minutes and second pool will mine for 1/10*60=6 minutes. The pool with the highest weight starts to mine first. When the round is over, it will start again.";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WeightedRoundRobinStrategyManager.class);
 
@@ -66,7 +68,7 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 	public WeightedRoundRobinStrategyManager(ProxyManager proxyManager) {
 		super(proxyManager);
 		this.startOfRoundTime = System.currentTimeMillis();
-		this.poolsRunningTimes = Collections.synchronizedMap(new HashMap<Pool, AtomicLong>());
+		this.poolsRunningTimes = new ConcurrentHashMap<Pool, AtomicLong>();
 
 		resetRound();
 	}
@@ -293,6 +295,29 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 	@Override
 	public String getName() {
 		return NAME;
+	}
+
+	@Override
+	public Map<String, String> getDetails() {
+		Map<String, String> details = super.getDetails();
+		details.put("Round duration", String.valueOf(roundDuration / 1000));
+		details.put("Elapsed round duration", String.valueOf((System.currentTimeMillis() - startOfRoundTime) / 1000));
+		for (Entry<Pool, AtomicLong> entry : poolsRunningTimes.entrySet()) {
+			details.put("Expected mining duration of pool " + entry.getKey().getName(),
+					String.valueOf(getExpectedExecutionTimeForPool(entry.getKey()) / 1000));
+			details.put("Time elapsed on pool " + entry.getKey().getName(), String.valueOf(entry.getValue().get() / 1000));
+		}
+		return details;
+	}
+
+	@Override
+	public String getDescription() {
+		return DESCRIPTION;
+	}
+
+	@Override
+	public void setParameter(String parameterKey, String value) {
+
 	}
 
 }

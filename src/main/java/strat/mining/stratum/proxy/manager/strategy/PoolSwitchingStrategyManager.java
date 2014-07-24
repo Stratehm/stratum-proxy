@@ -97,10 +97,32 @@ public interface PoolSwitchingStrategyManager {
 	public Map<String, String> getConfigurationParameters();
 
 	/**
+	 * Return the details of this strategy.
+	 * 
+	 * @return
+	 */
+	public Map<String, String> getDetails();
+
+	/**
 	 * Return the name of this strategy.
 	 * 
 	 * @return
 	 */
 	public String getName();
+
+	/**
+	 * Return the description of the strategy.
+	 * 
+	 * @return
+	 */
+	public String getDescription();
+
+	/**
+	 * Set the value for the given parameter.
+	 * 
+	 * @param parameterKey
+	 * @param value
+	 */
+	public void setParameter(String parameterKey, String value);
 
 }
