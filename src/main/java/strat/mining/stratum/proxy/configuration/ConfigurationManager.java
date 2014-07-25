@@ -108,6 +108,7 @@ public class ConfigurationManager {
 
 	private String apiUser;
 	private String apiPassword;
+	private Boolean apiEnableSsl;
 
 	private ObjectMapper jsonParser;
 
@@ -220,10 +221,20 @@ public class ConfigurationManager {
 		disableStratum = configuration.isDisableStratum() != null ? configuration.isDisableStratum() : disableStratum;
 		disableApi = configuration.isDisableApi() != null ? configuration.isDisableApi() : disableApi;
 
+		apiEnableSsl = configuration.getApiEnableSsl();
+
 		apiUser = configuration.getApiUser() != null ? configuration.getApiUser() : apiUser;
 		if (apiUser != null && apiUser.trim().isEmpty()) {
 			apiUser = null;
+			// If the apiEnableSsl option is not set and the API authentication
+			// is enable, enable SSl by default.
+			if (apiEnableSsl == null) {
+				apiEnableSsl = true;
+			}
 		}
+
+		// If the apiEnableSsl is null, disable it.
+		apiEnableSsl = apiEnableSsl == null ? false : apiEnableSsl;
 
 		apiPassword = configuration.getApiPassword() != null ? configuration.getApiPassword() : apiPassword;
 		if (apiPassword != null && apiPassword.trim().isEmpty()) {
@@ -381,10 +392,20 @@ public class ConfigurationManager {
 		disableStratum = cliParser.isDisableStratum() != null ? cliParser.isDisableStratum() : disableStratum;
 		disableApi = cliParser.isDisableApi() != null ? cliParser.isDisableApi() : disableApi;
 
+		apiEnableSsl = cliParser.isApiEnableSsl();
+
 		apiUser = cliParser.getApiUser() != null ? cliParser.getApiUser() : apiUser;
 		if (apiUser != null && apiUser.trim().isEmpty()) {
 			apiUser = null;
+			// If the apiEnableSsl option is not set and the API authentication
+			// is enable, enable SSl by default.
+			if (apiEnableSsl == null) {
+				apiEnableSsl = true;
+			}
 		}
+
+		// If the apiEnableSsl is null, disable it.
+		apiEnableSsl = apiEnableSsl == null ? false : apiEnableSsl;
 
 		apiPassword = cliParser.getApiPassword() != null ? cliParser.getApiPassword() : apiPassword;
 		if (apiPassword != null && apiPassword.trim().isEmpty()) {
@@ -820,6 +841,10 @@ public class ConfigurationManager {
 
 	public String getApiPassword() {
 		return apiPassword;
+	}
+
+	public Boolean getApiEnableSsl() {
+		return apiEnableSsl;
 	}
 
 }

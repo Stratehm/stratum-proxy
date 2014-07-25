@@ -64,6 +64,8 @@ public class Configuration {
 	private String apiUser;
 	private String apiPassword;
 
+	private Boolean apiEnableSsl;
+
 	@Valid
 	private List<Pool> pools;
 
@@ -320,6 +322,14 @@ public class Configuration {
 
 	public Boolean getDisableLogAppend() {
 		return disableLogAppend;
+	}
+
+	public Boolean getApiEnableSsl() {
+		return apiEnableSsl;
+	}
+
+	public void setApiEnableSsl(Boolean apiEnableSsl) {
+		this.apiEnableSsl = apiEnableSsl;
 	}
 
 }

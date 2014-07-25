@@ -25,21 +25,39 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
+import java.nio.ByteBuffer;
+import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Security;
-import java.security.cert.X509Certificate;
+import java.security.cert.Certificate;
+import java.security.spec.RSAPrivateKeySpec;
+import java.security.spec.RSAPublicKeySpec;
 import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.core.UriBuilder;
 
-import org.bouncycastle.jce.X509Principal;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
+import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
+import org.bouncycastle.crypto.params.RSAKeyParameters;
+import org.bouncycastle.jcajce.provider.asymmetric.x509.CertificateFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.x509.X509V3CertificateGenerator;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 import org.glassfish.grizzly.http.CompressionConfig.CompressionMode;
 import org.glassfish.grizzly.http.server.CLStaticHttpHandler;
 import org.glassfish.grizzly.http.server.HttpHandler;
@@ -69,7 +87,15 @@ import strat.mining.stratum.proxy.rest.authentication.AuthenticationAddOn;
 import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.worker.GetworkRequestHandler;
 
+import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream;
+
 public class Launcher {
+
+	private static final String KEYSTORE_KEY_ENTRY_ALIAS = "stratum-proxy";
+
+	private static final String KEYSTORE_PASSWORD = "stratum-proxy";
+
+	private static final String KEYSTORE_FILE_NAME = "stratum-proxy-keystore.jks";
 
 	static {
 		Security.addProvider(new BouncyCastleProvider());
@@ -209,17 +235,23 @@ public class Launcher {
 			if (staticHandler != null) {
 				serverConfiguration.addHttpHandler(staticHandler, "/");
 			}
-			// createCertificate();
 
-			SSLContextConfigurator sslContext = new SSLContextConfigurator();
-			// sslContext.setKeyStoreFile("<path to keystore>");
-			// sslContext.setKeyStorePass("<password>");
-			// sslContext.setTrustStoreFile("<path to truststore>");
-			// sslContext.setTrustStorePass("<password>");
+			if (ConfigurationManager.getInstance().getApiEnableSsl()) {
+				try {
+					checkCertificate();
+					SSLContextConfigurator sslContext = new SSLContextConfigurator();
+					sslContext.setKeyStoreFile(new File(ConfigurationManager.getInstance().getDatabaseDirectory(), KEYSTORE_FILE_NAME)
+							.getAbsolutePath());
+					sslContext.setKeyStorePass(KEYSTORE_PASSWORD);
+					sslContext.setKeyPass(KEYSTORE_PASSWORD);
 
-			apiHttpServer.getListener("grizzly").setSecure(true);
-			apiHttpServer.getListener("grizzly").setSSLEngineConfig(
-					new SSLEngineConfigurator(sslContext).setClientMode(false).setNeedClientAuth(true));
+					apiHttpServer.getListener("grizzly").setSecure(true);
+					apiHttpServer.getListener("grizzly").setSSLEngineConfig(
+							new SSLEngineConfigurator(sslContext).setClientMode(false).setNeedClientAuth(false));
+				} catch (Exception e) {
+					LOGGER.error("Failed to generate the HTTPS certificate. HTTP instead of HTTPS will be used.", e);
+				}
+			}
 
 			apiHttpServer.getListener("grizzly").registerAddOn(new AuthenticationAddOn());
 
@@ -355,43 +387,54 @@ public class Launcher {
 		}
 	}
 
-	private static void createCertificate() {
-		try {
-			KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-			keyPairGenerator.initialize(1024);
-			KeyPair KPair = keyPairGenerator.generateKeyPair();
-			X509V3CertificateGenerator v3CertGen = new X509V3CertificateGenerator();
+	private static void checkCertificate() throws Exception {
+		File storeFile = new File(ConfigurationManager.getInstance().getDatabaseDirectory(), KEYSTORE_FILE_NAME);
+		KeyStore keyStore = KeyStore.getInstance("JKS");
+		if (!storeFile.exists()) {
+			LOGGER.info("KeyStore does not exist. Create {}", storeFile.getAbsolutePath());
+			storeFile.getParentFile().mkdirs();
+			storeFile.createNewFile();
+			keyStore.load(null, null);
+
+			LOGGER.info("Generating new SSL certificate.");
+			AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA1withRSA");
+			AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
+
+			RSAKeyPairGenerator keyGenerator = new RSAKeyPairGenerator();
+			keyGenerator.init(new RSAKeyGenerationParameters(BigInteger.valueOf(101), new SecureRandom(), 2048, 14));
+			AsymmetricCipherKeyPair keysPair = keyGenerator.generateKeyPair();
+
+			RSAKeyParameters rsaPrivateKey = (RSAKeyParameters) keysPair.getPrivate();
+			RSAPrivateKeySpec rsaPrivSpec = new RSAPrivateKeySpec(rsaPrivateKey.getModulus(), rsaPrivateKey.getExponent());
+			RSAKeyParameters rsaPublicKey = (RSAKeyParameters) keysPair.getPublic();
+			RSAPublicKeySpec rsaPublicSpec = new RSAPublicKeySpec(rsaPublicKey.getModulus(), rsaPublicKey.getExponent());
+			KeyFactory kf = KeyFactory.getInstance("RSA");
+			PrivateKey rsaPriv = kf.generatePrivate(rsaPrivSpec);
+			PublicKey rsaPub = kf.generatePublic(rsaPublicSpec);
+
+			X500Name issuerDN = new X500Name("CN=localhost, OU=None, O=None, L=None, C=None");
 			Integer randomNumber = new SecureRandom().nextInt();
-			v3CertGen.setSerialNumber(BigInteger.valueOf(randomNumber >= 0 ? randomNumber : randomNumber * -1));
-			v3CertGen.setIssuerDN(new X509Principal("CN=" + "localhost" + ", OU=None, O=None L=None, C=None"));
-			v3CertGen.setNotBefore(new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30));
-			v3CertGen.setNotAfter(new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 365 * 10)));
-			v3CertGen.setSubjectDN(new X509Principal("CN=" + "localhost" + ", OU=None, O=None L=None, C=None"));
-			v3CertGen.setPublicKey(KPair.getPublic());
-			v3CertGen.setSignatureAlgorithm("MD5WithRSAEncryption");
-			X509Certificate PKCertificate = v3CertGen.generateX509Certificate(KPair.getPrivate());
-			// File certFile = new File("c:\\arf\\testCert.cert");
-			// if (!certFile.exists()) {
-			// certFile.createNewFile();
-			// }
-			// FileOutputStream fos = new FileOutputStream(certFile);
-			// fos.write(PKCertificate.getEncoded());
-			// fos.close();
+			BigInteger serialNumber = BigInteger.valueOf(randomNumber >= 0 ? randomNumber : randomNumber * -1);
+			Date notBefore = new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30);
+			Date notAfter = new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 365 * 10));
+			X500Name subjectDN = new X500Name("CN=localhost, OU=None, O=None, L=None, C=None");
+			byte[] publickeyb = rsaPub.getEncoded();
+			ASN1Sequence sequence = (ASN1Sequence) ASN1Primitive.fromByteArray(publickeyb);
+			SubjectPublicKeyInfo subPubKeyInfo = new SubjectPublicKeyInfo(sequence);
+			X509v3CertificateBuilder v3CertGen = new X509v3CertificateBuilder(issuerDN, serialNumber, notBefore, notAfter, subjectDN, subPubKeyInfo);
 
-			File storeFile = new File("c:\\arf\\sample-key-store.jks");
-			if (!storeFile.exists()) {
-				storeFile.createNewFile();
-			}
-			KeyStore privateKS = KeyStore.getInstance("JKS");
-			privateKS.load(null, null);
+			ContentSigner contentSigner = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(keysPair.getPrivate());
+			X509CertificateHolder certificateHolder = v3CertGen.build(contentSigner);
 
-			privateKS.setKeyEntry("sample.alias", KPair.getPrivate(), "charette".toCharArray(),
-					new java.security.cert.Certificate[] { PKCertificate });
+			Certificate certificate = new CertificateFactory().engineGenerateCertificate(new ByteBufferBackedInputStream(ByteBuffer
+					.wrap(certificateHolder.toASN1Structure().getEncoded())));
 
-			privateKS.store(new FileOutputStream(storeFile), "charette".toCharArray());
-		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.info("Certificate generated.");
+
+			keyStore.setKeyEntry(KEYSTORE_KEY_ENTRY_ALIAS, rsaPriv, KEYSTORE_PASSWORD.toCharArray(),
+					new java.security.cert.Certificate[] { certificate });
+
+			keyStore.store(new FileOutputStream(storeFile), KEYSTORE_PASSWORD.toCharArray());
 		}
 	}
-
 }
