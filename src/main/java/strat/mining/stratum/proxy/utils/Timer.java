@@ -86,9 +86,13 @@ public class Timer {
 			LOGGER.trace("Expected execution time of task {}: {}.", task.getName(), task.getExpectedExecutionTime());
 			// Wake up the scheduler.
 			synchronized (waitingTasks) {
-				waitingTasks.add(task);
-				LOGGER.trace("Task added => Waking up the scheduler.", task.getName(), task.getExpectedExecutionTime());
+				boolean isInserted = waitingTasks.add(task);
 				waitingTasks.notifyAll();
+				if (isInserted) {
+					LOGGER.trace("Task {} added in queue => Waking up the scheduler. {}", task.getName(), waitingTasks);
+				} else {
+					LOGGER.warn("Task {} not added in queue. {}", task.getName(), waitingTasks);
+				}
 			}
 		} else {
 			LOGGER.info("Failed to schedule task {} in {} ms.", task != null ? task.getName() : "null", delay);
@@ -179,8 +183,12 @@ public class Timer {
 			LOGGER.debug("Cancelling the task {}.", getName());
 			isCancelled = true;
 			synchronized (Timer.getInstance().waitingTasks) {
-				Timer.getInstance().waitingTasks.remove(this);
-				LOGGER.debug("Task {} removed.", getName());
+				boolean removed = Timer.getInstance().waitingTasks.remove(this);
+				if (removed) {
+					LOGGER.debug("Task {} removed. {}", getName(), Timer.getInstance().waitingTasks);
+				} else {
+					LOGGER.debug("Failed to remove task {} but still cancelled. {}", getName(), Timer.getInstance().waitingTasks);
+				}
 			}
 		}
 
