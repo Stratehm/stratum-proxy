@@ -19,9 +19,8 @@
 package strat.mining.stratum.proxy.utils;
 
 import java.util.Comparator;
-import java.util.NavigableSet;
-import java.util.NoSuchElementException;
-import java.util.TreeSet;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
@@ -39,12 +38,12 @@ public class Timer {
 
 	private ExecutorService executor;
 
-	private NavigableSet<Task> waitingTasks;
+	private Queue<Task> waitingTasks;
 
 	private Scheduler scheduler;
 
 	private Timer() {
-		waitingTasks = new TreeSet<Task>(new Comparator<Task>() {
+		waitingTasks = new PriorityQueue<Task>(new Comparator<Task>() {
 			public int compare(Task o1, Task o2) {
 				int result = 0;
 				if (o1 == null || o1.getExpectedExecutionTime() == null) {
@@ -86,7 +85,7 @@ public class Timer {
 			LOGGER.trace("Expected execution time of task {}: {}.", task.getName(), task.getExpectedExecutionTime());
 			// Wake up the scheduler.
 			synchronized (waitingTasks) {
-				boolean isInserted = waitingTasks.add(task);
+				boolean isInserted = waitingTasks.offer(task);
 				waitingTasks.notifyAll();
 				if (isInserted) {
 					LOGGER.trace("Task {} added in queue => Waking up the scheduler. {}", task.getName(), waitingTasks);
@@ -114,10 +113,7 @@ public class Timer {
 				try {
 					synchronized (waitingTasks) {
 						LOGGER.trace("Looking for next task to execute: {}", waitingTasks);
-						try {
-							nextTask = waitingTasks.first();
-						} catch (NoSuchElementException e) {
-						}
+						nextTask = waitingTasks.peek();
 
 						if (nextTask == null || nextTask.getExpectedExecutionTime() > currentTime) {
 							// Wait for a new task add if no task is present
@@ -134,7 +130,7 @@ public class Timer {
 							waitingTasks.wait(timeToWait);
 
 						} else {
-							nextTask = waitingTasks.pollFirst();
+							nextTask = waitingTasks.poll();
 
 							LOGGER.trace("Task to execute now: {}.", nextTask.getName());
 
