@@ -66,7 +66,8 @@ public abstract class MonoCurrentPoolStrategyManager implements PoolSwitchingStr
 
 			if (workerConnections.size() > 0) {
 				if (oldCurrentPool != currentPool) {
-					LOGGER.info("Switching worker connections from pool {} to pool {}.", oldCurrentPool.getName(), currentPool.getName());
+					LOGGER.info("Switching worker connections from pool {} to pool {}.", oldCurrentPool != null ? oldCurrentPool.getName() : "none",
+							currentPool != null ? currentPool.getName() : "none");
 					for (WorkerConnection connection : workerConnections) {
 						// If the connection is not bound to the poolToBind,
 						// switch the pool.
