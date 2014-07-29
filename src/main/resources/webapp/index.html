@@ -9,99 +9,111 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-	<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+	<div id="wrap">
+		<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+			<div class="container">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse"
+						data-target=".navbar-collapse">
+						<span class="icon-bar"></span> <span class="icon-bar"></span> <span
+							class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand"
+						href="https://github.com/Stratehm/stratum-proxy" target="_blank">Stratum
+						Proxy</a>
+				</div>
+				<div class="collapse navbar-collapse">
+					<ul id="navbarUl" class="nav navbar-nav">
+						<li class="active"><a id="poolsTabButton" href="#pools"
+							page-name="poolsPage">Pools</a></li>
+						<li><a id="usersTabButton" href="#users"
+							page-name="usersPage">Users</a></li>
+						<li><a id="connectionsTabButton" href="#connections"
+							page-name="connectionsPage">Connections</a></li>
+						<li><a id="settingsTabButton" href="#settings"
+							page-name="settingsPage">Settings</a></li>
+						<li><a id="settingsTabButton" href="#logs"
+							page-name="logsPage">Logs</a></li>
+					</ul>
+
+				</div>
+				<!--/.nav-collapse -->
+			</div>
+		</div>
+
+
+		<div id="poolsPage" class="container">
+			<div class="container container-sm-height">
+				<div class="row row-sm-height">
+					<div class="col-sm-3 col-sm-height col-middle">
+						<h1>Pool list</h1>
+					</div>
+					<div
+						class="col-sm-9 autoRefreshContainer col-sm-height col-middle text-right">
+						<span class="h6 autoRefreshCountDown"></span><a
+							class="btn btn-default btn-mini refreshButton"><i
+							class="icon-black glyphicon glyphicon-refresh"></i> Refresh</a> <a
+							class="btn btn-default btn-mini addPoolButton"><i
+							class="icon-black glyphicon glyphicon-plus"></i> Add</a>
+					</div>
+				</div>
+			</div>
+			<div class="row poolItemContainer"></div>
+		</div>
+
+		<div id="usersPage" class="container">
+			<div>
+				<h1>Not yet available</h1>
+				<div class="listContainer"></div>
+			</div>
+		</div>
+
+		<div id="connectionsPage" class="container">
+			<div>
+				<h1>Not yet available</h1>
+			</div>
+		</div>
+
+		<div id="settingsPage" class="container">
+			<div>
+				<h1>Not yet available</h1>
+			</div>
+		</div>
+
+
+		<div id="logsPage" class="container">
+			<div class="container container-sm-height">
+				<div class="row row-sm-height">
+					<div class="col-sm-3 col-sm-height col-middle">
+						<h1>Logs</h1>
+					</div>
+					<div
+						class="col-sm-9 autoRefreshContainer col-sm-height col-middle text-right">
+						<select class="selectpicker show-tick logLevelSelectPicker"
+							data-header="Select the new log level">
+							<option>TRACE</option>
+							<option>DEBUG</option>
+							<option>INFO</option>
+							<option>WARN</option>
+							<option>ERROR</option>
+							<option>FATAL</option>
+							<option>OFF</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div class="row logsPageContainer">
+				<pre class="logs logsContainer"></pre>
+			</div>
+		</div>
+
+	</div>
+	<!-- Wrap end -->
+
+	<div id="footer">
 		<div class="container">
-			<div class="navbar-header">
-				<button type="button" class="navbar-toggle" data-toggle="collapse"
-					data-target=".navbar-collapse">
-					<span class="icon-bar"></span> <span class="icon-bar"></span> <span
-						class="icon-bar"></span>
-				</button>
-				<a class="navbar-brand"
-					href="https://github.com/Stratehm/stratum-proxy" target="_blank">Stratum
-					Proxy</a>
-			</div>
-			<div class="collapse navbar-collapse">
-				<ul id="navbarUl" class="nav navbar-nav">
-					<li class="active"><a id="poolsTabButton" href="#pools"
-						page-name="poolsPage">Pools</a></li>
-					<li><a id="usersTabButton" href="#users" page-name="usersPage">Users</a></li>
-					<li><a id="connectionsTabButton" href="#connections"
-						page-name="connectionsPage">Connections</a></li>
-					<li><a id="settingsTabButton" href="#settings"
-						page-name="settingsPage">Settings</a></li>
-					<li><a id="settingsTabButton" href="#logs"
-						page-name="logsPage">Logs</a></li>
-				</ul>
-				<p class="navbar-right navbar-text donationText">Thank you for your BTC donations:
-					19wv8FQKv3NkwTdzBCQn1AGsb9ghqBPWXi</p>
-			</div>
-			<!--/.nav-collapse -->
-		</div>
-	</div>
-
-	<div id="poolsPage" class="container">
-		<div class="container container-sm-height">
-			<div class="row row-sm-height">
-				<div class="col-sm-3 col-sm-height col-middle">
-					<h1>Pool list</h1>
-				</div>
-				<div
-					class="col-sm-9 autoRefreshContainer col-sm-height col-middle text-right">
-					<span class="h6 autoRefreshCountDown"></span><a
-						class="btn btn-default btn-mini refreshButton"><i
-						class="icon-black glyphicon glyphicon-refresh"></i> Refresh</a> <a
-						class="btn btn-default btn-mini addPoolButton"><i
-						class="icon-black glyphicon glyphicon-plus"></i> Add</a>
-				</div>
-			</div>
-		</div>
-		<div class="row poolItemContainer"></div>
-	</div>
-
-	<div id="usersPage" class="container">
-		<div>
-			<h1>Not yet available</h1>
-			<div class="listContainer"></div>
-		</div>
-	</div>
-
-	<div id="connectionsPage" class="container">
-		<div>
-			<h1>Not yet available</h1>
-		</div>
-	</div>
-
-	<div id="settingsPage" class="container">
-		<div>
-			<h1>Not yet available</h1>
-		</div>
-	</div>
-
-
-	<div id="logsPage" class="container">
-		<div class="container container-sm-height">
-			<div class="row row-sm-height">
-				<div class="col-sm-3 col-sm-height col-middle">
-					<h1>Logs</h1>
-				</div>
-				<div
-					class="col-sm-9 autoRefreshContainer col-sm-height col-middle text-right">
-					<select class="selectpicker show-tick logLevelSelectPicker"
-						data-header="Select the new log level">
-						<option>TRACE</option>
-						<option>DEBUG</option>
-						<option>INFO</option>
-						<option>WARN</option>
-						<option>ERROR</option>
-						<option>FATAL</option>
-						<option>OFF</option>
-					</select>
-				</div>
-			</div>
-		</div>
-		<div class="row logsPageContainer">
-			<pre class="logs logsContainer"></pre>
+			<span class="donationText">Thank you for
+				your BTC donations: 19wv8FQKv3NkwTdzBCQn1AGsb9ghqBPWXi</span>
 		</div>
 	</div>
 
@@ -199,7 +211,7 @@
 				</div>
 			</div>
 			<div class="col-sm-12">
-				<div class="hashrateChart" sytle="width: 100%;">
+				<div class="hashrateChart" style="width: 100%;">
 					<div class="chartLoader"></div>
 				</div>
 			</div>
