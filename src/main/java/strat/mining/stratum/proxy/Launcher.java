@@ -84,6 +84,7 @@ import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.ProxyResources;
 import strat.mining.stratum.proxy.rest.authentication.AuthenticationAddOn;
+import strat.mining.stratum.proxy.rest.ssl.SSLRedirectAddOn;
 import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.worker.GetworkRequestHandler;
 
@@ -248,6 +249,8 @@ public class Launcher {
 					apiHttpServer.getListener("grizzly").setSecure(true);
 					apiHttpServer.getListener("grizzly").setSSLEngineConfig(
 							new SSLEngineConfigurator(sslContext).setClientMode(false).setNeedClientAuth(false));
+
+					apiHttpServer.getListener("grizzly").registerAddOn(new SSLRedirectAddOn());
 				} catch (Exception e) {
 					LOGGER.error("Failed to generate the HTTPS certificate. HTTP instead of HTTPS will be used.", e);
 				}
