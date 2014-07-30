@@ -227,11 +227,13 @@ public class ConfigurationManager {
 		apiEnableSsl = configuration.getApiEnableSsl();
 
 		apiUser = configuration.getApiUser() != null ? configuration.getApiUser() : apiUser;
-		if (apiUser != null && apiUser.trim().isEmpty()) {
-			apiUser = null;
-			// If the apiEnableSsl option is not set and the API authentication
-			// is enable, enable SSl by default.
-			if (apiEnableSsl == null) {
+		if (apiUser != null) {
+			// If the apiUser is empty, set it to null.
+			if (apiUser.trim().isEmpty()) {
+				apiUser = null;
+			} else if (apiEnableSsl == null) {
+				// If the apiEnableSsl option is not set and the API
+				// authentication is enable, enable SSl by default.
 				apiEnableSsl = true;
 			}
 		}
@@ -398,11 +400,13 @@ public class ConfigurationManager {
 		apiEnableSsl = cliParser.isApiEnableSsl();
 
 		apiUser = cliParser.getApiUser() != null ? cliParser.getApiUser() : apiUser;
-		if (apiUser != null && apiUser.trim().isEmpty()) {
-			apiUser = null;
-			// If the apiEnableSsl option is not set and the API authentication
-			// is enable, enable SSl by default.
-			if (apiEnableSsl == null) {
+		if (apiUser != null) {
+			// If the apiUser is empty, set it to null.
+			if (apiUser.trim().isEmpty()) {
+				apiUser = null;
+			} else if (apiEnableSsl == null) {
+				// If the apiEnableSsl option is not set and the API
+				// authentication is enable, enable SSl by default.
 				apiEnableSsl = true;
 			}
 		}
