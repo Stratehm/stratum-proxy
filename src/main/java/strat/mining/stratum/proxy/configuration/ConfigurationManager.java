@@ -121,6 +121,9 @@ public class ConfigurationManager {
 
 	public ConfigurationManager() {
 		this.jsonParser = new ObjectMapper();
+		this.jsonParser.getFactory().configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_COMMENTS, true);
+		this.jsonParser.getFactory().configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
+		this.jsonParser.getFactory().configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
 	}
 
 	/**

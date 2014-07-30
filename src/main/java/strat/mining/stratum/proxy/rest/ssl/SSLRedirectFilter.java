@@ -34,8 +34,6 @@ import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.memory.ByteBufferWrapper;
 import org.glassfish.grizzly.ssl.SSLBaseFilter;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A Grizzly filter which redirect HTTP requests to HTTPS if SSL is enabled.
@@ -44,8 +42,6 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class SSLRedirectFilter extends SSLBaseFilter {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(SSLRedirectFilter.class);
 
 	public SSLRedirectFilter() {
 		super();
