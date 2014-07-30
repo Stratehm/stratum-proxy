@@ -43,7 +43,7 @@ public class Timer {
 	private Scheduler scheduler;
 
 	private Timer() {
-		waitingTasks = new PriorityQueue<Task>(new Comparator<Task>() {
+		waitingTasks = new PriorityQueue<Task>(16, new Comparator<Task>() {
 			public int compare(Task o1, Task o2) {
 				int result = 0;
 				if (o1 == null || o1.getExpectedExecutionTime() == null) {
