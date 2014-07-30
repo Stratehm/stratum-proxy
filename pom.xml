@@ -107,17 +107,18 @@
 			<version>8.0.249.16098</version>
 		</dependency>
 
+		<!-- BouncyCastle (Crypto) -->
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcpkix-jdk15on</artifactId>
 			<version>1.50</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
-			<version>1.50</version>
-		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.bouncycastle</groupId> -->
+<!-- 			<artifactId>bcprov-jdk15on</artifactId> -->
+<!-- 			<version>1.50</version> -->
+<!-- 		</dependency> -->
 
 	</dependencies>
 
