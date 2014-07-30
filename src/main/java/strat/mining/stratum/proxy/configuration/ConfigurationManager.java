@@ -106,6 +106,10 @@ public class ConfigurationManager {
 	private boolean disableStratum = false;
 	private boolean disableApi = false;
 
+	private String apiUser;
+	private String apiPassword;
+	private Boolean apiEnableSsl;
+
 	private ObjectMapper jsonParser;
 
 	public static ConfigurationManager getInstance() {
@@ -216,6 +220,26 @@ public class ConfigurationManager {
 		disableGetwork = configuration.isDisableGetwork() != null ? configuration.isDisableGetwork() : disableGetwork;
 		disableStratum = configuration.isDisableStratum() != null ? configuration.isDisableStratum() : disableStratum;
 		disableApi = configuration.isDisableApi() != null ? configuration.isDisableApi() : disableApi;
+
+		apiEnableSsl = configuration.getApiEnableSsl();
+
+		apiUser = configuration.getApiUser() != null ? configuration.getApiUser() : apiUser;
+		if (apiUser != null && apiUser.trim().isEmpty()) {
+			apiUser = null;
+			// If the apiEnableSsl option is not set and the API authentication
+			// is enable, enable SSl by default.
+			if (apiEnableSsl == null) {
+				apiEnableSsl = true;
+			}
+		}
+
+		// If the apiEnableSsl is null, disable it.
+		apiEnableSsl = apiEnableSsl == null ? false : apiEnableSsl;
+
+		apiPassword = configuration.getApiPassword() != null ? configuration.getApiPassword() : apiPassword;
+		if (apiPassword != null && apiPassword.trim().isEmpty()) {
+			apiPassword = null;
+		}
 
 		buildPoolsFromConfigurationFile(configuration);
 	}
@@ -367,6 +391,26 @@ public class ConfigurationManager {
 		disableGetwork = cliParser.isDisableGetwork() != null ? cliParser.isDisableGetwork() : disableGetwork;
 		disableStratum = cliParser.isDisableStratum() != null ? cliParser.isDisableStratum() : disableStratum;
 		disableApi = cliParser.isDisableApi() != null ? cliParser.isDisableApi() : disableApi;
+
+		apiEnableSsl = cliParser.isApiEnableSsl();
+
+		apiUser = cliParser.getApiUser() != null ? cliParser.getApiUser() : apiUser;
+		if (apiUser != null && apiUser.trim().isEmpty()) {
+			apiUser = null;
+			// If the apiEnableSsl option is not set and the API authentication
+			// is enable, enable SSl by default.
+			if (apiEnableSsl == null) {
+				apiEnableSsl = true;
+			}
+		}
+
+		// If the apiEnableSsl is null, disable it.
+		apiEnableSsl = apiEnableSsl == null ? false : apiEnableSsl;
+
+		apiPassword = cliParser.getApiPassword() != null ? cliParser.getApiPassword() : apiPassword;
+		if (apiPassword != null && apiPassword.trim().isEmpty()) {
+			apiPassword = null;
+		}
 
 		buildPoolsFromCommandLine(cliParser);
 	}
@@ -789,6 +833,18 @@ public class ConfigurationManager {
 
 	public boolean isDisableLogAppend() {
 		return disableLogAppend;
+	}
+
+	public String getApiUser() {
+		return apiUser;
+	}
+
+	public String getApiPassword() {
+		return apiPassword;
+	}
+
+	public Boolean getApiEnableSsl() {
+		return apiEnableSsl;
 	}
 
 }

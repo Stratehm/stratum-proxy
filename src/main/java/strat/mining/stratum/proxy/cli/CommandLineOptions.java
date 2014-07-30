@@ -26,6 +26,7 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.spi.BooleanOptionHandler;
+import org.kohsuke.args4j.spi.ExplicitBooleanOptionHandler;
 import org.kohsuke.args4j.spi.FileOptionHandler;
 import org.kohsuke.args4j.spi.StringArrayOptionHandler;
 
@@ -161,6 +162,15 @@ public class CommandLineOptions {
 
 	@Option(name = "--disable-log-append", usage = "If set, do not append log file on each run. The current log file will be cleared before writing logs.")
 	private boolean disableLogAppend;
+
+	@Option(name = "--api-user", usage = "If set, the API (and GUI) will require an authentication with this user name. When a user is set, the --api-enable-ssl option is automatically activated. If you do not want to use SSL with this option (not recommanded at all), you may use --api-enable-ssl false")
+	private String apiUser;
+
+	@Option(name = "--api-password", usage = "If set, define the password to provide with the --api-user name to access the API (and GUI)")
+	private String apiPassword;
+
+	@Option(name = "--api-enable-ssl", usage = "Enable SSL (HTTPS) to secure the API.", handler = ExplicitBooleanOptionHandler.class)
+	private Boolean apiEnableSsl;
 
 	public CommandLineOptions() {
 		parser = new CmdLineParser(this);
@@ -336,6 +346,18 @@ public class CommandLineOptions {
 
 	public Boolean isDisableLogAppend() {
 		return disableLogAppend;
+	}
+
+	public String getApiUser() {
+		return apiUser;
+	}
+
+	public String getApiPassword() {
+		return apiPassword;
+	}
+
+	public Boolean isApiEnableSsl() {
+		return apiEnableSsl;
 	}
 
 }
