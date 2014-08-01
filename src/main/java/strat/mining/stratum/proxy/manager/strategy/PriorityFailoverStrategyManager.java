@@ -48,10 +48,15 @@ public class PriorityFailoverStrategyManager extends MonoCurrentPoolStrategyMana
 
 	@Override
 	public void onPoolAdded(Pool pool) {
-		// Set by default the priority to the lowest over all pools.
+		// If the priority of the pool is set, check if it does not overlap
+		// another pool with the same priority
 		if (pool.getPriority() == null) {
+			// Set by default the priority to the lowest over all pools.
 			int minPriority = getMinimumPoolPriority();
 			pool.setPriority(minPriority + 1);
+		} else {
+			// If the priority is set, update the other pools.
+			onPoolUpdated(pool);
 		}
 
 		super.onPoolAdded(pool);
@@ -61,12 +66,20 @@ public class PriorityFailoverStrategyManager extends MonoCurrentPoolStrategyMana
 	@Override
 	public void onPoolUpdated(Pool poolUpdated) {
 		List<Pool> pools = getProxyManager().getPools();
+		checkPoolPriorities(pools);
+		Collections.sort(pools, new Comparator<Pool>() {
+			public int compare(Pool o1, Pool o2) {
+				return o1.getPriority().compareTo(o2.getPriority());
+			}
+		});
 		int newPriority = poolUpdated.getPriority();
+		int previousPriority = newPriority;
 		for (Pool pool : pools) {
 			// Move the priority of other pools with lower or
 			// equals priority
-			if (pool.getPriority() >= newPriority && !pool.equals(poolUpdated)) {
+			if (pool.getPriority() == previousPriority && !pool.equals(poolUpdated)) {
 				pool.setPriority(pool.getPriority() + 1);
+				previousPriority = pool.getPriority();
 			}
 		}
 
@@ -91,6 +104,17 @@ public class PriorityFailoverStrategyManager extends MonoCurrentPoolStrategyMana
 	}
 
 	/**
+	 * Check that all pools have a priority.
+	 */
+	private void checkPoolPriorities(List<Pool> pools) {
+		for (Pool pool : pools) {
+			if (pool.getPriority() == null) {
+				pool.setPriority(getMinimumPoolPriority() + 1);
+			}
+		}
+	}
+
+	/**
 	 * Compute the and set the current pool. Based on the pool priority and pool
 	 * state.
 	 * 
@@ -101,6 +125,7 @@ public class PriorityFailoverStrategyManager extends MonoCurrentPoolStrategyMana
 	protected void computeCurrentPool() throws NoPoolAvailableException {
 		List<Pool> pools = getProxyManager().getPools();
 		Pool newPool = null;
+		checkPoolPriorities(pools);
 		Collections.sort(pools, new Comparator<Pool>() {
 			public int compare(Pool o1, Pool o2) {
 				return o1.getPriority().compareTo(o2.getPriority());

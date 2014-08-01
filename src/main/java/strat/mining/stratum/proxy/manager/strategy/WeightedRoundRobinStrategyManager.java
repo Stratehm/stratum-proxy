@@ -89,6 +89,9 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 
 	@Override
 	public void onPoolAdded(Pool pool) {
+		if (pool.getWeight() == null) {
+			pool.setWeight(1);
+		}
 		super.onPoolAdded(pool);
 	}
 
@@ -122,6 +125,17 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 	}
 
 	/**
+	 * Check that all pools have a weight.
+	 */
+	private void checkPoolWeights(List<Pool> pools) {
+		for (Pool pool : pools) {
+			if (pool.getPriority() == null) {
+				pool.setWeight(1);
+			}
+		}
+	}
+
+	/**
 	 * Compute and set the current pool.
 	 */
 	protected void computeCurrentPool() throws NoPoolAvailableException {
@@ -138,6 +152,7 @@ public class WeightedRoundRobinStrategyManager extends MonoCurrentPoolStrategyMa
 		computeTotalWeight(pools);
 
 		// Sort the pools by weight. The highest weight will be active first.
+		checkPoolWeights(pools);
 		Collections.sort(pools, Collections.reverseOrder(new Comparator<Pool>() {
 			public int compare(Pool o1, Pool o2) {
 				return o1.getWeight().compareTo(o2.getWeight());

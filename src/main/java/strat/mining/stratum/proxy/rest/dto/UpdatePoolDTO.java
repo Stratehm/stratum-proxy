@@ -21,7 +21,7 @@ package strat.mining.stratum.proxy.rest.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AddPoolDTO {
+public class UpdatePoolDTO {
 
 	private String poolName;
 	private String poolHost;
@@ -30,7 +30,6 @@ public class AddPoolDTO {
 	private Integer priority;
 	private Integer weight;
 	private Boolean enableExtranonceSubscribe;
-	private Boolean isEnabled;
 	private Boolean appendWorkerNames;
 	private String workerNameSeparator;
 	private Boolean useWorkerPassword;
@@ -83,14 +82,6 @@ public class AddPoolDTO {
 		this.enableExtranonceSubscribe = enableExtranonceSubscribe;
 	}
 
-	public Boolean getIsEnabled() {
-		return isEnabled;
-	}
-
-	public void setIsEnabled(Boolean isEnabled) {
-		this.isEnabled = isEnabled;
-	}
-
 	public Boolean getAppendWorkerNames() {
 		return appendWorkerNames;
 	}
@@ -140,8 +131,6 @@ public class AddPoolDTO {
 		builder.append(weight);
 		builder.append(", enableExtranonceSubscribe=");
 		builder.append(enableExtranonceSubscribe);
-		builder.append(", isEnabled=");
-		builder.append(isEnabled);
 		builder.append(", appendWorkerNames=");
 		builder.append(appendWorkerNames);
 		builder.append(", workerNameSeparator=");

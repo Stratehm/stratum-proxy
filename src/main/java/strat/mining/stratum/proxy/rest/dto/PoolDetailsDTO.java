@@ -55,6 +55,10 @@ public class PoolDetailsDTO {
 	private String lastStopCause;
 	private String lastStopDate;
 
+	private Boolean appendWorkerNames;
+	private String workerNamesSeparator;
+	private Boolean useWorkerPassword;
+
 	public String getName() {
 		return name;
 	}
@@ -245,6 +249,30 @@ public class PoolDetailsDTO {
 
 	public void setLastStopDate(String lastStopDate) {
 		this.lastStopDate = lastStopDate;
+	}
+
+	public Boolean getAppendWorkerNames() {
+		return appendWorkerNames;
+	}
+
+	public void setAppendWorkerNames(Boolean appendWorkerNames) {
+		this.appendWorkerNames = appendWorkerNames;
+	}
+
+	public String getWorkerNamesSeparator() {
+		return workerNamesSeparator;
+	}
+
+	public void setWorkerNamesSeparator(String workerNamesSeparator) {
+		this.workerNamesSeparator = workerNamesSeparator;
+	}
+
+	public Boolean getUseWorkerPassword() {
+		return useWorkerPassword;
+	}
+
+	public void setUseWorkerPassword(Boolean useWorkerPassword) {
+		this.useWorkerPassword = useWorkerPassword;
 	}
 
 }

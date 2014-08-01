@@ -20,6 +20,7 @@ package strat.mining.stratum.proxy.network;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
@@ -153,7 +154,7 @@ public abstract class StratumConnection {
 							line = reader.readLine();
 						}
 
-						throw new IOException("EOF on inputStream.");
+						throw new EOFException("Connection closed.");
 
 					} catch (Exception e) {
 						if (throwDisconnectError) {

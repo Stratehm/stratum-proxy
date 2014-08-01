@@ -60,6 +60,7 @@ import strat.mining.stratum.proxy.rest.dto.PoolDetailsDTO;
 import strat.mining.stratum.proxy.rest.dto.PoolNameDTO;
 import strat.mining.stratum.proxy.rest.dto.StatusDTO;
 import strat.mining.stratum.proxy.rest.dto.TimestampDTO;
+import strat.mining.stratum.proxy.rest.dto.UpdatePoolDTO;
 import strat.mining.stratum.proxy.rest.dto.UserDetailsDTO;
 import strat.mining.stratum.proxy.rest.dto.UserNameDTO;
 import strat.mining.stratum.proxy.rest.dto.WorkerConnectionDTO;
@@ -505,6 +506,40 @@ public class ProxyResources {
 		return response;
 	}
 
+	/**
+	 * Update the pool with the given name with the given details.
+	 * 
+	 * @param poolToUpdate
+	 * @return
+	 */
+	@POST
+	@Path("pool/update")
+	public Response updatePool(UpdatePoolDTO poolToUpdate) {
+		Response response = null;
+		StatusDTO status = new StatusDTO();
+
+		try {
+			stratumProxyManager.updatePool(poolToUpdate);
+
+			status.setStatus(StatusDTO.DONE_STATUS);
+			response = Response.status(Response.Status.OK).entity(status).build();
+		} catch (BadParameterException e) {
+			status.setStatus(StatusDTO.FAILED_STATUS);
+			status.setMessage(e.getMessage());
+			response = Response.status(Response.Status.BAD_REQUEST).entity(status).build();
+		} catch (PoolStartException | SocketException | URISyntaxException e) {
+			status.setStatus(StatusDTO.PARTIALLY_DONE_STATUS);
+			status.setMessage(e.getMessage());
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(status).build();
+		} catch (NotFoundException e) {
+			status.setStatus(StatusDTO.FAILED_STATUS);
+			status.setMessage(e.getMessage());
+			response = Response.status(Response.Status.NOT_FOUND).entity(status).build();
+		}
+
+		return response;
+	}
+
 	@POST
 	@Path("log/level")
 	public Response setLogLevel(LogLevelDTO logLevel) {
@@ -626,11 +661,7 @@ public class ProxyResources {
 		result.setDifficulty(pool.getDifficulty() != null ? pool.getDifficulty().toString() : null);
 		result.setExtranonce1(pool.getExtranonce1());
 		result.setExtranonce2Size(pool.getExtranonce2Size());
-		if (pool.getUri() != null) {
-			result.setHost(pool.getUri().toString());
-		} else {
-			result.setHost(pool.getHost());
-		}
+		result.setHost(pool.getHost());
 		result.setIsReady(pool.isReady());
 		result.setIsEnabled(pool.isEnabled());
 		result.setIsStable(pool.isStable());
@@ -651,6 +682,9 @@ public class ProxyResources {
 		result.setRejectedHashesPerSeconds(Double.valueOf(pool.getRejectedHashesPerSeconds()).longValue());
 		result.setLastStopCause(pool.getLastStopCause());
 		result.setLastStopDate(pool.getLastStopDate() != null ? simpleDateFormat.format(pool.getLastStopDate()) : null);
+		result.setAppendWorkerNames(pool.isAppendWorkerNames());
+		result.setWorkerNamesSeparator(pool.getWorkerSeparator());
+		result.setUseWorkerPassword(pool.isUseWorkerPassword());
 
 		return result;
 	}

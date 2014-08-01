@@ -67,6 +67,7 @@ import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.dto.AddPoolDTO;
 import strat.mining.stratum.proxy.rest.dto.AddressDTO;
 import strat.mining.stratum.proxy.rest.dto.ConnectionIdentifierDTO;
+import strat.mining.stratum.proxy.rest.dto.UpdatePoolDTO;
 import strat.mining.stratum.proxy.rest.dto.UserNameDTO;
 import strat.mining.stratum.proxy.worker.StratumWorkerConnection;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
@@ -642,8 +643,20 @@ public class ProxyManager {
 			poolToAdd.setPriority(addPoolDTO.getPriority());
 		}
 
+		if (addPoolDTO.getWeight() != null) {
+			poolToAdd.setWeight(addPoolDTO.getWeight());
+		}
+
 		// Add the pool to the pool list
 		pools.add(poolToAdd);
+
+		if (addPoolDTO.getPriority() != null) {
+			try {
+				setPoolPriority(addPoolDTO.getPoolName(), addPoolDTO.getPriority());
+			} catch (NoPoolAvailableException e) {
+				LOGGER.error("BUG DETECTED !!! This exceptin should not happen.", e);
+			}
+		}
 
 		LOGGER.info("Pool added {}.", addPoolDTO);
 
@@ -903,6 +916,7 @@ public class ProxyManager {
 	}
 
 	/**
+	 * Return the connections associated to the given pool.
 	 * 
 	 * @param pool
 	 */
@@ -915,4 +929,96 @@ public class ProxyManager {
 		return workerConnections;
 	}
 
+	/**
+	 * 
+	 * @param poolToUpdate
+	 * @throws URISyntaxException
+	 * @throws PoolStartException
+	 * @throws SocketException
+	 * @throws BadParameterException
+	 */
+	public void updatePool(UpdatePoolDTO poolToUpdate) throws NotFoundException, SocketException, PoolStartException, URISyntaxException,
+			BadParameterException {
+		boolean hasBeenStopped = false;
+		Pool pool = getPool(poolToUpdate.getPoolName());
+
+		if (pool == null) {
+			throw new NotFoundException("The pool with name " + poolToUpdate.getPoolName() + " has not been found.");
+		}
+
+		if (poolToUpdate.getPoolHost() != null && !poolToUpdate.getPoolHost().equals(pool.getHost())) {
+			if (!hasBeenStopped) {
+				pool.stopPool("Pool updated and needed to restart.");
+			}
+			hasBeenStopped = true;
+			pool.setHost(poolToUpdate.getPoolHost());
+		}
+
+		if (poolToUpdate.getEnableExtranonceSubscribe() != null
+				&& !poolToUpdate.getEnableExtranonceSubscribe().equals(pool.getIsExtranonceSubscribeEnabled())) {
+			if (!hasBeenStopped) {
+				pool.stopPool("Pool updated and needed to restart.");
+			}
+			hasBeenStopped = true;
+			pool.setIsExtranonceSubscribeEnabled(poolToUpdate.getEnableExtranonceSubscribe());
+		}
+
+		if (poolToUpdate.getPassword() != null && !poolToUpdate.getPassword().equals(pool.getPassword())) {
+			if (!hasBeenStopped) {
+				pool.stopPool("Pool updated and needed to restart.");
+			}
+			hasBeenStopped = true;
+			pool.setPassword(poolToUpdate.getPassword());
+		}
+
+		if (poolToUpdate.getUsername() != null && !poolToUpdate.getUsername().equals(pool.getUsername())) {
+			if (!hasBeenStopped) {
+				pool.stopPool("Pool updated and needed to restart.");
+			}
+			hasBeenStopped = true;
+			pool.setUsername(poolToUpdate.getUsername());
+		}
+
+		if (poolToUpdate.getPriority() != null && !poolToUpdate.getPriority().equals(pool.getPriority())) {
+			if (poolToUpdate.getPriority() < 0) {
+				throw new BadParameterException("The priority has to be higher or equal to 0");
+			}
+			pool.setPriority(poolToUpdate.getPriority());
+			if (poolSwitchingStrategyManager != null) {
+				poolSwitchingStrategyManager.onPoolUpdated(pool);
+			}
+		}
+
+		if (poolToUpdate.getWeight() != null && !poolToUpdate.getWeight().equals(pool.getWeight())) {
+			if (poolToUpdate.getWeight() < 0) {
+				throw new BadParameterException("The weight has to be higher or equal to 0");
+			}
+			pool.setWeight(poolToUpdate.getWeight());
+			if (poolSwitchingStrategyManager != null) {
+				poolSwitchingStrategyManager.onPoolUpdated(pool);
+			}
+		}
+
+		if (poolToUpdate.getAppendWorkerNames() != null && !poolToUpdate.getAppendWorkerNames().equals(pool.isAppendWorkerNames())) {
+			if (!hasBeenStopped) {
+				pool.stopPool("Pool updated and needed to restart.");
+			}
+			hasBeenStopped = true;
+			pool.setAppendWorkerNames(poolToUpdate.getAppendWorkerNames());
+		}
+
+		if (poolToUpdate.getWorkerNameSeparator() != null && !poolToUpdate.getWorkerNameSeparator().equals(pool.getWorkerSeparator())) {
+			pool.setWorkerSeparator(poolToUpdate.getWorkerNameSeparator());
+		}
+
+		if (poolToUpdate.getUseWorkerPassword() != null && !poolToUpdate.getUseWorkerPassword().equals(pool.isUseWorkerPassword())) {
+			pool.setUseWorkerPassword(poolToUpdate.getUseWorkerPassword());
+		}
+
+		// If the pool has been stopped since some options needs a restart,
+		// restart the pool.
+		if (hasBeenStopped) {
+			pool.startPool(this);
+		}
+	}
 }

@@ -108,6 +108,10 @@ PoolsPageController.prototype.addPoolInPage = function(pool) {
 	item.getRemoveButton().click(function() {
 		controller.removePool(pool.name);
 	});
+
+	item.getEditButton().click(function() {
+		controller.openEditPool(pool.name);
+	});
 };
 PoolsPageController.prototype.getPoolItemFromName = function(poolName) {
 	return this.items.find(function(item) {
@@ -186,7 +190,7 @@ PoolsPageController.prototype.refresh = function(onSuccess) {
 PoolsPageController.prototype.setPoolPriority = function(poolName, priority) {
 	var controller = this;
 
-	// Reload pool data
+	// Update the priority
 	$.ajax({
 		url : "/proxy/pool/priority",
 		dataType : "json",
@@ -212,6 +216,106 @@ PoolsPageController.prototype.setPoolPriority = function(poolName, priority) {
 					+ jsonObject.message);
 		}
 	});
+};
+
+/**
+ * Open a pool edit box for the pool with the given name
+ * 
+ * @param poolName
+ */
+PoolsPageController.prototype.openEditPool = function(poolName) {
+	var controller = this, pool;
+
+	pool = controller.getPoolItemFromName(poolName).pool;
+
+	var modal = $('#editPoolModal').modal({
+		keyboard : true,
+		backdrop : 'static'
+	}), controller = this;
+	modal.find('.modal-title').text('Edit the pool ' + pool.name);
+
+	// Initialize fields
+	modal.find('#poolHostField').val(pool.host);
+	modal.find('#usernameField').val(pool.username);
+	modal.find('#passwordField').val(pool.password);
+	modal.find('#priorityField').val(pool.priority);
+	modal.find('#weightField').val(pool.weight);
+	modal.find('#enableExtranonceSubscribeField').prop('checked',
+			pool.isExtranonceSubscribeEnabled);
+	modal.find('#appendWorkerNamesField').prop('checked',
+			pool.appendWorkerNames);
+	modal.find('#workerNameSeparatorField').val(pool.workerNamesSeparator);
+	modal.find('#useWorkerPasswordField').prop('checked',
+			pool.useWorkerPassword);
+
+	modal
+			.find('.validateButton')
+			.off('click')
+			.click(
+					function() {
+
+						var poolHost = modal.find('#poolHostField').val(), username = modal
+								.find('#usernameField').val(), password = modal
+								.find('#passwordField').val(), priority = modal
+								.find('#priorityField').val(), weight = modal
+								.find('#weightField').val(), enableExtranonceSubscribe = modal
+								.find('#enableExtranonceSubscribeField').is(
+										':checked'), appendWorkerNames = modal
+								.find('#appendWorkerNamesField').is(':checked'), workerNameSeparator = modal
+								.find('#workerNameSeparatorField').val(), useWorkerPassword = modal
+								.find('#useWorkerPasswordField').is(':checked');
+
+						modal.modal('hide');
+						$
+								.ajax({
+									url : '/proxy/pool/update',
+									dataType : "json",
+									type : "POST",
+									data : JSON
+											.stringify({
+												poolName : pool.name,
+												poolHost : poolHost,
+												username : username,
+												password : password,
+												priority : priority,
+												weight : weight,
+												enableExtranonceSubscribe : enableExtranonceSubscribe,
+												appendWorkerNames : appendWorkerNames,
+												workerNameSeparator: workerNameSeparator,
+												useWorkerPassword : useWorkerPassword
+											}),
+									contentType : "application/json",
+									success : function(data) {
+										// When priority is set, refresh the
+										// list.
+										if (data.status == 'Failed') {
+											window
+													.alert('Failed to update the pool. Message: '
+															+ data.message);
+										} else if (data.status == 'PartiallyDone') {
+											window
+													.alert('Pool updated but not started. Message: '
+															+ data.message);
+											controller.refresh();
+										} else {
+											controller.refresh();
+										}
+									},
+									error : function(request, textStatus,
+											errorThrown) {
+										var jsonObject = JSON
+												.parse(request.responseText);
+										window
+												.alert('Failed to update the pool. Status: '
+														+ textStatus
+														+ ', error: '
+														+ errorThrown
+														+ ', message: '
+														+ jsonObject.message);
+									}
+								});
+					});
+
 };
 
 /**
@@ -388,7 +492,6 @@ PoolsPageController.prototype.openAddPool = function() {
 		backdrop : 'static'
 	}), controller = this;
 	modal.find('.modal-title').text('Add a pool');
-	var modal = $('#addPoolModal');
 	modal
 			.find('.validateButton')
 			.off('click')
@@ -399,7 +502,8 @@ PoolsPageController.prototype.openAddPool = function() {
 								.find('#poolHostField').val(), username = modal
 								.find('#usernameField').val(), password = modal
 								.find('#passwordField').val(), priority = modal
-								.find('#priorityField').val(), enableExtranonceSubscribe = modal
+								.find('#priorityField').val(), weight = modal
+								.find('#weightField').val(), enableExtranonceSubscribe = modal
 								.find('#enableExtranonceSubscribeField').is(
 										':checked'), isEnabled = modal.find(
 								'#isEnabledField').is(':checked'), appendWorkerNames = modal
@@ -420,6 +524,7 @@ PoolsPageController.prototype.openAddPool = function() {
 												username : username,
 												password : password,
 												priority : priority,
+												weight : weight,
 												enableExtranonceSubscribe : enableExtranonceSubscribe,
 												isEnabled : isEnabled,
 												appendWorkerNames : appendWorkerNames,
@@ -769,8 +874,10 @@ PoolItem.prototype.updatePool = function(pool) {
 	this.poolItemJquery.find('.isStableValue').text(pool.isStable);
 	this.poolItemJquery.find('.isReadySinceValue').text(
 			pool.isReadySince != undefined ? pool.isReadySince : "Never");
-	this.poolItemJquery.find('.isActiveSinceValue').text(
-			pool.isActiveSince != undefined ? pool.isActiveSince : "Not active");
+	this.poolItemJquery.find('.isActiveSinceValue')
+			.text(
+					pool.isActiveSince != undefined ? pool.isActiveSince
+							: "Not active");
 	this.poolItemJquery.find('.difficultyValue').text(
 			pool.difficulty != undefined ? pool.difficulty : "Not set");
 	this.poolItemJquery.find('.extranonce1Value').text(
@@ -797,12 +904,21 @@ PoolItem.prototype.updatePool = function(pool) {
 			pool.acceptedHashesPerSeconds);
 	this.poolItemJquery.find('.rejectedHashrateValue').text(
 			pool.rejectedHashesPerSeconds);
-	
+
 	this.poolItemJquery.find('.lastStopCauseValue').text(
-			pool.lastStopCause != undefined ? pool.lastStopCause : "Never stopped");
+			pool.lastStopCause != undefined ? pool.lastStopCause
+					: "Never stopped");
 	this.poolItemJquery.find('.lastStopDateValue').text(
-			pool.lastStopDate != undefined ? pool.lastStopDate : "Never stopped");
+			pool.lastStopDate != undefined ? pool.lastStopDate
+					: "Never stopped");
 	
+	this.poolItemJquery.find('.appendWorkersNamesValue').text(
+			pool.appendWorkerNames);
+	this.poolItemJquery.find('.workerNameSeparatorValue').text(
+			pool.workerNamesSeparator);
+	this.poolItemJquery.find('.useWorkerPasswordValue').text(
+			pool.useWorkerPassword);
+
 	// Associate the pool priority to the jQuery object to allow sorting of
 	// pools.
 	this.poolItemJquery.data('priority', pool.priority);
@@ -983,7 +1099,7 @@ $(function() {
  */
 function launchClient() {
 	initToTopScroller();
-	
+
 	initBootstrapSelect();
 
 	initHighcharts();
@@ -1011,7 +1127,7 @@ function initToTopScroller() {
 		toPrevClass : 'totopscroller-prev',
 		linkClass : 'totopscroller-lnk',
 	});
-	
+
 	$(document).ajaxComplete(function() {
 		refreshToTopScroller();
 	});

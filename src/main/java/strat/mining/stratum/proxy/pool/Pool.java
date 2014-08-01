@@ -226,9 +226,12 @@ public class Pool {
 	}
 
 	public synchronized void stopPool(String cause) {
-		if (connection != null) {
+		if (cause != null) {
 			this.lastStopCause = cause;
 			lastStopDate = new Date();
+		}
+
+		if (connection != null) {
 			cancelTimers();
 			authorizedWorkers.clear();
 
@@ -408,11 +411,7 @@ public class Pool {
 			stopPool("The pool extranonce2 size is too low (" + extranonce2Size + "). Minimum is " + (Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1));
 			retryConnect(true);
 		} else {
-			if (isExtranonceSubscribeEnabled) {
-				// Else try to subscribe to extranonce change notification
-				MiningExtranonceSubscribeRequest extranonceRequest = new MiningExtranonceSubscribeRequest();
-				connection.sendRequest(extranonceRequest);
-			}
+			sendSubscribeExtranonceRequest();
 
 			// Start the notify timeout timer
 			resetNotifyTimeoutTimer();
@@ -429,6 +428,17 @@ public class Pool {
 				authorizeRequest.setPassword(password);
 				connection.sendRequest(authorizeRequest);
 			}
+		}
+	}
+
+	/**
+	 * Send an extranonce subscribe request to the pool.
+	 */
+	private void sendSubscribeExtranonceRequest() {
+		if (isExtranonceSubscribeEnabled) {
+			// Else try to subscribe to extranonce change notification
+			MiningExtranonceSubscribeRequest extranonceRequest = new MiningExtranonceSubscribeRequest();
+			connection.sendRequest(extranonceRequest);
 		}
 	}
 
@@ -462,8 +472,12 @@ public class Pool {
 			if (isAuthorized(request, response)) {
 				setPoolAsReady();
 			} else {
-				LOGGER.error("Stopping pool {} since user {} is not authorized.", getName(), username);
-				stopPool("User " + username + " not authorized.");
+				LOGGER.error("Stopping pool {} since user {} is not authorized. {}", getName(), username, response.getJsonError());
+				String errorMessage = "User " + username + " not authorized.";
+				if (response.getJsonError() != null) {
+					errorMessage += " " + response.getJsonError().toString();
+				}
+				stopPool(errorMessage);
 				retryConnect(true);
 			}
 		}
@@ -561,10 +575,20 @@ public class Pool {
 		LOGGER.error("Disconnect of pool {}.", this, cause);
 
 		String causeMessage = null;
-		if (cause instanceof EOFException) {
-			causeMessage = "Pool has claused the connection (Unknown reason).";
-		} else {
+		// If it is an EOFException, do not log any messages since an error has
+		// surely occured on a request.
+		if (!(cause instanceof EOFException)) {
 			causeMessage = cause.getMessage();
+		} else {
+			// If it is an EOFException, log it only if a previous cause has not
+			// been defined. If a cause is already defined before this one, it
+			// is the real cause and this one is just the pool disconnection due
+			// to the previous cause.
+			// So set the EOFException message if the exception has happened
+			// more than 1 second after the previous cause.
+			if (lastStopDate == null || System.currentTimeMillis() > lastStopDate.getTime() + 1000) {
+				causeMessage = cause.getMessage();
+			}
 		}
 
 		stopPool(causeMessage);
@@ -980,6 +1004,9 @@ public class Pool {
 	}
 
 	public void setAppendWorkerNames(boolean isAppendWorkerNames) {
+		if (isReady) {
+			throw new IllegalStateException("The pool is ready. Stop the pool before updating the extranonceSubscribeEnabled.");
+		}
 		this.isAppendWorkerNames = isAppendWorkerNames;
 	}
 
@@ -1012,6 +1039,47 @@ public class Pool {
 
 	public Date getLastStopDate() {
 		return lastStopDate;
+	}
+
+	public void setHost(String host) {
+		if (isReady) {
+			throw new IllegalStateException("The pool is ready. Stop the pool before updating the host.");
+		}
+		this.host = host;
+	}
+
+	public void setUsername(String username) {
+		if (isReady) {
+			throw new IllegalStateException("The pool is ready. Stop the pool before updating the username.");
+		}
+		this.username = username;
+	}
+
+	public void setPassword(String password) {
+		if (isReady) {
+			throw new IllegalStateException("The pool is ready. Stop the pool before updating the password.");
+		}
+		this.password = password;
+	}
+
+	public void setIsExtranonceSubscribeEnabled(Boolean isExtranonceSubscribeEnabled) {
+		if (isReady) {
+			throw new IllegalStateException("The pool is ready. Stop the pool before updating the extranonceSubscribeEnabled.");
+		}
+		this.isExtranonceSubscribeEnabled = isExtranonceSubscribeEnabled;
+
+	}
+
+	public boolean isAppendWorkerNames() {
+		return isAppendWorkerNames;
+	}
+
+	public boolean isUseWorkerPassword() {
+		return isUseWorkerPassword;
+	}
+
+	public String getWorkerSeparator() {
+		return workerSeparator;
 	}
 
 }

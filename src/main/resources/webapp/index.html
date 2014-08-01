@@ -181,11 +181,17 @@
 				<div class="col-sm-3 lastStopDateValue"></div>
 			</div>
 			<div class="row">
-				<!-- 				<label class="col-sm-3 control-label">Last error</label> -->
-				<!-- 				<div class="col-sm-3 lastErrorValue"></div> -->
 				<label class="col-sm-3 control-label">Is extranonce
 					subscribe enabled</label>
 				<div class="col-sm-3 isExtranonceSubscribeEnabledValue"></div>
+				<label class="col-sm-3 control-label">Append worker's name</label>
+				<div class="col-sm-3 appendWorkersNamesValue"></div>
+			</div>
+			<div class="row">
+				<label class="col-sm-3 control-label">Worker name separator</label>
+				<div class="col-sm-3 workerNameSeparatorValue"></div>
+				<label class="col-sm-3 control-label">Use worker's password</label>
+				<div class="col-sm-3 useWorkerPasswordValue"></div>
 			</div>
 			<div class="row">
 				<label class="col-sm-3 control-label">Accepted difficulty</label>
@@ -204,9 +210,8 @@
 					<div class="btn-group">
 						<a class="btn btn-primary setHighestPriority">Set highest
 							priority</a> <a class="btn btn-warning enableDisable">Disable</a> <a
-							class="btn btn-danger remove">Remove</a>
-						<!-- 						<a class="btn btn-default edit"><i -->
-						<!-- 						class="glyphicon glyphicon-edit"></i> Edit</a> -->
+							class="btn btn-danger remove">Remove</a> <a
+							class="btn btn-default edit">Edit</a>
 					</div>
 				</div>
 			</div>
@@ -297,7 +302,14 @@
 								<div class="col-md-8">
 									<input id="priorityField" name="priority" placeholder=""
 										class="form-control input-md" type="text">
+								</div>
+							</div>
 
+							<div class="form-group">
+								<label class="col-md-4 control-label" for="priority">Weight</label>
+								<div class="col-md-8">
+									<input id="weightField" name="weight" placeholder=""
+										class="form-control input-md" type="text">
 								</div>
 							</div>
 
@@ -311,7 +323,7 @@
 											name="enableExtranonceSubscribe">
 									</div>
 									<p class="help-block">Only enable with compatible pools
-										like nicehash. Pool may not connect if not compatible.</p>
+										like Nicehash. Pool may not connect if not compatible.</p>
 								</div>
 							</div>
 
@@ -363,7 +375,7 @@
 
 						</fieldset>
 					</form>
-
+					<p class="help-block">* Mandatory fields</p>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default validateButton">Add</button>
@@ -371,7 +383,121 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</div> <!-- AddPoolModal end -->
+	
+	<div id="editPoolModal" class="modal fade" tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-md">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">
+						<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+					</button>
+					<h4 class="modal-title"></h4>
+				</div>
+				<div class="modal-body">
+					<form class="form-horizontal">
+						<fieldset>
+
+							<div class="form-group">
+								<label class="col-md-4 control-label" for="poolHost">Pool
+									URL *</label>
+								<div class="col-md-8">
+									<input id="poolHostField" name="poolHost"
+										placeholder="eu.pool.com:3333" class="form-control input-md"
+										required="" type="text"> <span class="help-block">The
+										URL of the pool without stratum+tcp://</span>
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-md-4 control-label" for="username">User
+									name *</label>
+								<div class="col-md-8">
+									<input id="usernameField" name="username" placeholder=""
+										class="form-control input-md" required="" type="text">
+
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-md-4 control-label" for="password">Password
+									*</label>
+								<div class="col-md-8">
+									<input id="passwordField" name="password" placeholder=""
+										class="form-control input-md" required="" type="text">
+
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-md-4 control-label" for="priority">Priority</label>
+								<div class="col-md-8">
+									<input id="priorityField" name="priority" placeholder=""
+										class="form-control input-md" type="text">
+
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-md-4 control-label"
+									for="enableExtranonceSubscribe">Enable extranonce
+									subscribe *</label>
+								<div class="col-md-8">
+									<div class="checkbox">
+										<input type="checkbox" id="enableExtranonceSubscribeField"
+											name="enableExtranonceSubscribe">
+									</div>
+									<p class="help-block">Only enable with compatible pools
+										like nicehash. Pool may not connect if not compatible.</p>
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-md-4 control-label" for="appendWorkerNames">Append
+									worker names to user name *</label>
+								<div class="col-md-8">
+									<div class="checkbox">
+										<input type="checkbox" id="appendWorkerNamesField"
+											name="appendWorkerNames">
+									</div>
+									<p class="help-block">If selected, the worker name will be
+										appended to the pool username with the worker name separator</p>
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-md-4 control-label" for="workerNameSeparator">Worker
+									name separator</label>
+								<div class="col-md-8">
+									<input type="text" id="workerNameSeparatorField"
+										class="form-control" name="workerNameSeparator" value='.'>
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label class="col-md-4 control-label" for="useWorkerPassword">Use
+									worker password</label>
+								<div class="col-md-8">
+									<div class="checkbox">
+										<input id="useWorkerPasswordField" name="useWorkerPassword"
+											type="checkbox">
+									</div>
+									<p class="help-block">If selected, use the worker password
+										instead of the pool password.</p>
+								</div>
+							</div>
+
+						</fieldset>
+					</form>
+					<p class="help-block">* If modified, the pool will restart to apply the new setting.</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default validateButton">Update</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				</div>
+			</div>
+		</div>
+	</div> <!-- EditPoolModal end -->
 
 	<div id="totopscroller"></div>
 
