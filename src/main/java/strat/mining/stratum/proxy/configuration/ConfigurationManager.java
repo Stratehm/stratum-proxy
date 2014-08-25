@@ -21,9 +21,10 @@ package strat.mining.stratum.proxy.configuration;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLDecoder;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.Attributes;
@@ -743,11 +744,10 @@ public class ConfigurationManager {
 	 * @return
 	 */
 	private static File getJarFile() {
-		String path = ConfigurationManager.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-		String decodedPath = null;
+		Path absolutePath = null;
 		try {
-			decodedPath = URLDecoder.decode(path, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
+			absolutePath = Paths.get(ConfigurationManager.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+		} catch (URISyntaxException e) {
 			String errorMessage = "Failed to get the installation directory.";
 			if (logger != null) {
 				logger.error(errorMessage, e);
@@ -756,7 +756,7 @@ public class ConfigurationManager {
 				e.printStackTrace();
 			}
 		}
-		return new File(decodedPath);
+		return absolutePath.toFile();
 	}
 
 	/**
