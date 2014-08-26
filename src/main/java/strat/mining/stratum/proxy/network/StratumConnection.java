@@ -71,12 +71,19 @@ public abstract class StratumConnection {
 
 	private boolean disconnectOnParsingError;
 
+	// Flag that is true until the first line is read. Used to close the
+	// connection if a parsing error occurs on the first line read (even if
+	// disconnectOnParsingError is false) since in that case, the client might
+	// not be a stratum client.
+	private boolean isFirstLine;
+
 	public StratumConnection(Socket socket) {
 		this.socket = socket;
 		this.objectMapper = new ObjectMapper();
 		this.sentRequestIds = Collections.synchronizedMap(new HashMap<Long, JsonRpcRequest>());
 		this.throwDisconnectError = true;
 		this.disconnectOnParsingError = false;
+		this.isFirstLine = true;
 	}
 
 	/**
@@ -213,6 +220,9 @@ public abstract class StratumConnection {
 			LOGGER.debug("{}. Line read: {}", getConnectionName(), line);
 			try {
 				JsonRpcRequest request = objectMapper.readValue(line, JsonRpcRequest.class);
+				if (isFirstLine) {
+					isFirstLine = false;
+				}
 
 				// If there is an id, it may be a request or a response
 				if (request.getId() != null) {
@@ -234,7 +244,7 @@ public abstract class StratumConnection {
 					onNotificationReceived(new JsonRpcNotification(request));
 				}
 			} catch (JsonMappingException e) {
-				if (disconnectOnParsingError) {
+				if (isFirstLine || disconnectOnParsingError) {
 					throw e;
 				} else {
 					LOGGER.error("JSON-RPC Parsing error with line: {}", line, e);
