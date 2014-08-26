@@ -564,6 +564,10 @@ PoolsPageController.prototype.openAddPool = function() {
 					});
 };
 
+
+
+
+
 /*
  * Controller of the logs page.
  */
@@ -731,6 +735,237 @@ LogsPageController.prototype.stopAutoRefresh = function() {
 	}
 };
 
+
+
+/*
+ * Define the Users page controller
+ */
+var UsersPageController = function(pageName) {
+	PageController.call(this, pageName);
+};
+
+UsersPageController.prototype = Object.create(PageController.prototype);
+UsersPageController.prototype.constructor = PageController;
+
+UsersPageController.prototype.onLoad = function() {
+	var controller = this;
+	$.ajax({
+		url : "/proxy/user/list",
+		dataType : "json",
+		contentType : "application/json",
+		success : function(data) {
+			// When users are retrieved, create the items
+			data.forEach(function(pool) {
+				controller.addUserInPage(pool);
+			});
+
+			controller.startAutoRefresh();
+		}
+	});
+
+	// Add the click event on the refresh button
+	this.containerJquery.find('.refreshButton').off('click');
+	this.containerJquery.find('.refreshButton').click(function() {
+		controller.refresh();
+	});
+
+	// Initialize the auto-refresh countdown
+	this.containerJquery.find('.autoRefreshCountDown').text(
+			'Auto refresh in -- seconds.');
+	this.autoRefreshCountDownValue = autoRefreshDelay / 1000;
+};
+
+UsersPageController.prototype.onUnload = function() {
+	// Clear all users.
+	this.items.forEach(function(item) {
+		item.remove();
+	});
+	this.items.clear();
+	this.stopAutoRefresh();
+
+};
+
+UsersPageController.prototype.items = new Array();
+UsersPageController.prototype.addUserInPage = function(user) {
+	var item = new UserItem(), controller = this;
+	item.setUser(user);
+	this.items.push(item);
+	this.containerJquery.find('.userItemContainer').append(item.userItemJquery);
+
+	// Initialize all buttons handlers
+
+//TODO
+//	item.getEnableDisableButton().click(
+//			function() {
+//				controller.setPoolEnabled(pool.name, item
+//						.getEnableDisableButton().text() == 'Enable');
+//			});
+
+};
+UsersPageController.prototype.getUserItemFromName = function(userName) {
+	return this.items.find(function(item) {
+		return item.user.name == userName;
+	});
+};
+
+UsersPageController.prototype.refresh = function(onSuccess) {
+	var controller = this;
+	this.setIsRefreshing(true);
+
+	// Reload user data
+	$.ajax({
+		url : "/proxy/user/list",
+		dataType : "json",
+		contentType : "application/json",
+		success : function(data) {
+			// When users are retrieved, update the userItems
+
+			// Update existing users and create new ones.
+			data.forEach(function(user) {
+				// Look for the userItem with the given name
+				var userItem = controller.items.find(function(item) {
+					return item.user.name == user.name;
+				});
+
+				// If the user item does not exist, create it.
+				if (userItem == null) {
+					controller.addUserInPage(user);
+				} else {
+					// Else update the user and update the chart data.
+					userItem.updateUser(user);
+					userItem.reloadChartData(true);
+				}
+			});
+
+			// Then remove the users that does not more exist.
+			controller.items.forEach(function(userItem) {
+				// Look for the user of the userItem in the received users.
+				var user = data.find(function(user) {
+					return user.name == poolItem.user.name;
+				});
+				// If the user is not in the received users, then delete it.
+				if (user == null) {
+					userItem.remove();
+					controller.items.removeItem(userItem);
+				}
+			});
+			
+			// Once all users are present, sort them based on their names and if they are active.
+			controller.containerJquery.find('.userItemContainer > .userItem')
+					.sort(function(a, b) {
+						var result = 0;
+						if($(a).data('isActive') && !$(b).data('isActive')) {
+							result = -1;
+						} else if(!$(a).data('isActive') && $(b).data('isActive')) {
+							result = 1;
+						} else {
+							if($(a).data('name') < $(b).data('name')) {
+								result = -1;
+							} else if($(a).data('name') > $(b).data('name')){
+								result = 1;
+							} else {
+								result = 0;
+							}
+						}
+						
+						
+						return result;
+					});
+
+			controller.setIsRefreshing(false);
+
+			if (onSuccess != undefined) {
+				onSuccess();
+			}
+		},
+		error : function(request, textStatus, errorThrown) {
+			var jsonObject = JSON.parse(request.responseText);
+			window.alert('Failed to get user list. Status: ' + textStatus
+					+ ', error: ' + errorThrown + ', message: '
+					+ jsonObject.message);
+		}
+	});
+};
+
+/**
+ * Change the appearance of the refresh button and start/stop the auto-refresh.
+ */
+UsersPageController.prototype.setIsRefreshing = function(isRefreshing) {
+	var refreshButton = this.containerJquery.find('.refreshButton');
+	if (isRefreshing) {
+		this.stopAutoRefresh();
+		refreshButton.attr('disabled', 'true');
+		refreshButton.find('i').addClass('spin');
+	} else {
+		this.startAutoRefresh();
+		refreshButton.removeAttr('disabled');
+		refreshButton.find('i').removeClass('spin');
+	}
+};
+
+/**
+ * Properties to manage auto-refresh
+ */
+UsersPageController.prototype.autoRefreshCountDownTimerId = null;
+UsersPageController.prototype.autoRefreshCountDownValue = null;
+UsersPageController.prototype.lastAutoRefreshCountDownExecution = null;
+/**
+ * Start the auto-refresh
+ */
+UsersPageController.prototype.startAutoRefresh = function() {
+	var controller = this, updateFunction;
+
+	// Update the auto-refresh countdown
+	var autoRefreshCountDown = this.containerJquery
+			.find('.autoRefreshCountDown');
+	autoRefreshCountDown.text('Auto refresh in '
+			+ controller.autoRefreshCountDownValue + ' seconds.');
+	this.lastAutoRefreshCountDownExecution = Date.now();
+	// Define the auto-refresh countdown update function
+	updateFunction = function() {
+		var secondsSinceLastExecution = Math
+				.round((Date.now() - controller.lastAutoRefreshCountDownExecution) / 1000);
+		controller.lastAutoRefreshCountDownExecution = Date.now();
+		controller.autoRefreshCountDownValue -= secondsSinceLastExecution;
+
+		autoRefreshCountDown.text('Auto refresh in '
+				+ controller.autoRefreshCountDownValue + ' seconds.');
+
+		if (controller.autoRefreshCountDownValue <= 0) {
+			controller.refresh();
+			controller.startAutoRefresh();
+			controller.autoRefreshCountDownValue = autoRefreshDelay / 1000;
+		}
+	};
+	// Start the auto-refresh countdown update timer.
+	this.autoRefreshCountDownTimerId = window.setInterval(updateFunction, 1000);
+
+};
+
+/**
+ * Reset the delay before next auto-refresh
+ */
+UsersPageController.prototype.resetAutoRefresh = function() {
+	this.stopAutoRefresh();
+	this.startAutoRefresh();
+};
+
+/**
+ * Stop the auto-refresh
+ */
+UsersPageController.prototype.stopAutoRefresh = function() {
+	// Stop the auto-refresh countdown update timer.
+	if (this.autoRefreshCountDownTimerId != null) {
+		window.clearInterval(this.autoRefreshCountDownTimerId);
+	}
+
+	// Update the auto-refresh countdown
+	var autoRefreshCountDown = this.containerJquery
+			.find('.autoRefreshCountDown');
+	autoRefreshCountDown.text('Auto refresh in -- seconds.');
+};
+
+
 /*
  * Define a pool item linked to a view
  */
@@ -743,7 +978,7 @@ PoolItem.prototype.setPool = function(pool) {
 	this.updatePool(pool);
 
 	// Initialize a tooltip when the text overflows
-	$('.tooltipOnOverflow').bind('mouseenter', function() {
+	this.poolItemJquery.find('.tooltipOnOverflow').bind('mouseenter', function() {
 		var $this = $(this);
 		if (this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
 			$this.attr('title', $this.text());
@@ -1075,6 +1310,275 @@ PoolItem.prototype.updateHashrateChartData = function(hashrates) {
 	}
 };
 
+
+/*
+ * Define a pool item linked to a view
+ */
+var UserItem = function() {
+	this.userItemJquery = createUserItem();
+};
+
+UserItem.prototype.setUser = function(user) {
+	// Update the values in the panel
+	this.updateUser(user);
+
+	// Initialize a tooltip when the text overflows
+	this.userItemJquery.find('.tooltipOnOverflow').bind('mouseenter', function() {
+		var $this = $(this);
+		if (this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
+			$this.attr('title', $this.text());
+		}
+	});
+
+	// Reload the data of the chart
+	this.reloadChartData(false);
+};
+
+UserItem.prototype.initChart = function() {
+	// Remove the loader
+	this.userItemJquery.find(".hashrateChart").empty();
+
+	// Create the chart
+	this.userItemJquery.find(".hashrateChart").highcharts(
+			'StockChart',
+			{
+				chart : {
+					zoomType : 'x'
+				},
+				rangeSelector : {
+					enabled : true,
+					inputEnabled : false,
+					buttons : [ {
+						type : 'hour',
+						count : 1,
+						text : '1h'
+					}, {
+						type : 'day',
+						count : 1,
+						text : '1d'
+					}, {
+						type : 'week',
+						count : 1,
+						text : '1w'
+					}, {
+						type : 'day',
+						count : 7,
+						text : '1m'
+					}, {
+						type : 'month',
+						count : 1,
+						text : '1y'
+					}, {
+						type : 'all',
+						text : 'All'
+					} ]
+				},
+				navigator : {
+					enabled : false
+				},
+				scrollbar : {
+					enabled : false
+				},
+				title : {
+					text : 'Hashrate'
+				},
+				xAxis : {
+					type : 'datetime',
+					title : {
+						text : 'Date'
+					},
+					ordinal : false
+				},
+				yAxis : [ {
+					min : 0,
+					labels : {
+						align : 'left'
+					}
+				}, {
+					linkedTo : 0,
+					opposite : false,
+					title : {
+						text : 'Hashrate'
+					}
+				} ],
+				tooltip : {
+					shared : true,
+					positioner : function(labelWidth, labelHeight, point) {
+						var xPos = point.plotX + this.chart.plotLeft + 10;
+						var yPos = point.plotY + this.chart.plotTop;
+
+						if (point.plotX + labelWidth > this.chart.chartWidth
+								- this.chart.plotLeft) {
+							xPos = point.plotX + this.chart.plotLeft
+									- labelWidth - 10;
+						}
+
+						return {
+							x : xPos,
+							y : yPos
+						};
+					}
+				},
+				plotOptions : {
+					area : {
+						stacking : 'normal',
+						lineWidth : 1,
+						marker : {
+							enabled : false
+						}
+					}
+				},
+				series : [ {
+					name : 'Accepted',
+					type : 'area'
+				}, {
+					name : 'Rejected',
+					type : 'area'
+				} ]
+			});
+
+	// Associate the chart with the UserItem
+	this.chart = this.userItemJquery.find(".hashrateChart").highcharts();
+};
+
+UserItem.prototype.updateUser = function(user) {
+	this.user = user;
+	this.userItemJquery.find('.panel-title').text(user.name);
+
+	this.userItemJquery.find('.firstConnectionDateValue').text(user.firstConnectionDate != undefined ? user.firstConnectionDate : "Never");
+	this.userItemJquery.find('.lastShareSubmittedValue').text(user.lastShareSubmitted != undefined ? user.lastShareSubmitted : "Never");
+	this.userItemJquery.find('.acceptedHashrateValue').text(user.acceptedHashesPerSeconds);
+	this.userItemJquery.find('.rejectedHashrateValue').text(user.rejectedHashesPerSeconds);
+	this.userItemJquery.find('.numberOfConnectionsValue').text(user.connections.length);
+
+
+	// Apply the color of the panel header based on the user status
+	// By default, the color is white (panel-default). This color is the
+	// inactive user color.
+	this.userItemJquery.removeClass('panel-danger');
+	this.userItemJquery.removeClass('panel-success');
+	if (user.connections == null || user.connections.length < 1) {
+		user.isActive = false;
+		this.userItemJquery.addClass('panel-danger');
+	} else {
+		user.isActive = true;
+		this.userItemJquery.addClass('panel-success');
+	}
+
+	// Update the buttons state of the item
+
+	// Update the enableDisable button
+	if (user.isActive) {
+		this.getKickButton().removeAttr("disabled");
+		this.getBanButton().removeAttr("disabled");
+	} else {
+		this.getKickButton().attr("disabled", "disabled");
+		this.getBanButton().attr("disabled", "disabled");
+	}
+
+};
+
+UserItem.prototype.remove = function() {
+	this.userItemJquery.remove();
+};
+
+UserItem.prototype.getKickButton = function() {
+	return this.userItemJquery.find(".kickUser");
+};
+
+UserItem.prototype.getBanButton = function() {
+	return this.userItemJquery.find(".banUser");
+};
+
+/**
+ * Reload the data of the hashrate chart. If isUpdate is true, just update the
+ * graph with new data. Else replace all data.
+ */
+UserItem.prototype.reloadChartData = function(isUpdate) {
+	var userItem = this;
+	$.ajax({
+		url : "/proxy/hashrate/user",
+		dataType : "json",
+		type : "POST",
+		data : JSON.stringify({
+			username : this.user.name
+		}),
+		contentType : "application/json",
+		success : function(data) {
+			// When users hashrates are retrieved, create the graph
+			if (data != undefined && data.hashrates != undefined) {
+				// Initialize the chart if not already done.
+				if (userItem.chart == undefined) {
+					userItem.initChart();
+				}
+
+				// If it is not an update, load the full data
+				if (!isUpdate) {
+					userItem.setHashrateChartData(data.hashrates);
+				} else {
+					// If it is an update, only happen the missing data.
+					userItem.updateHashrateChartData(data.hashrates);
+				}
+			}
+		},
+		error : function(request, textStatus, errorThrown) {
+			var jsonObject = JSON.parse(request.responseText);
+			window.alert('Failed to get hashrates for user '
+					+ userItem.user.name + '. Status: ' + textStatus
+					+ ', error: ' + errorThrown + ', message: '
+					+ jsonObject.message);
+		}
+	});
+};
+
+/**
+ * Set the given hashrates in the chart. Replace all existing data.
+ */
+UserItem.prototype.setHashrateChartData = function(hashrates) {
+	var acceptedData = new Array();
+	var rejectedData = new Array();
+
+	hashrates.forEach(function(hashrate) {
+		var time = hashrate.captureTimeUTC * 1000, hashrateData;
+		hashrateData = [ time, hashrate.acceptedHashrate ];
+		acceptedData.push(hashrateData);
+
+		hashrateData = [ time, hashrate.rejectedHashrate ];
+		rejectedData.push(hashrateData);
+	});
+
+	this.chart.series[0].setData(acceptedData);
+	this.chart.series[1].setData(rejectedData);
+
+	// Fix a bug in HighStock: The rangeSelector is not displayed on initial
+	// draw. It is only displayed if the char tis resized.
+	var extremes = this.chart.xAxis[0].getExtremes();
+	this.chart.rangeSelector.render(extremes.min, extremes.max);
+};
+
+/**
+ * Merge the given hashrates with the ones already present in the graph. Just
+ * happens the new ones.
+ */
+UserItem.prototype.updateHashrateChartData = function(hashrates) {
+
+	var maxTime = this.chart.xAxis[0].getExtremes().dataMax;
+	// Check all newest values and add them if they are
+	// newer
+	// than the max already present.
+	for (var i = hashrates.length - 1; i >= 0; i--) {
+		var time = hashrates[i].captureTimeUTC * 1000;
+		if (time > maxTime) {
+			this.chart.series[0]
+					.addPoint([ time, hashrates[i].acceptedHashrate ]);
+			this.chart.series[1]
+					.addPoint([ time, hashrates[i].rejectedHashrate ]);
+		} else {
+			break;
+		}
+	}
+};
+
 /*
  * Global variables
  */
@@ -1164,7 +1668,7 @@ function initHighcharts() {
 function initControllers() {
 	var poolPageController = new PoolsPageController('poolsPage');
 	pagesControllers.push(poolPageController);
-	pagesControllers.push(new PageController('usersPage'));
+	pagesControllers.push(new UsersPageController('usersPage'));
 	pagesControllers.push(new PageController('connectionsPage'));
 	pagesControllers.push(new PageController('settingsPage'));
 	pagesControllers.push(new LogsPageController('logsPage'));
@@ -1231,6 +1735,16 @@ function onNavbarButtonSelection(navbarButton) {
 function createPoolItem() {
 	var newItem = $('#templatePoolItem').clone();
 	newItem.attr('id', 'templatePoolItem' + nextPoolItemId++);
+	newItem.removeAttr('style');
+	return newItem;
+}
+
+/**
+ * Create an empty user item
+ */
+function createUserItem() {
+	var newItem = $('#templateUserItem').clone();
+	newItem.attr('id', 'templateUserItem' + nextPoolItemId++);
 	newItem.removeAttr('style');
 	return newItem;
 }

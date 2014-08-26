@@ -62,10 +62,20 @@
 		</div>
 
 		<div id="usersPage" class="container" style="display: none;">
-			<div>
-				<h1>Not yet available</h1>
-				<div class="listContainer"></div>
+			<div class="container container-sm-height">
+				<div class="row row-sm-height">
+					<div class="col-sm-3 col-sm-height col-middle">
+						<h1>User list</h1>
+					</div>
+					<div
+						class="col-sm-9 autoRefreshContainer col-sm-height col-middle text-right">
+						<span class="h6 autoRefreshCountDown"></span><a
+							class="btn btn-default btn-mini refreshButton"><i
+							class="icon-black glyphicon glyphicon-refresh"></i> Refresh</a>
+					</div>
+				</div>
 			</div>
+			<div class="row userItemContainer"></div>
 		</div>
 
 		<div id="connectionsPage" class="container" style="display: none;">
@@ -212,6 +222,48 @@
 							priority</a> <a class="btn btn-warning enableDisable">Disable</a> <a
 							class="btn btn-danger remove">Remove</a> <a
 							class="btn btn-default edit">Edit</a>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-12">
+				<div class="hashrateChart" style="width: 100%;">
+					<div class="chartLoader"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div id="templateUserItem"
+		class="listItem userItem panel panel-default row"
+		style="display: none;">
+		<div class="panel-heading">
+			<h3 class="panel-title"></h3>
+		</div>
+		<div class="panel-body">
+			<div class="row">
+				<label class="col-sm-3 control-label">First connetion date</label>
+				<div class="col-sm-3 firstConnectionDateValue tooltipOnOverflow"></div>
+				<label class="col-sm-3 control-label">Last share submitted</label>
+				<div class="col-sm-3 lastShareSubmittedValue tooltipOnOverflow"></div>
+			</div>
+			<div class="row">
+				<label class="col-sm-3 control-label">Accepted hashrate</label>
+				<div class="col-sm-3 acceptedHashrateValue tooltipOnOverflow"></div>
+				<label class="col-sm-3 control-label">Rejected hashrate</label>
+				<div class="col-sm-3 rejectedHashrateValue tooltipOnOverflow"></div>
+			</div>
+			<div class="row">
+				<label class="col-sm-3 control-label">Number of connections</label>
+				<div class="col-sm-3 numberOfConnectionsValue tooltipOnOverflow"></div>
+<!-- 				<label class="col-sm-3 control-label">Rejected hashrate</label> -->
+<!-- 				<div class="col-sm-3 rejectedHashrateValue tooltipOnOverflow"></div> -->
+			</div>
+			
+			<div class="row top20 bottom20">
+				<div class="text-center">
+					<div class="btn-group">
+						<a class="btn btn-warning kickUser">Kick</a><a
+							class="btn btn-danger banUser">Ban</a>
 					</div>
 				</div>
 			</div>
