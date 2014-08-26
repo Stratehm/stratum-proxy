@@ -281,7 +281,7 @@ PoolsPageController.prototype.openEditPool = function(poolName) {
 												weight : weight,
 												enableExtranonceSubscribe : enableExtranonceSubscribe,
 												appendWorkerNames : appendWorkerNames,
-												workerNameSeparator: workerNameSeparator,
+												workerNameSeparator : workerNameSeparator,
 												useWorkerPassword : useWorkerPassword
 											}),
 									contentType : "application/json",
@@ -368,41 +368,50 @@ PoolsPageController.prototype.setPoolEnabled = function(poolName, isEnabled) {
  * Remove the pool with the given name. Ask a confirmation.
  */
 PoolsPageController.prototype.removePool = function(poolName) {
-	var modal = $('#confirmationModal').modal({
+	var modal = $('#poolRemoveConfirmationModal').modal({
 		keyboard : true,
 		backdrop : true
-	}), controller = this;
-	modal.find('.modal-title').text('Confirmation');
+	}), controller = this, removePoolFunction;
+	modal.find('.modal-title').text('Keep history confirmation');
 	modal.find('.modal-body').text(
-			'Do you really want to remove the pool ' + poolName + ' ?');
-	modal.find('.yesButton').off('click').click(
-			function() {
-				modal.modal('hide');
-				$.ajax({
-					url : '/proxy/pool/remove',
-					dataType : "json",
-					type : "POST",
-					data : JSON.stringify({
-						poolName : poolName,
-					}),
-					contentType : "application/json",
-					success : function(data) {
-						// When priority is set, refresh the list.
-						if (data.status != 'Done') {
-							window.alert('Failed to remove the pool. Message: '
-									+ data.message);
-						} else {
-							controller.refresh();
-						}
-					},
-					error : function(request, textStatus, errorThrown) {
-						var jsonObject = JSON.parse(request.responseText);
-						window.alert('Failed remove the pool. Status: '
-								+ textStatus + ', error: ' + errorThrown
-								+ ', message: ' + jsonObject.message);
-					}
-				});
-			});
+			'Do you want to keep the hash rate history for ' + poolName + ' ?');
+
+	removePoolFunction = function(keepHistory) {
+		modal.modal('hide');
+		$.ajax({
+			url : '/proxy/pool/remove',
+			dataType : "json",
+			type : "POST",
+			data : JSON.stringify({
+				poolName : poolName,
+				keepHistory: keepHistory
+			}),
+			contentType : "application/json",
+			success : function(data) {
+				// When priority is set, refresh the list.
+				if (data.status != 'Done') {
+					window.alert('Failed to remove the pool. Message: '
+							+ data.message);
+				} else {
+					controller.refresh();
+				}
+			},
+			error : function(request, textStatus, errorThrown) {
+				var jsonObject = JSON.parse(request.responseText);
+				window.alert('Failed remove the pool. Status: ' + textStatus
+						+ ', error: ' + errorThrown + ', message: '
+						+ jsonObject.message);
+			}
+		});
+	};
+
+	modal.find('.yesButton').off('click').click(function() {
+		removePoolFunction(true);
+	});
+	
+	modal.find('.noButton').off('click').click(function() {
+		removePoolFunction(false);
+	});
 };
 
 /**
@@ -563,10 +572,6 @@ PoolsPageController.prototype.openAddPool = function() {
 								});
 					});
 };
-
-
-
-
 
 /*
  * Controller of the logs page.
@@ -735,8 +740,6 @@ LogsPageController.prototype.stopAutoRefresh = function() {
 	}
 };
 
-
-
 /*
  * Define the Users page controller
  */
@@ -794,12 +797,12 @@ UsersPageController.prototype.addUserInPage = function(user) {
 
 	// Initialize all buttons handlers
 
-//TODO
-//	item.getEnableDisableButton().click(
-//			function() {
-//				controller.setPoolEnabled(pool.name, item
-//						.getEnableDisableButton().text() == 'Enable');
-//			});
+	// TODO
+	// item.getEnableDisableButton().click(
+	// function() {
+	// controller.setPoolEnabled(pool.name, item
+	// .getEnableDisableButton().text() == 'Enable');
+	// });
 
 };
 UsersPageController.prototype.getUserItemFromName = function(userName) {
@@ -849,28 +852,32 @@ UsersPageController.prototype.refresh = function(onSuccess) {
 					controller.items.removeItem(userItem);
 				}
 			});
-			
-			// Once all users are present, sort them based on their names and if they are active.
+
+			// Once all users are present, sort them based on their names and if
+			// they are active.
 			controller.containerJquery.find('.userItemContainer > .userItem')
-					.sort(function(a, b) {
-						var result = 0;
-						if($(a).data('isActive') && !$(b).data('isActive')) {
-							result = -1;
-						} else if(!$(a).data('isActive') && $(b).data('isActive')) {
-							result = 1;
-						} else {
-							if($(a).data('name') < $(b).data('name')) {
-								result = -1;
-							} else if($(a).data('name') > $(b).data('name')){
-								result = 1;
-							} else {
-								result = 0;
-							}
-						}
-						
-						
-						return result;
-					});
+					.sort(
+							function(a, b) {
+								var result = 0;
+								if ($(a).data('isActive')
+										&& !$(b).data('isActive')) {
+									result = -1;
+								} else if (!$(a).data('isActive')
+										&& $(b).data('isActive')) {
+									result = 1;
+								} else {
+									if ($(a).data('name') < $(b).data('name')) {
+										result = -1;
+									} else if ($(a).data('name') > $(b).data(
+											'name')) {
+										result = 1;
+									} else {
+										result = 0;
+									}
+								}
+
+								return result;
+							});
 
 			controller.setIsRefreshing(false);
 
@@ -965,7 +972,6 @@ UsersPageController.prototype.stopAutoRefresh = function() {
 	autoRefreshCountDown.text('Auto refresh in -- seconds.');
 };
 
-
 /*
  * Define a pool item linked to a view
  */
@@ -978,12 +984,16 @@ PoolItem.prototype.setPool = function(pool) {
 	this.updatePool(pool);
 
 	// Initialize a tooltip when the text overflows
-	this.poolItemJquery.find('.tooltipOnOverflow').bind('mouseenter', function() {
-		var $this = $(this);
-		if (this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
-			$this.attr('title', $this.text());
-		}
-	});
+	this.poolItemJquery.find('.tooltipOnOverflow')
+			.bind(
+					'mouseenter',
+					function() {
+						var $this = $(this);
+						if (this.offsetWidth < this.scrollWidth
+								&& !$this.attr('title')) {
+							$this.attr('title', $this.text());
+						}
+					});
 
 	// Reload the data of the chart
 	this.reloadChartData(false);
@@ -1146,7 +1156,7 @@ PoolItem.prototype.updatePool = function(pool) {
 	this.poolItemJquery.find('.lastStopDateValue').text(
 			pool.lastStopDate != undefined ? pool.lastStopDate
 					: "Never stopped");
-	
+
 	this.poolItemJquery.find('.appendWorkersNamesValue').text(
 			pool.appendWorkerNames);
 	this.poolItemJquery.find('.workerNameSeparatorValue').text(
@@ -1310,7 +1320,6 @@ PoolItem.prototype.updateHashrateChartData = function(hashrates) {
 	}
 };
 
-
 /*
  * Define a pool item linked to a view
  */
@@ -1323,12 +1332,16 @@ UserItem.prototype.setUser = function(user) {
 	this.updateUser(user);
 
 	// Initialize a tooltip when the text overflows
-	this.userItemJquery.find('.tooltipOnOverflow').bind('mouseenter', function() {
-		var $this = $(this);
-		if (this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
-			$this.attr('title', $this.text());
-		}
-	});
+	this.userItemJquery.find('.tooltipOnOverflow')
+			.bind(
+					'mouseenter',
+					function() {
+						var $this = $(this);
+						if (this.offsetWidth < this.scrollWidth
+								&& !$this.attr('title')) {
+							$this.attr('title', $this.text());
+						}
+					});
 
 	// Reload the data of the chart
 	this.reloadChartData(false);
@@ -1445,12 +1458,18 @@ UserItem.prototype.updateUser = function(user) {
 	this.user = user;
 	this.userItemJquery.find('.panel-title').text(user.name);
 
-	this.userItemJquery.find('.firstConnectionDateValue').text(user.firstConnectionDate != undefined ? user.firstConnectionDate : "Never");
-	this.userItemJquery.find('.lastShareSubmittedValue').text(user.lastShareSubmitted != undefined ? user.lastShareSubmitted : "Never");
-	this.userItemJquery.find('.acceptedHashrateValue').text(user.acceptedHashesPerSeconds);
-	this.userItemJquery.find('.rejectedHashrateValue').text(user.rejectedHashesPerSeconds);
-	this.userItemJquery.find('.numberOfConnectionsValue').text(user.connections.length);
-
+	this.userItemJquery.find('.firstConnectionDateValue').text(
+			user.firstConnectionDate != undefined ? user.firstConnectionDate
+					: "Never");
+	this.userItemJquery.find('.lastShareSubmittedValue').text(
+			user.lastShareSubmitted != undefined ? user.lastShareSubmitted
+					: "Never");
+	this.userItemJquery.find('.acceptedHashrateValue').text(
+			user.acceptedHashesPerSeconds);
+	this.userItemJquery.find('.rejectedHashrateValue').text(
+			user.rejectedHashesPerSeconds);
+	this.userItemJquery.find('.numberOfConnectionsValue').text(
+			user.connections.length);
 
 	// Apply the color of the panel header based on the user status
 	// By default, the color is white (panel-default). This color is the

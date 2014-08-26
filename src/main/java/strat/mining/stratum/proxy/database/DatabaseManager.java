@@ -220,4 +220,36 @@ public class DatabaseManager {
 		}
 	}
 
+	/**
+	 * Remove all entries for the pool with the given host
+	 * 
+	 * @param host
+	 */
+	public void deletePool(String host) {
+		List<HashrateModel> hashrates = getPoolHashrate(host);
+		if (hashrates != null) {
+			for (HashrateModel model : hashrates) {
+				poolDatabase.delete(model);
+			}
+		}
+
+		poolDatabase.commit();
+	}
+
+	/**
+	 * Remove all entries for the user with the given name
+	 * 
+	 * @param host
+	 */
+	public void deleteUser(String username) {
+		List<HashrateModel> hashrates = getUserHashrate(username);
+		if (hashrates != null) {
+			for (HashrateModel model : hashrates) {
+				userDatabase.delete(model);
+			}
+		}
+
+		userDatabase.commit();
+	}
+
 }

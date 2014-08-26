@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
+import strat.mining.stratum.proxy.database.DatabaseManager;
 import strat.mining.stratum.proxy.exception.AuthorizationException;
 import strat.mining.stratum.proxy.exception.BadParameterException;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
@@ -682,7 +683,7 @@ public class ProxyManager {
 	 * @param poolName
 	 * @throws NoPoolAvailableException
 	 */
-	public void removePool(String poolName) throws NoPoolAvailableException {
+	public void removePool(String poolName, Boolean keepHistory) throws NoPoolAvailableException {
 		Pool pool = getPool(poolName);
 		if (pool == null) {
 			throw new NoPoolAvailableException("Pool with name " + poolName + " is not found");
@@ -696,6 +697,11 @@ public class ProxyManager {
 		poolWorkerConnections.remove(pool);
 
 		LOGGER.info("Pool {} removed.", poolName);
+
+		// Remove the history if requested
+		if (keepHistory != null && !keepHistory) {
+			DatabaseManager.getInstance().deletePool(pool.getHost());
+		}
 	}
 
 	/**

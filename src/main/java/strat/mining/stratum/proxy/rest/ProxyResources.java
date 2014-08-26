@@ -58,6 +58,7 @@ import strat.mining.stratum.proxy.rest.dto.HashrateHistoryDTO;
 import strat.mining.stratum.proxy.rest.dto.LogLevelDTO;
 import strat.mining.stratum.proxy.rest.dto.PoolDetailsDTO;
 import strat.mining.stratum.proxy.rest.dto.PoolNameDTO;
+import strat.mining.stratum.proxy.rest.dto.RemovePoolDTO;
 import strat.mining.stratum.proxy.rest.dto.StatusDTO;
 import strat.mining.stratum.proxy.rest.dto.TimestampDTO;
 import strat.mining.stratum.proxy.rest.dto.UpdatePoolDTO;
@@ -397,13 +398,13 @@ public class ProxyResources {
 	 */
 	@POST
 	@Path("pool/remove")
-	public Response removePool(PoolNameDTO poolName) {
+	public Response removePool(RemovePoolDTO dto) {
 
 		Response response = null;
 		StatusDTO status = new StatusDTO();
 
 		try {
-			stratumProxyManager.removePool(poolName.getPoolName());
+			stratumProxyManager.removePool(dto.getPoolName(), dto.getKeepHistory());
 
 			status.setStatus(StatusDTO.DONE_STATUS);
 			response = Response.status(Response.Status.OK).entity(status).build();
