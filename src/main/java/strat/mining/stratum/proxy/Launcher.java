@@ -69,6 +69,7 @@ import org.glassfish.grizzly.http.server.StaticHttpHandler;
 import org.glassfish.grizzly.http.server.StaticHttpHandlerBase;
 import org.glassfish.grizzly.ssl.SSLContextConfigurator;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
+import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -347,6 +348,12 @@ public class Launcher {
 			URI baseUri = UriBuilder.fromUri("http://" + configurationManager.getGetworkBindAddress())
 					.port(configurationManager.getGetworkListenPort()).build();
 			getWorkHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri);
+
+			// Create the thread pool configuration
+			ThreadPoolConfig config = ThreadPoolConfig.defaultConfig().setCorePoolSize(10).setMaxPoolSize(500);
+			// Assign the thread pool
+			apiHttpServer.getListener("grizzly").getTransport().setWorkerThreadPoolConfig(config);
+
 			ServerConfiguration serverConfiguration = getWorkHttpServer.getServerConfiguration();
 			serverConfiguration.addHttpHandler(new GetworkRequestHandler(), "/", Constants.DEFAULT_GETWORK_LONG_POLLING_URL);
 		} else {
