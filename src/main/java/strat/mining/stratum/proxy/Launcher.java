@@ -352,7 +352,7 @@ public class Launcher {
 			// Create the thread pool configuration
 			ThreadPoolConfig config = ThreadPoolConfig.defaultConfig().setCorePoolSize(10).setMaxPoolSize(500);
 			// Assign the thread pool
-			apiHttpServer.getListener("grizzly").getTransport().setWorkerThreadPoolConfig(config);
+			getWorkHttpServer.getListener("grizzly").getTransport().setWorkerThreadPoolConfig(config);
 
 			ServerConfiguration serverConfiguration = getWorkHttpServer.getServerConfiguration();
 			serverConfiguration.addHttpHandler(new GetworkRequestHandler(), "/", Constants.DEFAULT_GETWORK_LONG_POLLING_URL);
