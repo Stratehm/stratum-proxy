@@ -20,6 +20,7 @@ package strat.mining.stratum.proxy.worker;
 
 import java.math.BigInteger;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -94,9 +95,13 @@ public class GetworkWorkerConnection implements WorkerConnection {
 
 	private ConnectionClosedCallback connectionClosedCallback;
 
-	public GetworkWorkerConnection(InetAddress remoteAddress, ProxyManager manager, ConnectionClosedCallback connectionClosedCallback) {
+	public GetworkWorkerConnection(String remoteAddress, ProxyManager manager, ConnectionClosedCallback connectionClosedCallback) {
 		this.manager = manager;
-		this.remoteAddress = remoteAddress;
+		try {
+			this.remoteAddress = InetAddress.getByName(remoteAddress);
+		} catch (UnknownHostException e) {
+			LOGGER.warn("Failed to get the InetAddress from the remoteAddress {}.", remoteAddress);
+		}
 		this.longPollingCallbacks = Collections.synchronizedSet(new HashSet<LongPollingCallback>());
 		this.authorizedWorkers = Collections.synchronizedMap(new HashMap<String, String>());
 		this.extranonce2Counter = new AtomicBigInteger(ZERO_BIG_INTEGER_BYTES);

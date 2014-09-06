@@ -20,9 +20,7 @@ package strat.mining.stratum.proxy.worker;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -72,11 +70,11 @@ public class GetworkRequestHandler extends HttpHandler {
 
 	private static ObjectMapper jsonUnmarshaller = new ObjectMapper();;
 
-	private Map<InetAddress, GetworkWorkerConnection> workerConnections;
+	private Map<String, GetworkWorkerConnection> workerConnections;
 
 	public GetworkRequestHandler() {
 		this.manager = ProxyManager.getInstance();
-		this.workerConnections = Collections.synchronizedMap(new HashMap<InetAddress, GetworkWorkerConnection>());
+		this.workerConnections = new HashMap<String, GetworkWorkerConnection>();
 
 	}
 
@@ -296,35 +294,42 @@ public class GetworkRequestHandler extends HttpHandler {
 	 * @throws NoCredentialsException
 	 * @throws AuthorizationException
 	 */
-	private synchronized GetworkWorkerConnection getWorkerConnection(Request request) throws UnknownHostException, NoPoolAvailableException,
+	private GetworkWorkerConnection getWorkerConnection(Request request) throws UnknownHostException, NoPoolAvailableException,
 			TooManyWorkersException, ChangeExtranonceNotSupportedException, NoCredentialsException, AuthorizationException {
-		final InetAddress address = InetAddress.getByName(request.getRemoteAddr());
+		final String address = request.getRemoteAddr();
 
-		GetworkWorkerConnection workerConnection = workerConnections.get(address);
-		// If the worker connection is null, try to create it.
-		if (workerConnection == null) {
-			LOGGER.debug("No existing getwork connections for address {}. Create it.", request.getRemoteAddr());
-			workerConnection = new GetworkWorkerConnection(address, manager, new ConnectionClosedCallback() {
-				public void onConnectionClosed(WorkerConnection connection) {
-					// When the connection is closed, remove it from the
-					// connection list.
-					workerConnections.remove(address);
-					LOGGER.debug("Getwork connection {} removed from Getwork handler.", connection.getConnectionName());
-				}
-			});
+		GetworkWorkerConnection workerConnection = null;
+		synchronized (workerConnections) {
+			workerConnection = workerConnections.get(address);
+			// If the worker connection is null, try to create it.
+			if (workerConnection == null) {
+				LOGGER.debug("No existing getwork connections for address {}. Create it.", request.getRemoteAddr());
+				workerConnection = new GetworkWorkerConnection(address, manager, new ConnectionClosedCallback() {
+					public void onConnectionClosed(WorkerConnection connection) {
+						// When the connection is closed, remove it from the
+						// connection list.
+						synchronized (workerConnections) {
+							workerConnections.remove(address);
+						}
+						LOGGER.debug("Getwork connection {} removed from Getwork handler.", connection.getConnectionName());
+					}
+				});
 
-			MiningSubscribeRequest subscribeRequest = new MiningSubscribeRequest();
-			Pool pool = manager.onSubscribeRequest(workerConnection, subscribeRequest);
-			workerConnection.rebindToPool(pool);
+				MiningSubscribeRequest subscribeRequest = new MiningSubscribeRequest();
+				Pool pool = manager.onSubscribeRequest(workerConnection, subscribeRequest);
+				workerConnection.rebindToPool(pool);
 
-			workerConnections.put(address, workerConnection);
+				workerConnections.put(address, workerConnection);
+			}
 		}
 
 		try {
 			checkAuthorization(workerConnection, request);
 			workerConnection.addAuthorizedUsername((String) request.getAttribute("username"), (String) request.getAttribute("password"));
 		} catch (AuthorizationException e) {
-			workerConnections.remove(address);
+			synchronized (workerConnections) {
+				workerConnections.remove(address);
+			}
 			manager.onWorkerDisconnection(workerConnection, e);
 			throw e;
 		}
