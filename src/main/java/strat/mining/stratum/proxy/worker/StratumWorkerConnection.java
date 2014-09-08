@@ -270,6 +270,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 	 */
 	public void onPoolExtranonceChange() throws ChangeExtranonceNotSupportedException {
 		if (isSetExtranonceNotificationSupported) {
+			extranonce2Size = pool.getWorkerExtranonce2Size();
 			MiningSetExtranonceNotification extranonceNotif = new MiningSetExtranonceNotification();
 			extranonceNotif.setExtranonce1(pool.getExtranonce1() + extranonce1Tail);
 			extranonceNotif.setExtranonce2Size(extranonce2Size);
