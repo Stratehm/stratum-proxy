@@ -22,7 +22,8 @@ import java.math.BigInteger;
 
 import org.glassfish.grizzly.http.util.HexUtils;
 
-import strat.mining.stratum.proxy.utils.HashingUtils;
+import strat.mining.stratum.proxy.utils.ArrayUtils;
+import strat.mining.stratum.proxy.utils.ScryptHashingUtils;
 
 public class Test {
 
@@ -58,11 +59,48 @@ public class Test {
 		// String midstate =
 		// "ca9a8af983d2639900381eafe0b724d2ac3dd108f1e216af8cf2eefcc83b7854";
 
-		String target = "00000000000000000000000000000000000000000000000000f0ff0f00000000";
-		BigInteger targetInteger = new BigInteger(HexUtils.convert(target));
-		boolean result = HashingUtils
-				.isBlockHeaderSHA256HashBelowTarget(
-						"00000002628786d847d7f2a8fca81a6efecc417927728df111ad8bd200000000000000008940c01a70f63c3d68b32e1df36c737f14851923fa45afb4a04dd36da2e2229153aab2eb1851aba267d0f624000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000",
-						targetInteger);
+		// String target =
+		// "00000000000000000000000000000000000000000000000000f0ff0f00000000";
+		// BigInteger targetInteger = new BigInteger(HexUtils.convert(target));
+		// boolean result = SHA256HashingUtils
+		// .isBlockHeaderSHA256HashBelowTarget(
+		// "00000002628786d847d7f2a8fca81a6efecc417927728df111ad8bd200000000000000008940c01a70f63c3d68b32e1df36c737f14851923fa45afb4a04dd36da2e2229153aab2eb1851aba267d0f624000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000",
+		// targetInteger);
+
+		// String littleEndianBlockHeaderHex =
+		// "01000000ae178934851bfa0e83ccb6a3fc4bfddff3641e104b6c4680c31509074e699be2bd672d8d2199ef37a59678f92443083e3b85edef8b45c71759371f823bab59a97126614f44d5001d45920180";
+		// byte[] binaryBlockHeader =
+		// HexUtils.convert(littleEndianBlockHeaderHex);
+		// byte[] scryptHash = ScryptHashingUtils.scryptHash(binaryBlockHeader);
+		//
+		// long start = System.currentTimeMillis();
+		// for (int i = 0; i < 1000; i++) {
+		// scryptHash = ScryptHashingUtils.scryptHash(binaryBlockHeader);
+		// }
+		// System.out.println(System.currentTimeMillis() - start);
+
+		String blockHeaderHex = "00000001c611fe9368eff46ba671b9510a0a4e27d845d5071b782695bf42326b5759dbafba46e9ccf3bd7c4f1efdb822237220527a83abaf263e6200ce46cc940008ebe6540c547c1b6ab9edfdbeb299";
+
+		byte[] binaryBlockHeader = HexUtils.convert(blockHeaderHex);
+		byte[] littleEndianHeaderBinary = ArrayUtils.swapBytes(binaryBlockHeader, 4);
+
+		byte[] scryptHash = ScryptHashingUtils.scryptHash(littleEndianHeaderBinary);
+
+		String rawHash = HexUtils.convert(scryptHash);
+		System.out.println(rawHash);
+
+		String bigEndian = HexUtils.convert(ArrayUtils.swapBytes(scryptHash, 4));
+		System.out.println(bigEndian);
+
+		String bigEndianReversed = HexUtils.convert(ArrayUtils.reverseWords(ArrayUtils.swapBytes(scryptHash, 4), 4));
+		System.out.println(bigEndianReversed);
+
+		BigInteger hashInt = new BigInteger(org.apache.commons.lang.ArrayUtils.addAll(new byte[] { (byte) 0 },
+				ArrayUtils.reverseWords(ArrayUtils.swapBytes(scryptHash, 4), 4)));
+
+		BigInteger diff1Int = ScryptHashingUtils.DIFFICULTY_1_TARGET.toBigInteger();
+
+		BigInteger diff = diff1Int.divide(hashInt);
+
 	}
 }

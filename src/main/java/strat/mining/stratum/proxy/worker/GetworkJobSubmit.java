@@ -45,7 +45,6 @@ public class GetworkJobSubmit {
 	 * @param data
 	 */
 	public GetworkJobSubmit(String data) {
-
 		merkleRoot = data.substring(MERKLE_ROOT_POSITION, MERKLE_ROOT_POSITION + MERKLE_ROOT_LENGTH);
 		time = data.substring(TIME_POSITION, TIME_POSITION + TIME_LENGTH);
 		nonce = data.substring(NONCE_POSITION, NONCE_POSITION + NONCE_LENGTH);

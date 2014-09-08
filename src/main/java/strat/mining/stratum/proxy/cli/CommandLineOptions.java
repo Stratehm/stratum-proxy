@@ -172,6 +172,9 @@ public class CommandLineOptions {
 	@Option(name = "--api-enable-ssl", usage = "Enable SSL (HTTPS) to secure the API.", handler = ExplicitBooleanOptionHandler.class)
 	private Boolean apiEnableSsl;
 
+	@Option(name = "--log-real-share-difficulty", usage = "For each share submitted by a worker, the real difficulty is written in the logs. WARN: Only works for SHA256 and Scrypt pools. Should be enabled only for debugging purposes since it is CPU intensive.", handler = BooleanOptionHandler.class)
+	private Boolean logRealShareDifficulty;
+
 	public CommandLineOptions() {
 		parser = new CmdLineParser(this);
 	}
@@ -358,6 +361,10 @@ public class CommandLineOptions {
 
 	public Boolean isApiEnableSsl() {
 		return apiEnableSsl;
+	}
+
+	public Boolean getLogRealShareDifficulty() {
+		return logRealShareDifficulty;
 	}
 
 }
