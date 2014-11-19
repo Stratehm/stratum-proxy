@@ -18,6 +18,7 @@
  */
 package strat.mining.stratum.proxy.utils;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -34,7 +35,10 @@ import com.google.common.primitives.Longs;
  * @author Strat
  * 
  */
-public final class HashingUtils {
+public final class SHA256HashingUtils {
+
+	public static final BigDecimal DIFFICULTY_1_TARGET = new BigDecimal(new BigInteger(
+			HexUtils.convert("00000000ffff0000000000000000000000000000000000000000000000000000")));
 
 	// Array to prepand to a byte array to build a positive bigInteger
 	private static final byte[] BIG_INTEGER_FAKE_SIGN_ARRAY = new byte[] { (byte) 0 };
@@ -232,6 +236,22 @@ public final class HashingUtils {
 	 * @return
 	 */
 	public static boolean isBlockHeaderSHA256HashBelowTarget(String blockHeader, BigInteger target) {
+		BigInteger hash = getBlockHeaderHash(blockHeader);
+
+		// Check that the hash is less than the target. (The hash is valid if
+		// hash < target)
+		boolean isBelowTarget = hash.compareTo(target) < 0;
+
+		return isBelowTarget;
+	}
+
+	/**
+	 * Compute the hash of the given block header
+	 * 
+	 * @param blockHeader
+	 * @return
+	 */
+	public static BigInteger getBlockHeaderHash(String blockHeader) {
 		// The block header is just composed of the 80 first bytes (the
 		// remaining is just padding)
 		byte[] blockHeaderBin = HexUtils.convert(blockHeader.substring(0, 160));
@@ -258,10 +278,19 @@ public final class HashingUtils {
 		// bit to 0)
 		BigInteger hashInteger = new BigInteger(org.apache.commons.lang.ArrayUtils.addAll(BIG_INTEGER_FAKE_SIGN_ARRAY, hashBytes256Bits));
 
-		// Check that the hash is less than the target. (The hash is valid if
-		// hash < target)
-		boolean isBelowTarget = hashInteger.compareTo(target) < 0;
-
-		return isBelowTarget;
+		return hashInteger;
 	}
+
+	/**
+	 * Compute and return the real difficulty of this share.
+	 * 
+	 * @return
+	 */
+	public static Double getRealShareDifficulty(String blockHeader) {
+		BigInteger realDifficulty = BigInteger.ZERO;
+		BigInteger hash = getBlockHeaderHash(blockHeader);
+		realDifficulty = DIFFICULTY_1_TARGET.toBigInteger().divide(hash);
+		return realDifficulty.doubleValue();
+	}
+
 }

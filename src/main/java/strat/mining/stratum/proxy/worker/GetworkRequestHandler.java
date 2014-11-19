@@ -55,7 +55,7 @@ import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
-import strat.mining.stratum.proxy.utils.HashingUtils;
+import strat.mining.stratum.proxy.utils.SHA256HashingUtils;
 import strat.mining.stratum.proxy.utils.HttpUtils;
 import strat.mining.stratum.proxy.worker.GetworkJobTemplate.GetworkRequestResult;
 
@@ -248,7 +248,7 @@ public class GetworkRequestHandler extends HttpHandler {
 		String errorMessage = null;
 		// Validate the share if the option is set.
 		if (ConfigurationManager.getInstance().isValidateSha26GetworkShares()
-				&& !HashingUtils.isBlockHeaderSHA256HashBelowTarget(getworkRequest.getData(), workerConnection.getGetworkTarget())) {
+				&& !SHA256HashingUtils.isBlockHeaderSHA256HashBelowTarget(getworkRequest.getData(), workerConnection.getGetworkTarget())) {
 			errorMessage = "Share is above the target (proxy check)";
 			LOGGER.debug("Share submitted by {}@{} is above the target. The share is not submitted to the pool.",
 					(String) request.getAttribute("username"), request.getRemoteAddr());

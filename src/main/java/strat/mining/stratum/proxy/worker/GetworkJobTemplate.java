@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -32,7 +33,8 @@ import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.utils.AtomicBigInteger;
-import strat.mining.stratum.proxy.utils.HashingUtils;
+import strat.mining.stratum.proxy.utils.SHA256HashingUtils;
+import strat.mining.stratum.proxy.utils.ScryptHashingUtils;
 
 /**
  * The template of a Getwork job built from stratum notify values.
@@ -45,12 +47,6 @@ public class GetworkJobTemplate {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GetworkJobTemplate.class);
 
 	private static final String HASH1 = "00000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000010000";
-
-	private static final BigDecimal DIFFICULTY_1_TARGET = new BigDecimal(new BigInteger(
-			HexUtils.convert("00000000ffff0000000000000000000000000000000000000000000000000000")));
-
-	private static final BigDecimal DIFFICULTY_1_TARGET_SCRYPT = new BigDecimal(new BigInteger(
-			HexUtils.convert("0000ffff00000000000000000000000000000000000000000000000000000000")));
 
 	private static final String DEFAULT_TARGET = "00000000ffff0000000000000000000000000000000000000000000000000000";
 
@@ -79,9 +75,10 @@ public class GetworkJobTemplate {
 
 	private volatile byte[] version;
 	private volatile byte[] hashPrevBlock;
-	// private byte[] time;
 	private AtomicBigInteger time;
 	private volatile byte[] bits;
+
+	private byte[] nonce;
 
 	// Stratum parameters
 	private volatile List<String> merkleBranches;
@@ -113,8 +110,31 @@ public class GetworkJobTemplate {
 		// Create the time BigInteger from the LittleEndian hex data.
 		this.time = new AtomicBigInteger(HexUtils.convert(time));
 		this.bits = HexUtils.convert(bits);
+		this.nonce = DEFAULT_NONCE;
 
 		this.lastDataTemplateUpdateTime = System.currentTimeMillis() / 1000;
+
+		this.target = DEFAULT_TARGET;
+		this.targetInteger = BigInteger.ONE;
+
+		computeTemplateData();
+	}
+
+	public GetworkJobTemplate(GetworkJobTemplate toClone) {
+		this.jobId = toClone.jobId;
+		this.merkleBranches = new ArrayList<String>(toClone.merkleBranches);
+		this.coinbase1 = toClone.coinbase1;
+		this.coinbase2 = toClone.coinbase2;
+		this.extranonce1 = toClone.extranonce1;
+
+		this.hashPrevBlock = toClone.hashPrevBlock;
+		this.version = toClone.version;
+		// Create the time BigInteger from the LittleEndian hex data.
+		this.time = new AtomicBigInteger(toClone.time);
+		this.bits = toClone.bits;
+		this.nonce = toClone.nonce;
+
+		this.lastDataTemplateUpdateTime = toClone.lastDataTemplateUpdateTime;
 
 		this.target = DEFAULT_TARGET;
 		this.targetInteger = BigInteger.ONE;
@@ -164,6 +184,15 @@ public class GetworkJobTemplate {
 		this.coinbase2 = coinbase2;
 	}
 
+	public void setExtranonce1(String extranonce1) {
+		this.extranonce1 = extranonce1;
+	}
+
+	public void setNonce(String nonce) {
+		this.nonce = HexUtils.convert(nonce);
+		isDataDirty = true;
+	}
+
 	/**
 	 * Compute the template data array.
 	 */
@@ -190,14 +219,14 @@ public class GetworkJobTemplate {
 				byteStream.write(FAKE_MERKLE_ROOT);
 				byteStream.write(time.get().toByteArray());
 				byteStream.write(bits);
-				byteStream.write(DEFAULT_NONCE);
+				byteStream.write(nonce);
 				byteStream.write(BLOCK_HEADER_PADDING);
 
 				templateData = byteStream.toByteArray();
 			} catch (IOException e) {
 				LOGGER.error(
 						"Failed to update GetworkJobTemplate. version: {}, hashPrevBlock: {}, merkleRoot: {}, time: {}, bits: {}, nonce: {}, padding: {}.",
-						version, hashPrevBlock, FAKE_MERKLE_ROOT, time, bits, DEFAULT_NONCE, BLOCK_HEADER_PADDING, e);
+						version, hashPrevBlock, FAKE_MERKLE_ROOT, time, bits, nonce, BLOCK_HEADER_PADDING, e);
 			}
 		}
 
@@ -253,7 +282,7 @@ public class GetworkJobTemplate {
 
 		byte[] midstateData = ArrayUtils.subarray(data, 0, 64);
 
-		return HashingUtils.midstateSHA256(midstateData);
+		return SHA256HashingUtils.midstateSHA256(midstateData);
 	}
 
 	/**
@@ -282,7 +311,7 @@ public class GetworkJobTemplate {
 		byte[] merkleRoot = buildCoinbaseHash(extranonce2);
 
 		for (String merkleBranch : merkleBranches) {
-			merkleRoot = HashingUtils.doubleSha256Hash(ArrayUtils.addAll(merkleRoot, HexUtils.convert(merkleBranch)));
+			merkleRoot = SHA256HashingUtils.doubleSha256Hash(ArrayUtils.addAll(merkleRoot, HexUtils.convert(merkleBranch)));
 		}
 
 		return merkleRoot;
@@ -296,7 +325,7 @@ public class GetworkJobTemplate {
 	private byte[] buildCoinbaseHash(String extranonce2) {
 		String coinbaseString = coinbase1 + extranonce1 + extranonce2 + coinbase2;
 		byte[] rawCoinbase = HexUtils.convert(coinbaseString);
-		return HashingUtils.doubleSha256Hash(rawCoinbase);
+		return SHA256HashingUtils.doubleSha256Hash(rawCoinbase);
 	}
 
 	public double getDifficulty() {
@@ -334,7 +363,7 @@ public class GetworkJobTemplate {
 	 * @param isScrypt
 	 */
 	private void computeTarget(double difficulty, boolean isScrypt) {
-		BigDecimal difficulty1 = isScrypt ? DIFFICULTY_1_TARGET_SCRYPT : DIFFICULTY_1_TARGET;
+		BigDecimal difficulty1 = isScrypt ? ScryptHashingUtils.DIFFICULTY_1_TARGET : SHA256HashingUtils.DIFFICULTY_1_TARGET;
 		targetInteger = difficulty1.divide(BigDecimal.valueOf(difficulty), 0, RoundingMode.HALF_EVEN).toBigInteger();
 		byte[] bigEndianTargetBytes = targetInteger.toByteArray();
 

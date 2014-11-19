@@ -111,6 +111,8 @@ public class ConfigurationManager {
 	private String apiPassword;
 	private Boolean apiEnableSsl;
 
+	private Boolean logRealShareDifficulty = false;
+
 	private ObjectMapper jsonParser;
 
 	public static ConfigurationManager getInstance() {
@@ -226,6 +228,9 @@ public class ConfigurationManager {
 		disableApi = configuration.isDisableApi() != null ? configuration.isDisableApi() : disableApi;
 
 		apiEnableSsl = configuration.getApiEnableSsl();
+
+		logRealShareDifficulty = configuration.getLogRealShareDifficulty() != null ? configuration.getLogRealShareDifficulty()
+				: logRealShareDifficulty;
 
 		apiUser = configuration.getApiUser() != null ? configuration.getApiUser() : apiUser;
 		if (apiUser != null) {
@@ -399,6 +404,8 @@ public class ConfigurationManager {
 		disableApi = cliParser.isDisableApi() != null ? cliParser.isDisableApi() : disableApi;
 
 		apiEnableSsl = cliParser.isApiEnableSsl();
+
+		logRealShareDifficulty = cliParser.getLogRealShareDifficulty() != null ? cliParser.getLogRealShareDifficulty() : logRealShareDifficulty;
 
 		apiUser = cliParser.getApiUser() != null ? cliParser.getApiUser() : apiUser;
 		if (apiUser != null) {
@@ -852,6 +859,10 @@ public class ConfigurationManager {
 
 	public Boolean getApiEnableSsl() {
 		return apiEnableSsl;
+	}
+
+	public Boolean getLogRealShareDifficulty() {
+		return logRealShareDifficulty;
 	}
 
 }

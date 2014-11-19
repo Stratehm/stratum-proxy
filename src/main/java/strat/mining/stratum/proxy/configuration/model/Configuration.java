@@ -66,6 +66,8 @@ public class Configuration {
 
 	private Boolean apiEnableSsl;
 
+	private Boolean logRealShareDifficulty;
+
 	@Valid
 	private List<Pool> pools;
 
@@ -330,6 +332,14 @@ public class Configuration {
 
 	public void setApiEnableSsl(Boolean apiEnableSsl) {
 		this.apiEnableSsl = apiEnableSsl;
+	}
+
+	public Boolean getLogRealShareDifficulty() {
+		return logRealShareDifficulty;
+	}
+
+	public void setLogRealShareDifficulty(Boolean logRealShareDifficulty) {
+		this.logRealShareDifficulty = logRealShareDifficulty;
 	}
 
 }

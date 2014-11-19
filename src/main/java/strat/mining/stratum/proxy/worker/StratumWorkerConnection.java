@@ -29,6 +29,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.AuthorizationException;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
@@ -53,9 +54,12 @@ import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.network.StratumConnection;
 import strat.mining.stratum.proxy.pool.Pool;
+import strat.mining.stratum.proxy.utils.SHA256HashingUtils;
+import strat.mining.stratum.proxy.utils.ScryptHashingUtils;
 import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.utils.Timer.Task;
 import strat.mining.stratum.proxy.utils.WorkerConnectionHashrateDelegator;
+import strat.mining.stratum.proxy.worker.GetworkJobTemplate.GetworkRequestResult;
 
 public class StratumWorkerConnection extends StratumConnection implements WorkerConnection {
 
@@ -80,6 +84,9 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 	private boolean isSetExtranonceNotificationSupported = false;
 
 	private WorkerConnectionHashrateDelegator workerHashrateDelegator;
+
+	private Boolean logRealShareDifficulty = ConfigurationManager.getInstance().getLogRealShareDifficulty();
+	private GetworkJobTemplate currentHeader;
 
 	public StratumWorkerConnection(Socket socket, ProxyManager manager) {
 		super(socket);
@@ -247,12 +254,19 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 	 * @param poolResponse
 	 */
 	public void onPoolSubmitResponse(MiningSubmitRequest workerRequest, MiningSubmitResponse poolResponse) {
+		String difficultyString = pool != null ? Double.toString(pool.getDifficulty()) : "Unknown";
+
+		if (logRealShareDifficulty) {
+			Double realDifficulty = getRealShareDifficulty(workerRequest.getExtranonce2(), workerRequest.getNtime(), workerRequest.getNonce());
+			difficultyString = Double.toString(realDifficulty) + "/" + difficultyString;
+		}
+
 		if (poolResponse.getIsAccepted() != null && poolResponse.getIsAccepted()) {
-			LOGGER.info("Accepted share (diff: {}) from {}@{} on {}. Yeah !!!!", pool != null ? pool.getDifficulty() : "Unknown",
-					workerRequest.getWorkerName(), getConnectionName(), pool.getName());
+			LOGGER.info("Accepted share (diff: {}) from {}@{} on {}. Yeah !!!!", difficultyString, workerRequest.getWorkerName(),
+					getConnectionName(), pool.getName());
 		} else {
-			LOGGER.info("REJECTED share (diff: {}) from {}@{} on {}. Booo !!!!. Error: {}", pool != null ? pool.getDifficulty() : "Unknown",
-					workerRequest.getWorkerName(), getConnectionName(), pool.getName(), poolResponse.getJsonError());
+			LOGGER.info("REJECTED share (diff: {}) from {}@{} on {}. Booo !!!!. Error: {}", difficultyString, workerRequest.getWorkerName(),
+					getConnectionName(), pool.getName(), poolResponse.getJsonError());
 		}
 
 		MiningSubmitResponse workerResponse = new MiningSubmitResponse();
@@ -275,6 +289,10 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 			extranonceNotif.setExtranonce1(pool.getExtranonce1() + extranonce1Tail);
 			extranonceNotif.setExtranonce2Size(extranonce2Size);
 			sendNotification(extranonceNotif);
+
+			if (logRealShareDifficulty) {
+				updateBlockExtranonce();
+			}
 		} else {
 			// If the extranonce change is not supported by the worker, then
 			// throw an exception
@@ -345,6 +363,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 			extranonceNotif.setExtranonce1(pool.getExtranonce1() + extranonce1Tail);
 			extranonceNotif.setExtranonce2Size(extranonce2Size);
 			sendNotification(extranonceNotif);
+			updateBlockExtranonce();
 			LOGGER.debug("Initial extranonce sent to {}.", getConnectionName());
 		}
 
@@ -443,12 +462,72 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 
 	@Override
 	public void onPoolDifficultyChanged(MiningSetDifficultyNotification notification) {
+		if (logRealShareDifficulty) {
+			updateBlockDifficulty();
+		}
 		sendNotification(notification);
 	}
 
 	@Override
 	public void onPoolNotify(MiningNotifyNotification notification) {
+		if (logRealShareDifficulty) {
+			updateBlockHeader(notification);
+		}
 		sendNotification(notification);
 	}
 
+	/**
+	 * Update the block header based on the notification
+	 * 
+	 * @param notification
+	 */
+	private void updateBlockHeader(MiningNotifyNotification notification) {
+		LOGGER.debug("Update getwork job for connection {}.", getConnectionName());
+		// Update the job only if a clean job is requested and if the connection
+		// is bound to a pool.
+		if (pool != null) {
+			currentHeader = new GetworkJobTemplate(notification.getJobId(), notification.getBitcoinVersion(), notification.getPreviousHash(),
+					notification.getCurrentNTime(), notification.getNetworkDifficultyBits(), notification.getMerkleBranches(),
+					notification.getCoinbase1(), notification.getCoinbase2(), getPool().getExtranonce1() + extranonce1Tail);
+			currentHeader.setDifficulty(pool.getDifficulty(), ConfigurationManager.getInstance().isScrypt());
+		}
+	}
+
+	/**
+	 * Update the difficulty to solve for the current block
+	 */
+	private void updateBlockDifficulty() {
+		if (currentHeader != null) {
+			currentHeader.setDifficulty(pool.getDifficulty(), ConfigurationManager.getInstance().isScrypt());
+		}
+	}
+
+	/**
+	 * Update the extranonce1 value of the current block.
+	 */
+	private void updateBlockExtranonce() {
+		if (currentHeader != null) {
+			currentHeader.setExtranonce1(getPool().getExtranonce1() + extranonce1Tail);
+		}
+	}
+
+	/**
+	 * Return the real share difficulty of the share with the given parameters.
+	 * 
+	 * @return
+	 */
+	public Double getRealShareDifficulty(String extranonce2, String ntime, String nonce) {
+		GetworkJobTemplate cloned = new GetworkJobTemplate(currentHeader);
+		cloned.setTime(ntime);
+		cloned.setNonce(nonce);
+		GetworkRequestResult jobResult = cloned.getData(extranonce2.replaceFirst(extranonce1Tail, ""));
+		String blockHeader = jobResult.getData();
+		Double realDifficulty = 0d;
+		if (ConfigurationManager.getInstance().isScrypt()) {
+			realDifficulty = ScryptHashingUtils.getRealShareDifficulty(blockHeader);
+		} else {
+			realDifficulty = SHA256HashingUtils.getRealShareDifficulty(blockHeader);
+		}
+		return realDifficulty;
+	}
 }
