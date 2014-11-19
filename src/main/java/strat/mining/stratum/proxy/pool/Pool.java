@@ -382,7 +382,7 @@ public class Pool {
 	public void processSetExtranonce(MiningSetExtranonceNotification setExtranonce) {
 		extranonce1 = setExtranonce.getExtranonce1();
 
-		if (extranonce2Size - Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE < 1) {
+		if (setExtranonce.getExtranonce2Size() - Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE < 1) {
 			// If the extranonce2size is not big enough, we cannot generate
 			// unique extranonce for workers, so deactivate the pool.
 			LOGGER.error("The extranonce2Size for the pool {} is to low. Size: {}, mininum needed {}.", getName(), extranonce2Size,
