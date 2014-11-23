@@ -61,7 +61,7 @@ public abstract class StratumConnection implements Connection {
 	private Thread readThread;
 	private ObjectMapper objectMapper;
 
-	private Map<Long, JsonRpcRequest> sentRequestIds;
+	private Map<Object, JsonRpcRequest> sentRequestIds;
 
 	private DataOutputStream outputStream;
 
@@ -80,7 +80,7 @@ public abstract class StratumConnection implements Connection {
 	public StratumConnection(Socket socket) {
 		this.socket = socket;
 		this.objectMapper = new ObjectMapper();
-		this.sentRequestIds = Collections.synchronizedMap(new HashMap<Long, JsonRpcRequest>());
+		this.sentRequestIds = Collections.synchronizedMap(new HashMap<Object, JsonRpcRequest>());
 		this.throwDisconnectError = true;
 		this.disconnectOnParsingError = false;
 		this.isFirstLine = true;
@@ -232,7 +232,7 @@ public abstract class StratumConnection implements Connection {
 					} else {
 						// Else it is a response
 						JsonRpcResponse response = objectMapper.readValue(line, JsonRpcResponse.class);
-						request = sentRequestIds.remove(request.getId());
+						request = sentRequestIds.remove(response.getId());
 						if (request != null) {
 							onResponseReceived(request, response);
 						} else {

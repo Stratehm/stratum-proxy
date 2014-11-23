@@ -35,12 +35,22 @@ public class JsonRpcRequest {
 
 	@JsonInclude(Include.NON_NULL)
 	private String jsonrpc;
-	private Long id;
+	private Object id;
 	private String method;
 	private List<Object> params;
 
 	protected JsonRpcRequest() {
-		id = nextRequestId.getAndIncrement();
+		Long nextId = nextRequestId.getAndIncrement();
+		// Use an integer as id instead of a long when possible. Else, it is
+		// harder to match a response with a request since Jackson will parse
+		// response with Integer when needed, and long if the value overflow an
+		// integer. (Thus, in request maps, Long of the request will never match
+		// with the Integer id of the response, even if values are the same).
+		if (Integer.MAX_VALUE >= nextId) {
+			id = nextId.intValue();
+		} else {
+			id = nextId;
+		}
 	}
 
 	public JsonRpcRequest(String method) {
@@ -54,11 +64,11 @@ public class JsonRpcRequest {
 		this.setParams(request.getParams());
 	}
 
-	public Long getId() {
+	public Object getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(Object id) {
 		this.id = id;
 	}
 

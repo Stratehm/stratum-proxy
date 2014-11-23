@@ -81,8 +81,8 @@ public class GetworkWorkerConnection implements WorkerConnection {
 	// Contains the merkleRoot as key and extranonce2/jobId as value.
 	private Map<String, Pair<String, String>> extranonce2AndJobIdByMerkleRoot;
 
-	private Map<Long, CountDownLatch> submitResponseLatches;
-	private Map<Long, MiningSubmitResponse> submitResponses;
+	private Map<Object, CountDownLatch> submitResponseLatches;
+	private Map<Object, MiningSubmitResponse> submitResponses;
 
 	private Boolean logRealShareDifficulty = ConfigurationManager.getInstance().getLogRealShareDifficulty();
 
@@ -104,8 +104,8 @@ public class GetworkWorkerConnection implements WorkerConnection {
 		this.authorizedWorkers = Collections.synchronizedMap(new HashMap<String, String>());
 		this.extranonce2Counter = new AtomicBigInteger(ZERO_BIG_INTEGER_BYTES);
 		this.extranonce2AndJobIdByMerkleRoot = Collections.synchronizedMap(new HashMap<String, Pair<String, String>>());
-		this.submitResponseLatches = Collections.synchronizedMap(new HashMap<Long, CountDownLatch>());
-		this.submitResponses = Collections.synchronizedMap(new HashMap<Long, MiningSubmitResponse>());
+		this.submitResponseLatches = Collections.synchronizedMap(new HashMap<Object, CountDownLatch>());
+		this.submitResponses = Collections.synchronizedMap(new HashMap<Object, MiningSubmitResponse>());
 
 		this.workerHashrateDelegator = new WorkerConnectionHashrateDelegator();
 		this.isActiveSince = new Date();

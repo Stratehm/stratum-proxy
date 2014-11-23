@@ -128,11 +128,11 @@ public class Pool {
 	private Boolean isRejectReconnect = false;
 
 	// Store the callbacks to call when the pool responds to a submit request.
-	private Map<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>> submitCallbacks;
+	private Map<Object, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>> submitCallbacks;
 
 	// Store the callbacks to call when the pool responds to worker authorize
 	// request.
-	private Map<Long, ResponseReceivedCallback<MiningAuthorizeRequest, MiningAuthorizeResponse>> authorizeCallbacks;
+	private Map<Object, ResponseReceivedCallback<MiningAuthorizeRequest, MiningAuthorizeResponse>> authorizeCallbacks;
 
 	private Set<String> authorizedWorkers;
 	private Map<String, CountDownLatch> pendingAuthorizeRequests;
@@ -155,9 +155,10 @@ public class Pool {
 		rejectedDifficulty = new AtomicDouble(0);
 
 		this.tails = buildTails();
-		this.submitCallbacks = Collections.synchronizedMap(new HashMap<Long, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>>());
+		this.submitCallbacks = Collections
+				.synchronizedMap(new HashMap<Object, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>>());
 		this.authorizeCallbacks = Collections
-				.synchronizedMap(new HashMap<Long, ResponseReceivedCallback<MiningAuthorizeRequest, MiningAuthorizeResponse>>());
+				.synchronizedMap(new HashMap<Object, ResponseReceivedCallback<MiningAuthorizeRequest, MiningAuthorizeResponse>>());
 		this.lastAcceptedShares = new ConcurrentLinkedDeque<Share>();
 		this.lastRejectedShares = new ConcurrentLinkedDeque<Share>();
 		this.authorizedWorkers = Collections.synchronizedSet(new HashSet<String>());

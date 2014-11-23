@@ -88,7 +88,7 @@ public class GetworkRequestHandler extends HttpHandler {
 		response.setHeader("Content-Type", "application/json");
 
 		String content = null;
-		Long jsonRpcRequestId = 0L;
+		Object jsonRpcRequestId = 0L;
 		try {
 			content = new BufferedReader(request.getReader()).readLine();
 			LOGGER.trace("New request from {}: {}", request.getRemoteAddr(), content);
@@ -358,7 +358,7 @@ public class GetworkRequestHandler extends HttpHandler {
 	/**
 	 * Set the error object for the JSON rpc response.
 	 */
-	private void setResponseError(Long jsonRpcRequestId, Response response, String errorMessage) {
+	private void setResponseError(Object jsonRpcRequestId, Response response, String errorMessage) {
 		JsonRpcResponse jsonResponse = new JsonRpcResponse();
 		jsonResponse.setId(jsonRpcRequestId);
 		jsonResponse.setResult(null);

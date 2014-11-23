@@ -39,7 +39,7 @@ public class JsonRpcResponse {
 
 	@JsonInclude(Include.NON_NULL)
 	private String jsonrpc;
-	private Long id;
+	private Object id;
 	private Object error;
 	private Object result;
 
@@ -69,11 +69,11 @@ public class JsonRpcResponse {
 		return jsonrpc != null && jsonrpc.equalsIgnoreCase(Constants.JSON_RPC_2_VERSION);
 	}
 
-	public Long getId() {
+	public Object getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(Object id) {
 		this.id = id;
 	}
 
