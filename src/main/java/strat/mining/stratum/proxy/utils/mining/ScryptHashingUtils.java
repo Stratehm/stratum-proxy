@@ -1,4 +1,4 @@
-package strat.mining.stratum.proxy.utils;
+package strat.mining.stratum.proxy.utils.mining;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -12,6 +12,8 @@ import javax.crypto.spec.SecretKeySpec;
 import org.glassfish.grizzly.http.util.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import strat.mining.stratum.proxy.utils.ArrayUtils;
 
 public class ScryptHashingUtils {
 

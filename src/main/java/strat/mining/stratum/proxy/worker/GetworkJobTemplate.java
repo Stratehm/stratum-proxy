@@ -33,8 +33,8 @@ import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.utils.AtomicBigInteger;
-import strat.mining.stratum.proxy.utils.SHA256HashingUtils;
-import strat.mining.stratum.proxy.utils.ScryptHashingUtils;
+import strat.mining.stratum.proxy.utils.mining.SHA256HashingUtils;
+import strat.mining.stratum.proxy.utils.mining.ScryptHashingUtils;
 
 /**
  * The template of a Getwork job built from stratum notify values.
@@ -233,7 +233,7 @@ public class GetworkJobTemplate {
 	}
 
 	/**
-	 * Return the merkleRoot and the data of this job based on the coinbase2
+	 * Return the merkleRoot and the data of this job based on the extranonce2
 	 * value.
 	 * 
 	 * @param extranonce2

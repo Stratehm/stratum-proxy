@@ -53,7 +53,7 @@ import strat.mining.stratum.proxy.json.MiningSubscribeResponse;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public abstract class StratumConnection {
+public abstract class StratumConnection implements Connection {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(StratumConnection.class);
 

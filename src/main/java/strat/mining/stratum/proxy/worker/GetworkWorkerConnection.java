@@ -52,7 +52,8 @@ import strat.mining.stratum.proxy.utils.ArrayUtils;
 import strat.mining.stratum.proxy.utils.AtomicBigInteger;
 import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.utils.Timer.Task;
-import strat.mining.stratum.proxy.utils.WorkerConnectionHashrateDelegator;
+import strat.mining.stratum.proxy.utils.mining.DifficultyUtils;
+import strat.mining.stratum.proxy.utils.mining.WorkerConnectionHashrateDelegator;
 import strat.mining.stratum.proxy.worker.GetworkJobTemplate.GetworkRequestResult;
 
 public class GetworkWorkerConnection implements WorkerConnection {
@@ -82,6 +83,8 @@ public class GetworkWorkerConnection implements WorkerConnection {
 
 	private Map<Long, CountDownLatch> submitResponseLatches;
 	private Map<Long, MiningSubmitResponse> submitResponses;
+
+	private Boolean logRealShareDifficulty = ConfigurationManager.getInstance().getLogRealShareDifficulty();
 
 	// Task executed when no getwork requests have been received during the
 	// timeout delay.
@@ -400,12 +403,21 @@ public class GetworkWorkerConnection implements WorkerConnection {
 			} else {
 				MiningSubmitResponse response = submitResponses.remove(submitRequest.getId());
 
+				// Build the real difficulty string if enabled. Else, just
+				// display the pool difficulty
+				String difficultyString = pool != null ? Double.toString(pool.getDifficulty()) : "Unknown";
+				if (logRealShareDifficulty) {
+					Double realShareDifficulty = DifficultyUtils.getRealShareDifficulty(currentJob, extranonce1Tail, submitRequest.getExtranonce2(),
+							submitRequest.getNtime(), submitRequest.getNonce());
+					difficultyString = Double.toString(realShareDifficulty) + "/" + difficultyString;
+				}
+
 				if (response.getIsAccepted() != null && response.getIsAccepted()) {
-					LOGGER.info("Accepted share (diff: {}) from {}@{} on {}. Yeah !!!!", pool != null ? pool.getDifficulty() : "Unknown",
-							submitRequest.getWorkerName(), getConnectionName(), pool.getName());
+					LOGGER.info("Accepted share (diff: {}) from {}@{} on {}. Yeah !!!!", difficultyString, submitRequest.getWorkerName(),
+							getConnectionName(), pool.getName());
 				} else {
-					LOGGER.info("REJECTED share (diff: {}) from {}@{} on {}. Booo !!!!. Error: {}", pool != null ? pool.getDifficulty() : "Unknown",
-							submitRequest.getWorkerName(), getConnectionName(), pool.getName(), response.getJsonError());
+					LOGGER.info("REJECTED share (diff: {}) from {}@{} on {}. Booo !!!!. Error: {}", difficultyString, submitRequest.getWorkerName(),
+							getConnectionName(), pool.getName(), response.getJsonError());
 					errorMessage = response.getJsonError() != null && response.getJsonError().getMessage() != null ? response.getJsonError()
 							.getMessage() : "Unknown";
 				}

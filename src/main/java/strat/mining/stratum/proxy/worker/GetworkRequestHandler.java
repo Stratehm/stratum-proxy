@@ -55,8 +55,8 @@ import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
-import strat.mining.stratum.proxy.utils.SHA256HashingUtils;
 import strat.mining.stratum.proxy.utils.HttpUtils;
+import strat.mining.stratum.proxy.utils.mining.SHA256HashingUtils;
 import strat.mining.stratum.proxy.worker.GetworkJobTemplate.GetworkRequestResult;
 
 import com.fasterxml.jackson.core.JsonParseException;

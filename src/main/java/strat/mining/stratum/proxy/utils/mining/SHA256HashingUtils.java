@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with multipool-stats-backend. If not, see <http://www.gnu.org/licenses/>.
  */
-package strat.mining.stratum.proxy.utils;
+package strat.mining.stratum.proxy.utils.mining;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -24,6 +24,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 
 import org.glassfish.grizzly.http.util.HexUtils;
+
+import strat.mining.stratum.proxy.utils.ArrayUtils;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;

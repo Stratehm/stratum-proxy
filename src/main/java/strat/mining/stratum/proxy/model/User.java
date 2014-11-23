@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.utils.EquatableWeakReference;
-import strat.mining.stratum.proxy.utils.HashrateUtils;
+import strat.mining.stratum.proxy.utils.mining.HashrateUtils;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
 
 /**
