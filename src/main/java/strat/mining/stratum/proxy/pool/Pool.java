@@ -60,9 +60,9 @@ import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.json.MiningSubscribeResponse;
 import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.model.Share;
-import strat.mining.stratum.proxy.utils.HashrateUtils;
 import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.utils.Timer.Task;
+import strat.mining.stratum.proxy.utils.mining.HashrateUtils;
 
 import com.google.common.util.concurrent.AtomicDouble;
 

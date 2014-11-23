@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with multipool-stats-backend. If not, see <http://www.gnu.org/licenses/>.
  */
-package strat.mining.stratum.proxy.utils;
+package strat.mining.stratum.proxy.utils.mining;
 
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;

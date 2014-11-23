@@ -54,12 +54,10 @@ import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.network.StratumConnection;
 import strat.mining.stratum.proxy.pool.Pool;
-import strat.mining.stratum.proxy.utils.SHA256HashingUtils;
-import strat.mining.stratum.proxy.utils.ScryptHashingUtils;
 import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.utils.Timer.Task;
-import strat.mining.stratum.proxy.utils.WorkerConnectionHashrateDelegator;
-import strat.mining.stratum.proxy.worker.GetworkJobTemplate.GetworkRequestResult;
+import strat.mining.stratum.proxy.utils.mining.DifficultyUtils;
+import strat.mining.stratum.proxy.utils.mining.WorkerConnectionHashrateDelegator;
 
 public class StratumWorkerConnection extends StratumConnection implements WorkerConnection {
 
@@ -257,7 +255,8 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 		String difficultyString = pool != null ? Double.toString(pool.getDifficulty()) : "Unknown";
 
 		if (logRealShareDifficulty) {
-			Double realDifficulty = getRealShareDifficulty(workerRequest.getExtranonce2(), workerRequest.getNtime(), workerRequest.getNonce());
+			Double realDifficulty = DifficultyUtils.getRealShareDifficulty(currentHeader, extranonce1Tail, workerRequest.getExtranonce2(),
+					workerRequest.getNtime(), workerRequest.getNonce());
 			difficultyString = Double.toString(realDifficulty) + "/" + difficultyString;
 		}
 
@@ -509,25 +508,5 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 		if (currentHeader != null) {
 			currentHeader.setExtranonce1(getPool().getExtranonce1() + extranonce1Tail);
 		}
-	}
-
-	/**
-	 * Return the real share difficulty of the share with the given parameters.
-	 * 
-	 * @return
-	 */
-	public Double getRealShareDifficulty(String extranonce2, String ntime, String nonce) {
-		GetworkJobTemplate cloned = new GetworkJobTemplate(currentHeader);
-		cloned.setTime(ntime);
-		cloned.setNonce(nonce);
-		GetworkRequestResult jobResult = cloned.getData(extranonce2.replaceFirst(extranonce1Tail, ""));
-		String blockHeader = jobResult.getData();
-		Double realDifficulty = 0d;
-		if (ConfigurationManager.getInstance().isScrypt()) {
-			realDifficulty = ScryptHashingUtils.getRealShareDifficulty(blockHeader);
-		} else {
-			realDifficulty = SHA256HashingUtils.getRealShareDifficulty(blockHeader);
-		}
-		return realDifficulty;
 	}
 }
