@@ -51,7 +51,7 @@ public class Configuration {
 
 	private Boolean isScrypt;
 	private Boolean noMidstate;
-	private Boolean validateSha26GetworkShares;
+	private Boolean validateGetworkShares;
 
 	private String poolSwitchingStrategy;
 	private Integer weightedRoundRobinRoundDuration;
@@ -250,12 +250,12 @@ public class Configuration {
 		this.noMidstate = noMidstate;
 	}
 
-	public Boolean getValidateSha26GetworkShares() {
-		return validateSha26GetworkShares;
+	public Boolean getValidateGetworkShares() {
+		return validateGetworkShares;
 	}
 
-	public void setValidateSha26GetworkShares(Boolean validateSha26GetworkShares) {
-		this.validateSha26GetworkShares = validateSha26GetworkShares;
+	public void setValidateGetworkShares(Boolean validateGetworkShares) {
+		this.validateGetworkShares = validateGetworkShares;
 	}
 
 	public String getPoolSwitchingStrategy() {

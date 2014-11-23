@@ -142,8 +142,8 @@ public class CommandLineOptions {
 	@Option(name = "--no-midstate", usage = "If set, the midstate for getwork requests will not be calculated. Midsate is only required by some old SHA256 miners. Descrease the CPU load of the proxy if set. (Default to false)")
 	private boolean noMidstate;
 
-	@Option(name = "--validate-sha256-getowrk-shares", usage = "If set, the proxy will check that SHA256 shares submitted by getwork miners are valide (the share is below the target). If not valid, the share is discarded and not submitted to the pool. Increase the CPU load of the proxy if set. (Default to false).")
-	private boolean validateSha26GetworkShares;
+	@Option(name = "--validate-getwork-shares", usage = "If set, the proxy will check that SHA256 or Scrypt shares submitted by getwork miners are valide (the share is below the target). If not valid, the share is discarded and not submitted to the pool. Increase the CPU load of the proxy if set. (Default to false).")
+	private boolean validateGetworkShares;
 
 	@Option(name = "--pool-switching-strategy", usage = "Set the pool switching strategy. The strategy defines on which pool workers will mine. It also define when a pool switch occurs. By default, the priorityFailover is used. Strategies available are: priorityFailover, weightedRoundRobin.")
 	private String poolSwitchingStrategy;
@@ -319,8 +319,8 @@ public class CommandLineOptions {
 		return apiLogLevel;
 	}
 
-	public Boolean isValidateSha26GetworkShares() {
-		return validateSha26GetworkShares;
+	public Boolean isValidateGetworkShares() {
+		return validateGetworkShares;
 	}
 
 	public List<Integer> getPoolsWeight() {

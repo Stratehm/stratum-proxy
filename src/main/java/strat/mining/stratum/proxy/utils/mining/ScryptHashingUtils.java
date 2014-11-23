@@ -162,6 +162,24 @@ public class ScryptHashingUtils {
 	}
 
 	/**
+	 * Return true if the block header Scrypt hash is below the given target.
+	 * 
+	 * @param target
+	 * @param blockHeader
+	 * 
+	 * @return
+	 */
+	public static boolean isBlockHeaderScryptHashBelowTarget(String blockHeader, BigInteger target) {
+		BigInteger hash = getBlockHeaderHash(blockHeader);
+
+		// Check that the hash is less than the target. (The hash is valid if
+		// hash < target)
+		boolean isBelowTarget = hash.compareTo(target) < 0;
+
+		return isBelowTarget;
+	}
+
+	/**
 	 * Compute the hash of the given block header
 	 * 
 	 * @param blockHeader

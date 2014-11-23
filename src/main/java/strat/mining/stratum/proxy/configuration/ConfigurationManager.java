@@ -97,7 +97,7 @@ public class ConfigurationManager {
 	private Integer hashrateDatabaseHistoryDepth = Constants.DEFAULT_HASHRATE_DATABASE_HISTORY_DEPTH;
 
 	private boolean noMidsate = false;
-	private boolean validateSha26GetworkShares = false;
+	private boolean validateGetworkShares = false;
 
 	private String poolSwitchingStrategy = PriorityFailoverStrategyManager.NAME;
 
@@ -216,8 +216,8 @@ public class ConfigurationManager {
 		hashrateDatabaseHistoryDepth = configuration.getHashrateDatabaseHistoryDepth() != null ? configuration.getHashrateDatabaseHistoryDepth()
 				: hashrateDatabaseHistoryDepth;
 		noMidsate = configuration.getNoMidstate() != null ? configuration.getNoMidstate() : noMidsate;
-		validateSha26GetworkShares = configuration.getValidateSha26GetworkShares() != null ? configuration.getValidateSha26GetworkShares()
-				: validateSha26GetworkShares;
+		validateGetworkShares = configuration.getValidateGetworkShares() != null ? configuration.getValidateGetworkShares()
+				: validateGetworkShares;
 
 		poolSwitchingStrategy = configuration.getPoolSwitchingStrategy() != null ? configuration.getPoolSwitchingStrategy() : poolSwitchingStrategy;
 		weightedRoundRobinRoundDuration = configuration.getWeightedRoundRobinRoundDuration() != null ? configuration
@@ -392,8 +392,8 @@ public class ConfigurationManager {
 		hashrateDatabaseHistoryDepth = cliParser.getHashrateDatabaseHistoryDepth() != null ? cliParser.getHashrateDatabaseHistoryDepth()
 				: hashrateDatabaseHistoryDepth;
 		noMidsate = cliParser.isNoMidstate() != null ? cliParser.isNoMidstate() : noMidsate;
-		validateSha26GetworkShares = cliParser.isValidateSha26GetworkShares() != null ? cliParser.isValidateSha26GetworkShares()
-				: validateSha26GetworkShares;
+		validateGetworkShares = cliParser.isValidateGetworkShares() != null ? cliParser.isValidateGetworkShares()
+				: validateGetworkShares;
 
 		poolSwitchingStrategy = cliParser.getPoolSwitchingStrategy() != null ? cliParser.getPoolSwitchingStrategy() : poolSwitchingStrategy;
 		weightedRoundRobinRoundDuration = cliParser.getWeightedRoundRobinRoundDuration() != null ? cliParser.getWeightedRoundRobinRoundDuration() * 60000
@@ -821,8 +821,8 @@ public class ConfigurationManager {
 		return noMidsate;
 	}
 
-	public boolean isValidateSha26GetworkShares() {
-		return validateSha26GetworkShares;
+	public boolean isValidateGetworkShares() {
+		return validateGetworkShares;
 	}
 
 	public String getPoolSwitchingStrategy() {

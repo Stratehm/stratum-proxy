@@ -57,6 +57,7 @@ import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.utils.HttpUtils;
 import strat.mining.stratum.proxy.utils.mining.SHA256HashingUtils;
+import strat.mining.stratum.proxy.utils.mining.ScryptHashingUtils;
 import strat.mining.stratum.proxy.worker.GetworkJobTemplate.GetworkRequestResult;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -246,9 +247,18 @@ public class GetworkRequestHandler extends HttpHandler {
 		// If the share check is enabled, check if the SHA256 share is
 		// below the target. If so, submit the share. Else do not submit.
 		String errorMessage = null;
+
 		// Validate the share if the option is set.
-		if (ConfigurationManager.getInstance().isValidateSha26GetworkShares()
-				&& !SHA256HashingUtils.isBlockHeaderSHA256HashBelowTarget(getworkRequest.getData(), workerConnection.getGetworkTarget())) {
+		boolean isShareValid = true;
+		if (ConfigurationManager.getInstance().isValidateGetworkShares()) {
+			if (ConfigurationManager.getInstance().isScrypt()) {
+				isShareValid = !ScryptHashingUtils.isBlockHeaderScryptHashBelowTarget(getworkRequest.getData(), workerConnection.getGetworkTarget());
+			} else {
+				isShareValid = !SHA256HashingUtils.isBlockHeaderSHA256HashBelowTarget(getworkRequest.getData(), workerConnection.getGetworkTarget());
+			}
+		}
+
+		if (!isShareValid) {
 			errorMessage = "Share is above the target (proxy check)";
 			LOGGER.debug("Share submitted by {}@{} is above the target. The share is not submitted to the pool.",
 					(String) request.getAttribute("username"), request.getRemoteAddr());
