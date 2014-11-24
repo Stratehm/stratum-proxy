@@ -563,7 +563,8 @@ public class Pool {
 		poolRequest.setNtime(workerRequest.getNtime());
 
 		if (isAppendWorkerNames) {
-			poolRequest.setWorkerName(username + workerSeparator + workerRequest.getWorkerName());
+			poolRequest.setWorkerName((username == null ? "" : username) + (workerSeparator == null ? "" : workerSeparator)
+					+ workerRequest.getWorkerName());
 		} else {
 			poolRequest.setWorkerName(username);
 		}
@@ -900,7 +901,8 @@ public class Pool {
 		// means that each worker has to be authorized. If false, the
 		// authorization has already been done with the configured username.
 		if (isAppendWorkerNames) {
-			String finalUserName = username + workerSeparator + workerRequest.getUsername();
+			String finalUserName = (username == null ? "" : username) + (workerSeparator == null ? "" : workerSeparator)
+					+ workerRequest.getUsername();
 
 			// If the worker is already authorized, do nothing
 			if (authorizedWorkers.contains(finalUserName)) {

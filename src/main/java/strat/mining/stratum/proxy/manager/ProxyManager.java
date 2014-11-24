@@ -711,18 +711,47 @@ public class ProxyManager {
 	 * @throws URISyntaxException
 	 */
 	private void checkAddPoolParameters(AddPoolDTO addPoolDTO) throws BadParameterException, URISyntaxException {
+		checkPoolParameters(addPoolDTO.getPoolHost(), addPoolDTO.getUsername(), addPoolDTO.getAppendWorkerNames(), addPoolDTO.getPassword(),
+				addPoolDTO.getUseWorkerPassword());
+	}
 
-		if (addPoolDTO.getPoolHost() == null || addPoolDTO.getPoolHost().trim().isEmpty()) {
+	/**
+	 * Check that all parameters to update the pool are presents and valid.
+	 * 
+	 * @param updatePoolDTO
+	 * @throws URISyntaxException
+	 */
+	private void checkUpdatePoolParameters(UpdatePoolDTO updatePoolDTO) throws BadParameterException, URISyntaxException {
+		checkPoolParameters(updatePoolDTO.getPoolHost(), updatePoolDTO.getUsername(), updatePoolDTO.getAppendWorkerNames(),
+				updatePoolDTO.getPassword(), updatePoolDTO.getUseWorkerPassword());
+	}
+
+	/**
+	 * Check that all mandatory of the pool are presents and valid.
+	 * 
+	 * @param poolHost
+	 * @param username
+	 * @param appendWorkerNames
+	 * @param password
+	 * @param useWorkerPassword
+	 * @throws BadParameterException
+	 * @throws URISyntaxException
+	 */
+	private void checkPoolParameters(String poolHost, String username, Boolean appendWorkerNames, String password, Boolean useWorkerPassword)
+			throws BadParameterException, URISyntaxException {
+		if (poolHost == null || poolHost.trim().isEmpty()) {
 			throw new BadParameterException("Pool host is empty.");
 		}
 
-		new URI("stratum+tcp://" + addPoolDTO.getPoolHost().trim());
+		new URI("stratum+tcp://" + poolHost.trim());
 
-		if (addPoolDTO.getUsername() == null || addPoolDTO.getUsername().trim().isEmpty()) {
+		// The Username is mandatory only if appendWorkerNames is false.
+		if (!appendWorkerNames && (username == null || username.trim().isEmpty())) {
 			throw new BadParameterException("Username is empty.");
 		}
 
-		if (addPoolDTO.getPassword() == null || addPoolDTO.getPassword().trim().isEmpty()) {
+		// The Password is mandatory only if useWorkerPassword is false.
+		if (!useWorkerPassword && (password == null || password.trim().isEmpty())) {
 			throw new BadParameterException("Password is empty.");
 		}
 	}
@@ -951,6 +980,8 @@ public class ProxyManager {
 		if (pool == null) {
 			throw new NotFoundException("The pool with name " + poolToUpdate.getPoolName() + " has not been found.");
 		}
+
+		checkUpdatePoolParameters(poolToUpdate);
 
 		if (poolToUpdate.getPoolHost() != null && !poolToUpdate.getPoolHost().equals(pool.getHost())) {
 			if (!hasBeenStopped) {

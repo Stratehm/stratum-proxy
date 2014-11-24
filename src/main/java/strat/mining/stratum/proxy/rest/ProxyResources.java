@@ -669,8 +669,8 @@ public class ProxyResources {
 		result.setIsActive(pool.isActive());
 		result.setName(pool.getName());
 		result.setNumberOfWorkerConnections(pool.getNumberOfWorkersConnections());
-		result.setPassword(pool.getPassword());
-		result.setUsername(pool.getUsername());
+		result.setPassword(pool.getPassword() == null ? "" : pool.getPassword());
+		result.setUsername(pool.getUsername() == null ? "" : pool.getUsername());
 		result.setWorkerExtranonce2Size(pool.getWorkerExtranonce2Size());
 		result.setPriority(pool.getPriority());
 		result.setWeight(pool.getWeight());
@@ -684,7 +684,7 @@ public class ProxyResources {
 		result.setLastStopCause(pool.getLastStopCause());
 		result.setLastStopDate(pool.getLastStopDate() != null ? simpleDateFormat.format(pool.getLastStopDate()) : null);
 		result.setAppendWorkerNames(pool.isAppendWorkerNames());
-		result.setWorkerNamesSeparator(pool.getWorkerSeparator());
+		result.setWorkerNamesSeparator(pool.getWorkerSeparator() == null ? "" : pool.getWorkerSeparator());
 		result.setUseWorkerPassword(pool.isUseWorkerPassword());
 
 		return result;
