@@ -23,7 +23,7 @@ import java.math.BigInteger;
 import org.glassfish.grizzly.http.util.HexUtils;
 
 import strat.mining.stratum.proxy.utils.ArrayUtils;
-import strat.mining.stratum.proxy.utils.ScryptHashingUtils;
+import strat.mining.stratum.proxy.utils.mining.ScryptHashingUtils;
 
 public class Test {
 
