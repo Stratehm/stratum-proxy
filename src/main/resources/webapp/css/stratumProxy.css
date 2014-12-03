@@ -6,7 +6,7 @@ body {
 }
 
 /* Wrapper for page content to push down footer */
-#wrap {
+#clientMainContainer {
   min-height: 100%;
   height: auto;
   /* Negative indent footer by its height */
@@ -22,7 +22,7 @@ body {
 }
 
 
-#wrap > .container {
+#pageContainer {
 	padding-top: 40px;
 }
 

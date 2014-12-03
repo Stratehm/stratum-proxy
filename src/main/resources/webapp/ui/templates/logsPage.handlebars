@@ -1,0 +1,25 @@
+<div id="logsPage" class="container" style="display: none;">
+	<div class="container container-sm-height">
+		<div class="row row-sm-height">
+			<div class="col-sm-3 col-sm-height col-middle">
+				<h1>Logs</h1>
+			</div>
+			<div
+				class="col-sm-9 autoRefreshContainer col-sm-height col-middle text-right">
+				<select class="selectpicker show-tick logLevelSelectPicker"
+					data-header="Select the new log level">
+					<option>TRACE</option>
+					<option>DEBUG</option>
+					<option>INFO</option>
+					<option>WARN</option>
+					<option>ERROR</option>
+					<option>FATAL</option>
+					<option>OFF</option>
+				</select>
+			</div>
+		</div>
+	</div>
+	<div class="row logsPageContainer">
+		<pre class="logs logsContainer"></pre>
+	</div>
+</div>
