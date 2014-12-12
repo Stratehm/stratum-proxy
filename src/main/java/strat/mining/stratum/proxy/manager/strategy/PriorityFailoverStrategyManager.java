@@ -96,7 +96,7 @@ public class PriorityFailoverStrategyManager extends MonoCurrentPoolStrategyMana
 		int minPriority = 0;
 		List<Pool> pools = getProxyManager().getPools();
 		for (Pool pool : pools) {
-			if (pool.getPriority() > minPriority) {
+			if (pool.getPriority() != null && pool.getPriority() > minPriority) {
 				minPriority = pool.getPriority();
 			}
 		}

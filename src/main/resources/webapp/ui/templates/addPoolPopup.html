@@ -1,0 +1,146 @@
+<div id="addPoolModal" class="modal fade" tabindex="-1" role="dialog">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">
+					<span aria-hidden="true">&times;</span><span class="sr-only">{{closeButtonLabel}}</span>
+				</button>
+				<h4 class="modal-title">{{title}}</h4>
+			</div>
+			<div class="modal-body">
+				<form class="form-horizontal">
+					<fieldset>
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="poolName">{{poolNameLabel}}</label>
+							<div class="col-md-8">
+								<input id="poolNameField" name="poolName"
+									placeholder="{{poolNamePlaceholder}}"
+									class="form-control input-md" type="text" value="{{poolName}}">
+								<span class="help-block">{{poolNameHelp}}</span>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="poolHost">{{poolHostLabel}}
+								*</label>
+							<div class="col-md-8">
+								<input id="poolHostField" name="poolHost"
+									placeholder="{{poolHostPlaceholder}}"
+									class="form-control input-md" required="" type="text"
+									value="{{poolHost}}"> <span class="help-block">{{poolHostHelp}}</span>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="username">{{usernameLabel}}
+								**</label>
+							<div class="col-md-8">
+								<input id="usernameField" name="username"
+									placeholder="{{usernamePlaceholder}}"
+									class="form-control input-md" required="" type="text"
+									value="{{username}}"> <span class="help-block">{{usernameHelp}}</span>
+
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="password">{{passwordLabel}}
+								***</label>
+							<div class="col-md-8">
+								<input id="passwordField" name="password"
+									placeholder="{{passwordPlaceholder}}"
+									class="form-control input-md" required="" type="text"
+									value="{{password}}"> <span class="help-block">{{passwordHelp}}</span>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="priority">{{priorityLabel}}</label>
+							<div class="col-md-8">
+								<input id="priorityField" name="priority"
+									placeholder="{{priorityPlaceholder}}"
+									class="form-control input-md" type="text" value="{{priority}}"><span
+									class="help-block">{{priorityHelp}}</span>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="priority">{{weightLabel}}</label>
+							<div class="col-md-8">
+								<input id="weightField" name="weight"
+									placeholder="{{weightPlaceholder}}"
+									class="form-control input-md" type="text" value="{{weight}}">
+								<span class="help-block">{{weightHelp}}</span>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label"
+								for="enableExtranonceSubscribe">{{enableExtranonceSubscribeLabel}}</label>
+							<div class="col-md-8">
+								<div class="checkbox">
+									<input type="checkbox" id="enableExtranonceSubscribeField"
+										name="enableExtranonceSubscribe"
+										checked="{{enableExtranonceSubscribe}}">
+								</div>
+								<p class="help-block">{{enableExtranonceSubscribeHelp}}</p>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="isEnabled">{{startPoolLabel}}</label>
+							<div class="col-md-8">
+								<div class="checkbox">
+									<input type="checkbox" id="isEnabledField" name="isEnabled"
+										checked="{{isEnabled}}">
+								</div>
+								<p class="help-block">{{startPoolHelp}}</p>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="appendWorkerNames">{{appendWorkerNamesLabel}}</label>
+							<div class="col-md-8">
+								<div class="checkbox">
+									<input type="checkbox" id="appendWorkerNamesField"
+										name="appendWorkerNames" checked="{{appendWorkerNames}}">
+								</div>
+								<p class="help-block">{{appendWorkerNamesHelp}}</p>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="workerNameSeparator">{{workerNameSeparatorLabel}}</label>
+							<div class="col-md-8">
+								<input type="text" id="workerNameSeparatorField"
+									class="form-control" placeholder="{{workerNameSeparatorPlaceholder}}" name="workerNameSeparator"
+									value='{{workerNameSeparator}}'>
+								<p class="help-block">{{workerNameSeparatorHelp}}</p>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="useWorkerPassword">{{useWorkerPasswordLabel}}</label>
+							<div class="col-md-8">
+								<div class="checkbox">
+									<input id="useWorkerPasswordField" name="useWorkerPassword"
+										type="checkbox" checked="{{useWorkerPassword}}">
+								</div>
+								<p class="help-block">{{useWorkerPasswordHelp}}</p>
+							</div>
+						</div>
+
+					</fieldset>
+				</form>
+				<p class="help-block">* {{mandatoryFieldsLabel}}</p>
+				<p class="help-block">** {{appendWorkerNameMandatoryFieldsLabel}}</p>
+				<p class="help-block">*** {{userWorkerPaswwordMandatoryFieldsLabel}} Mandatory if "Use worker password" is
+					not enabled</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default validateButton">{{addButtonLabel}}</button>
+				<button type="button" class="btn btn-default" data-dismiss="modal">{{cancelButtonLabel}}</button>
+			</div>
+		</div>
+	</div>
+</div>

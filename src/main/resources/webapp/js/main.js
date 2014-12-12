@@ -1,17 +1,42 @@
 require.config({
     paths: {
 	'jquery': 'libs/jquery-2.1.1.min',
-	'json2': 'libs/json2',
+	'json': 'libs/json2',
 	'bootstrap': 'libs/bootstrap.min',
-	'bootstrap-select': 'libs/bootstrap-select.min',
-	'totop': 'libs/jquery-totop',
-	'sort': 'libs/jquery-sort',
 	'highstock': 'libs/highstock',
-	'handlebars': 'libs/handlebars-v2.0.0',
+
+	// bootstrap plugin to format ComboBox
+	'bootstrap-select': 'libs/bootstrap-select.min',
+
+	// Jquery plugin to add a ToTopBottom button
+	'totop': 'libs/jquery-totop',
+
+	// Jquery plugin to allow element sorting on jquery collections
+	'sort': 'libs/jquery-sort',
+
+	// requirejs text plugin
 	'text': 'libs/text',
+
+	// requirejs ractive plugin
+	'rv': 'libs/rv',
+	
+	// requirejs i18n plugin
+	'i18n': 'libs/i18n',
+
+	// used for optimization of the rv plugin
+	'ractive': 'libs/ractive.min',
+
+	// runtime version of ractive
+	'ractivejsWithoutDefaults': 'libs/ractive.runtime.min',
+
+	// return the Ractive module with the custom default options (to use in
+	// modules)
+	'ractivejs': 'libs/ractive.customDefaults',
+
 	'ui': '../ui',
 	'templates': '../ui/templates',
-	'controllers': 'controllers'
+	'controllers': 'controllers',
+	'locales': '../locales',
     },
     shim: {
 	'bootstrap': {
@@ -29,8 +54,12 @@ require.config({
 	'highstock': {
 	    deps: ['jquery'],
 	    exports: 'Highcharts'
+	},
+	'json': {
+	    exports: 'JSON'
 	}
-    }
+    },
+    stubModules: ['rv']
 
 });
 

@@ -1,6 +1,6 @@
 define(
-	['jquery', 'controllers/abstractPageController', 'text!templates/poolsPage.handlebars', 'config', 'controllers/poolItem'],
-	function($, AbstractPageController, template, config, PoolItem) {
+	['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templates/poolsPage', 'config', 'controllers/poolItem', 'controllers/addPoolPopup', 'json', 'sort'],
+	function($, Ractive, AbstractPageController, template, config, PoolItem, AddPoolPopup) {
 
 	    var PoolsPageController = function(pageName) {
 		AbstractPageController.call(this, pageName);
@@ -17,9 +17,11 @@ define(
 	    PoolsPageController.prototype.onLoad = function(mainContainer) {
 		var controller = this;
 
-		// Insert the view
-		mainContainer.append($(template));
-
+		var ractive = new Ractive({
+		    el: mainContainer,
+		    template: template
+		});
+		
 		$.ajax({
 		    url: "/proxy/pool/list",
 		    dataType: "json",
@@ -29,7 +31,7 @@ define(
 			data.forEach(function(pool) {
 			    controller.addPoolInPage(pool);
 			});
-
+			
 			controller.startAutoRefresh();
 		    }
 		});
@@ -62,10 +64,9 @@ define(
 	    };
 
 	    PoolsPageController.prototype.addPoolInPage = function(pool) {
-		var item = new PoolItem(), controller = this;
+		var item = new PoolItem(this.getContainer().find('.poolItemContainer')), controller = this;
 		item.setPool(pool);
 		this.items.push(item);
-		this.getContainer().find('.poolItemContainer').append(item.poolItemJquery);
 
 		// Initialize all buttons handlers
 		item.getSetHighestPriorityButton().click(function() {
@@ -73,7 +74,7 @@ define(
 		});
 
 		item.getEnableDisableButton().click(function() {
-		    controller.setPoolEnabled(pool.name, item.getEnableDisableButton().text() == 'Enable');
+		    controller.setPoolEnabled(pool.name, !item.pool.isEnabled);
 		});
 
 		item.getRemoveButton().click(function() {
@@ -84,6 +85,7 @@ define(
 		    controller.openEditPool(pool.name);
 		});
 	    };
+	    
 	    PoolsPageController.prototype.getPoolItemFromName = function(poolName) {
 		return this.items.find(function(item) {
 		    return item.pool.name == poolName;
@@ -137,7 +139,7 @@ define(
 
 			// Once all pools are present, sort them based on their
 			// priority
-			controller.containerJquery.find('.poolItemContainer > .poolItem').sort(
+			controller.getContainer().find('.poolItem').sort(
 				function(a, b) {
 				    return $(a).data('priority') - $(b).data('priority');
 				});
@@ -438,69 +440,7 @@ define(
 	     * Open a pool add popup.
 	     */
 	    PoolsPageController.prototype.openAddPool = function() {
-		var modal = $('#addPoolModal').modal({
-		    keyboard: true,
-		    backdrop: 'static'
-		}), controller = this;
-		modal.find('.modal-title').text('Add a pool');
-		modal
-			.find('.validateButton')
-			.off('click')
-			.click(
-				function() {
-
-				    var poolName = modal.find('#poolNameField').val(), poolHost = modal.find(
-					    '#poolHostField').val(), username = modal.find('#usernameField')
-					    .val(), password = modal.find('#passwordField').val(), priority = modal
-					    .find('#priorityField').val(), weight = modal
-					    .find('#weightField').val(), enableExtranonceSubscribe = modal
-					    .find('#enableExtranonceSubscribeField').is(':checked'), isEnabled = modal
-					    .find('#isEnabledField').is(':checked'), appendWorkerNames = modal
-					    .find('#appendWorkerNamesField').is(':checked'), workerNameSeparator = modal
-					    .find('#workerNameSeparatorField').val(), useWorkerPassword = modal
-					    .find('#useWorkerPasswordField').is(':checked');
-
-				    modal.modal('hide');
-				    $.ajax({
-					url: '/proxy/pool/add',
-					dataType: "json",
-					type: "POST",
-					data: JSON.stringify({
-					    poolName: poolName,
-					    poolHost: poolHost,
-					    username: username,
-					    password: password,
-					    priority: priority,
-					    weight: weight,
-					    enableExtranonceSubscribe: enableExtranonceSubscribe,
-					    isEnabled: isEnabled,
-					    appendWorkerNames: appendWorkerNames,
-					    workerNameSeparator: workerNameSeparator,
-					    useWorkerPassword: useWorkerPassword
-					}),
-					contentType: "application/json",
-					success: function(data) {
-					    // When priority is set, refresh the
-					    // list.
-					    if (data.status == 'Failed') {
-						window.alert('Failed to add the pool. Message: '
-							+ data.message);
-					    } else if (data.status == 'PartiallyDone') {
-						window.alert('Pool added but not started. Message: '
-							+ data.message);
-						controller.refresh();
-					    } else {
-						controller.refresh();
-					    }
-					},
-					error: function(request, textStatus, errorThrown) {
-					    var jsonObject = JSON.parse(request.responseText);
-					    window.alert('Failed to add the pool. Status: ' + textStatus
-						    + ', error: ' + errorThrown + ', message: '
-						    + jsonObject.message);
-					}
-				    });
-				});
+		new AddPoolPopup(this);
 	    };
 
 	    return PoolsPageController;

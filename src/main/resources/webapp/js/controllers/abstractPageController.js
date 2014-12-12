@@ -16,7 +16,6 @@ define(['jquery'], function() {
     };
 
     PageController.prototype.load = function(mainContainer) {
-	this.containerJquery = mainContainer;
 	if (this.onLoad != undefined) {
 	    this.onLoad(mainContainer);
 	}

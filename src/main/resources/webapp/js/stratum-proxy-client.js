@@ -1,19 +1,5 @@
-define(['jquery', 'text!templates/mainContainer.handlebars', 'bootstrap', 'totop', 'highstock'], function($,
-	template) {
-
-    var toTopBottomScroller = $('#totopscroller').totopscroller({
-	showToBottom: true,
-	link: false,
-	linkTarget: '_self',
-	toTopHtml: '<a href="#"></a>',
-	toBottomHtml: '<a href="#"></a>',
-	toPrevHtml: '<a href="#"></a>',
-	linkHtml: '<a href="#"></a>',
-	toTopClass: 'totopscroller-top',
-	toBottomClass: 'totopscroller-bottom',
-	toPrevClass: 'totopscroller-prev',
-	linkClass: 'totopscroller-lnk',
-    });
+define(['jquery', 'ractive', 'rv!templates/mainContainer', 'bootstrap', 'totop', 'highstock'], function($,
+	Ractive, template) {
 
     // Store the current controller
     var currentController = null;
@@ -32,13 +18,31 @@ define(['jquery', 'text!templates/mainContainer.handlebars', 'bootstrap', 'totop
 	initHighcharts();
 
 	initNavBarHandlers();
-	
+
 	loadPageController('poolsPage');
     }
 
     function initContainer() {
 	$('#loadingDiv').empty();
-	$('body').append($(template));
+
+	var ractive = new Ractive({
+	    el: $('body'),
+	    template: template
+	});
+
+	this.toTopBottomScroller = $('#totopscroller').totopscroller({
+	    showToBottom: true,
+	    link: false,
+	    linkTarget: '_self',
+	    toTopHtml: '<a href="#"></a>',
+	    toBottomHtml: '<a href="#"></a>',
+	    toPrevHtml: '<a href="#"></a>',
+	    linkHtml: '<a href="#"></a>',
+	    toTopClass: 'totopscroller-top',
+	    toBottomClass: 'totopscroller-bottom',
+	    toPrevClass: 'totopscroller-prev',
+	    linkClass: 'totopscroller-lnk',
+	});
     }
 
     function initToTopScroller() {
@@ -51,7 +55,7 @@ define(['jquery', 'text!templates/mainContainer.handlebars', 'bootstrap', 'totop
      * Refresh the to Top/Bottom scroller
      */
     function refreshToTopScroller() {
-	toTopBottomScroller.refresh();
+	this.toTopBottomScroller.refresh();
     }
 
     /**
@@ -95,12 +99,12 @@ define(['jquery', 'text!templates/mainContainer.handlebars', 'bootstrap', 'totop
      */
     function loadPageController(pageName) {
 	getPageController(pageName, function(pageController) {
-		if (currentController != undefined) {
-		    currentController.unload();
-		}
+	    if (currentController != undefined) {
+		currentController.unload();
+	    }
 
-		currentController = pageController;
-		currentController.load($('#pageContainer'));	    
+	    currentController = pageController;
+	    currentController.load($('#pageContainer'));
 	});
     }
 

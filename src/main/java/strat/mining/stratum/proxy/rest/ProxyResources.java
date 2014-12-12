@@ -18,6 +18,7 @@
  */
 package strat.mining.stratum.proxy.rest;
 
+import java.io.IOException;
 import java.net.SocketException;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;

@@ -1,0 +1,123 @@
+<div id="poolItem-{{poolItemId}}"
+	class="listItem poolItem panel {{panelHeaderLevel}} row">
+	<div class="panel-heading">
+		<h3 class="panel-title">{{name}}</h3>
+	</div>
+	<div class="panel-body">
+		<div class="row">
+			<label class="col-sm-3 control-label">{{hostLabel}}</label>
+			<div class="col-sm-3 hostValue tooltipOnOverflow">{{host}}</div>
+			<label class="col-sm-3 control-label">{{usernameLabel}}</label>
+			<div class="col-sm-3 usernameValue tooltipOnOverflow">{{username}}</div>
+		</div>
+		<div class="row">
+			<label class="col-sm-3 control-label">{{passwordLabel}}</label>
+			<div class="col-sm-3 passwordValue tooltipOnOverflow">{{password}}</div>
+			<label class="col-sm-3 control-label">{{difficultyLabel}}</label>
+			<div class="col-sm-3 difficultyValue">{{#difficulty}}
+				{{difficulty}} {{/difficulty}} {{^difficulty}} {{noDifficulty}}
+				{{/difficulty}}</div>
+		</div>
+
+		<div class="row">
+			<label class="col-sm-3 control-label">{{isEnabledLabel}}</label>
+			<div class="col-sm-3 isEnabledValue">{{isEnabled}}</div>
+			<label class="col-sm-3 control-label">{{isStableLabel}}</label>
+			<div class="col-sm-3 isStableValue">{{isStable}}</div>
+		</div>
+		<div class="row">
+			<label class="col-sm-3 control-label">{{isReadyLabel}}</label>
+			<div class="col-sm-3 isReadyValue tooltipOnOverflow">{{isReady}}</div>
+			<label class="col-sm-3 control-label">{{isReadySinceLabel}}</label>
+			<div class="col-sm-3 isReadySinceValue">{{#isReadySince}}
+				{{isReadySince}} {{/isReadySince}} {{^isReadySince}}
+				{{noIsReadySince}} {{/isReadySince}}</div>
+		</div>
+		<div class="row">
+			<label class="col-sm-3 control-label">{{isActiveLabel}}</label>
+			<div class="col-sm-3 isActiveValue tooltipOnOverflow">{{isActive}}</div>
+			<label class="col-sm-3 control-label">{{isActiveSinceLabel}}</label>
+			<div class="col-sm-3 isActiveSinceValue">{{#isActiveSince}}
+				{{isActiveSince}} {{/isActiveSince}} {{^isActiveSince}}
+				{{noIsActiveSince}} {{/isActiveSince}}</div>
+		</div>
+		<div class="row">
+			<label class="col-sm-3 control-label">{{extranonce1Label}}</label>
+			<div class="col-sm-3 extranonce1Value">{{#extranonce1}}
+				{{extranonce1}} {{/extranonce1}} {{^extranonce1}} {{noExtranonce1}}
+				{{/extranonce1}}</div>
+			<label class="col-sm-3 control-label">{{extranonce2SizeLabel}}</label>
+			<div class="col-sm-3 extranonce2SizeValue">{{#extranonce2Size}}
+				{{extranonce2Size}} {{/extranonce2Size}} {{^extranonce2Size}}
+				{{noExtranonce2Size}} {{/extranonce2Size}}</div>
+		</div>
+		<div class="row">
+			<label class="col-sm-3 control-label">{{workerExtranonce2SizeLabel}}</label>
+			<div class="col-sm-3 workerExtranonce2SizeValue">{{#workerExtranonce2Size}}
+				{{workerExtranonce2Size}} {{/workerExtranonce2Size}}
+				{{^workerExtranonce2Size}} {{noWorkerExtranonce2Size}}
+				{{/workerExtranonce2Size}}</div>
+			<label class="col-sm-3 control-label">{{numberOfWorkersLabel}}</label>
+			<div class="col-sm-3 numberOfWorkersValue">{{numberOfWorkerConnections}}</div>
+		</div>
+		<div class="row">
+			<label class="col-sm-3 control-label">{{priorityLabel}}</label>
+			<div class="col-sm-3 priorityValue">{{priority}}</div>
+			<label class="col-sm-3 control-label">{{weightLabel}}</label>
+			<div class="col-sm-3 weightValue">{{weight}}</div>
+		</div>
+		<div class="row">
+			<label class="col-sm-3 control-label">{{lastStopCauseLabel}}</label>
+			<div class="col-sm-3 lastStopCauseValue">{{#lastStopCause}}
+				{{lastStopCause}} {{/lastStopCause}} {{^lastStopCause}}
+				{{noLastStopCause}} {{/lastStopCause}}</div>
+			<label class="col-sm-3 control-label">{{lastStopDateLabel}}</label>
+			<div class="col-sm-3 lastStopDateValue">{{#lastStopDate}}
+				{{lastStopDate}} {{/lastStopDate}} {{^lastStopDate}}
+				{{noLastStopDate}} {{/lastStopDate}}</div>
+		</div>
+		<div class="row">
+			<label class="col-sm-3 control-label">{{isExtranonceSubscribeEnabledLabel}}</label>
+			<div class="col-sm-3 isExtranonceSubscribeEnabledValue">{{isExtranonceSubscribeEnabled}}</div>
+			<label class="col-sm-3 control-label">{{isAppendWorkerNameLabel}}</label>
+			<div class="col-sm-3 appendWorkersNamesValue">{{appendWorkerNames}}</div>
+		</div>
+		<div class="row">
+			<label class="col-sm-3 control-label">{{workerNameSeparatorLabel}}</label>
+			<div class="col-sm-3 workerNameSeparatorValue">{{workerNamesSeparator}}</div>
+			<label class="col-sm-3 control-label">{{isUseWorkerPasswordLabel}}</label>
+			<div class="col-sm-3 useWorkerPasswordValue">{{useWorkerPassword}}</div>
+		</div>
+		<div class="row">
+			<label class="col-sm-3 control-label">{{acceptedDifficultyLabel}}</label>
+			<div class="col-sm-3 acceptedDifficultyValue">{{acceptedDifficulty}}</div>
+			<label class="col-sm-3 control-label">{{rejectedDifficultyLabel}}</label>
+			<div class="col-sm-3 rejectedDifficultyValue">{{rejectedDifficulty}}</div>
+		</div>
+		<div class="row">
+			<label class="col-sm-3 control-label">{{acceptedHashrateLabel}}</label>
+			<div class="col-sm-3 acceptedHashrateValue">{{acceptedHashesPerSeconds}}</div>
+			<label class="col-sm-3 control-label">{{rejectedHashrateLabel}}</label>
+			<div class="col-sm-3 rejectedHashrateValue">{{rejectedHashesPerSeconds}}</div>
+		</div>
+		<div class="row top20 bottom20">
+			<div class="text-center">
+				<div class="btn-group">
+					<a class="btn btn-primary setHighestPriority">{{setHighestPriorityButton}}</a>
+					<a
+						class="btn {{#isEnabled}}
+						btn-warning {{/isEnabled}} {{^isEnabled}} btn-success
+						{{/isEnabled}} enableDisable">{{#isEnabled}}
+						{{disableButton}} {{/isEnabled}} {{^isEnabled}} {{enableButton}}
+						{{/isEnabled}}</a> <a class="btn btn-danger remove">{{removeButton}}</a>
+					<a class="btn btn-default edit">{{editButton}}</a>
+				</div>
+			</div>
+		</div>
+		<div class="col-sm-12">
+			<div class="hashrateChart" style="width: 100%;">
+				<div class="chartLoader"></div>
+			</div>
+		</div>
+	</div>
+</div>
