@@ -9,19 +9,22 @@ require.config({
 	'bootstrap-select': 'libs/bootstrap-select.min',
 
 	// Jquery plugin to add a ToTopBottom button
-	'totop': 'libs/jquery-totop',
+	'totop': 'libs/jquery-plugins/jquery-totop',
 
 	// Jquery plugin to allow element sorting on jquery collections
-	'sort': 'libs/jquery-sort',
+	'sort': 'libs/jquery-plugins/jquery-sort',
 
 	// requirejs text plugin
-	'text': 'libs/text',
+	'text': 'libs/requirejs-plugins/text',
 
 	// requirejs ractive plugin
-	'rv': 'libs/rv',
+	'rv': 'libs/requirejs-plugins/rv',
 	
 	// requirejs i18n plugin
-	'i18n': 'libs/i18n',
+	'i18n': 'libs/requirejs-plugins/i18next',
+	
+	// The i18next library
+	'i18next': 'libs/i18next.amd.withJQuery',
 
 	// used for optimization of the rv plugin
 	'ractive': 'libs/ractive.min',
@@ -32,11 +35,11 @@ require.config({
 	// return the Ractive module with the custom default options (to use in
 	// modules)
 	'ractivejs': 'libs/ractive.customDefaults',
-
+	
 	'ui': '../ui',
 	'templates': '../ui/templates',
 	'controllers': 'controllers',
-	'locales': '../locales',
+	'locales': '../locales'
     },
     shim: {
 	'bootstrap': {
@@ -59,10 +62,18 @@ require.config({
 	    exports: 'JSON'
 	}
     },
-    stubModules: ['rv']
+    stubModules: ['rv'],
+    i18next: {
+        fallbackLng  : "en",
+        fallbackOnNull: true,
+        lowerCaseLng : true,
+        resGetPath   : "__lng__/__ns__.json",
+        ns: "stratumProxy"
+    }
 
 });
 
+// Start the application
 require(['stratum-proxy-client'], function(client) {
     client.launchClient();
 });

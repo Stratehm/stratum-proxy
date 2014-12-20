@@ -1,5 +1,5 @@
-define(['jquery', 'ractivejs', 'rv!templates/poolItem', /*'i18n!locales/poolItem',*/ 'config', 'highstock'], function($, Ractive,
-	template, /*locale,*/ config) {
+define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config', 'highstock'], function($,
+	Ractive, template, i18next, config) {
 
     var PoolItem = function(renderToElement) {
 	var poolItemId = PoolItem.nextPoolItemId++;
@@ -12,96 +12,12 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', /*'i18n!locales/poolItem
 	});
 	this.poolItemJquery = $('#poolItem-' + poolItemId);
 
-	this.updateLabels();
-    };
-
-    PoolItem.prototype.updateLabels = function() {
-	// Set the i18n labels
-	this.ractive.set({
-	    /*hostLabel: locale.hostLabel,
-	    usernameLabel: locale.usernameLabel,
-	    passwordLabel: locale.passwordLabel,
-	    difficultyLabel: locale.difficultyLabel,
-	    isEnabledLabel: locale.isEnabledLabel,
-	    isStableLabel: locale.isStableLabel,
-	    isReadyLabel: locale.isReadyLabel,
-	    isReadySinceLabel: locale.isReadySinceLabel,
-	    isActiveLabel: locale.isActiveLabel,
-	    isActiveSinceLabel: locale.isActiveSinceLabel,
-	    extranonce1Label: locale.extranonce1Label,
-	    extranonce2SizeLabel: locale.extranonce2SizeLabel,
-	    workerExtranonce2SizeLabel: locale.workerExtranonce2SizeLabel,
-	    numberOfWorkersLabel: locale.numberOfWorkersLabel,
-	    priorityLabel: locale.priorityLabel,
-	    weightLabel: locale.weightLabel,
-	    lastStopCauseLabel: locale.lastStopCauseLabel,
-	    lastStopDateLabel: locale.lastStopDateLabel,
-	    isExtranonceSubscribeEnabledLabel: locale.isExtranonceSubscribeEnabledLabel,
-	    isAppendWorkerNameLabel: locale.isAppendWorkerNameLabel,
-	    workerNameSeparatorLabel: locale.workerNameSeparatorLabel,
-	    isUseWorkerPasswordLabel: locale.isUseWorkerPasswordLabel,
-	    acceptedDifficultyLabel: locale.acceptedDifficultyLabel,
-	    rejectedDifficultyLabel: locale.rejectedDifficultyLabel,
-	    acceptedHashrateLabel: locale.acceptedHashrateLabel,
-	    rejectedHashrateLabel: locale.rejectedHashrateLabel,
-
-	    setHighestPriorityButton: locale.setHighestPriorityButton,
-	    disableButton: locale.disableButton,
-	    enableButton: locale.enableButton,
-	    removeButton: locale.removeButton,
-	    editButton: locale.editButton,
-
-	    noIsReadySince: locale.noIsReadySince,
-	    noIsActiveSince: locale.noIsActiveSince,
-	    noDifficulty: locale.noDifficulty,
-	    noExtranonce1: locale.noExtranonce1,
-	    noExtranonce2Size: locale.noExtranonce2Size,
-	    noWorkerExtranonce2Size: locale.noWorkerExtranonce2Size,
-	    noLastStopCause: locale.noLastStopCause,
-	    noLastStopDate: locale.noLastStopDate*/
-	    hostLabel: 'Host',
-	    usernameLabel: 'Username',
-	    passwordLabel: 'Password',
-	    difficultyLabel: 'Difficulty',
-	    isEnabledLabel: 'Is enabled',
-	    isStableLabel: 'Is stable',
-	    isReadyLabel: 'Is ready',
-	    isReadySinceLabel: 'Is ready since',
-	    isActiveLabel: 'Is active',
-	    isActiveSinceLabel: 'Is active since',
-	    extranonce1Label: 'Extranonce 1',
-	    extranonce2SizeLabel: 'Extranonce 2 size',
-	    workerExtranonce2SizeLabel: 'Worker extranonce 2 size',
-	    numberOfWorkersLabel: 'Number of workers',
-	    priorityLabel: 'Priority',
-	    weightLabel: 'Weight',
-	    lastStopCauseLabel: 'Last stop cause',
-	    lastStopDateLabel: 'Last stop date',
-	    isExtranonceSubscribeEnabledLabel: 'Is extranonce subscribe	enabled',
-	    isAppendWorkerNameLabel: 'Append worker\'s name',
-	    workerNameSeparatorLabel: 'Worker name separator',
-	    isUseWorkerPasswordLabel: 'Use worker\'s password',
-	    acceptedDifficultyLabel: 'Accepted difficulty',
-	    rejectedDifficultyLabel: 'Rejected difficulty',
-	    acceptedHashrateLabel: 'Accepted hashrate',
-	    rejectedHashrateLabel: 'Rejected hashrate',
-
-	    setHighestPriorityButton: 'Set highest priority',
-	    disableButton: 'Disable',
-	    enableButton: 'Enable',
-	    removeButton: 'Remove',
-	    editButton: 'Edit',
-
-	    noIsReadySince: 'Never',
-	    noIsActiveSince: 'Never',
-	    noDifficulty: 'Not set',
-	    noExtranonce1: 'Not set',
-	    noExtranonce2Size: 'Not set',
-	    noWorkerExtranonce2Size: 'Not set',
-	    noLastStopCause: 'Never stopped',
-	    noLastStopDate: 'Never stopped'
-	});
+	this.poolItemJquery.i18n();
 	
+	var self = this;
+	document.addEventListener('localeChanged', function() {
+	    self.reloadChartData(false, true);
+	}, false);
     };
 
     PoolItem.nextPoolItemId = 0;
@@ -137,26 +53,26 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', /*'i18n!locales/poolItem
 		buttons: [{
 		    type: 'hour',
 		    count: 1,
-		    text: '1h'
+		    text: i18next.t('poolItem.hashrateChartZoom1Hour')
 		}, {
 		    type: 'day',
 		    count: 1,
-		    text: '1d'
+		    text: i18next.t('poolItem.hashrateChartZoom1Day')
 		}, {
 		    type: 'week',
 		    count: 1,
-		    text: '1w'
-		}, {
-		    type: 'day',
-		    count: 7,
-		    text: '1m'
+		    text: i18next.t('poolItem.hashrateChartZoom1Week')
 		}, {
 		    type: 'month',
 		    count: 1,
-		    text: '1y'
+		    text: i18next.t('poolItem.hashrateChartZoom1Month')
+		}, {
+		    type: 'year',
+		    count: 1,
+		    text: i18next.t('poolItem.hashrateChartZoom1Year')
 		}, {
 		    type: 'all',
-		    text: 'All'
+		    text: i18next.t('poolItem.hashrateChartZoomAll')
 		}]
 	    },
 	    navigator: {
@@ -166,12 +82,12 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', /*'i18n!locales/poolItem
 		enabled: false
 	    },
 	    title: {
-		text: 'Hashrate'
+		text: i18next.t('poolItem.hashrateChartTitle')
 	    },
 	    xAxis: {
 		type: 'datetime',
 		title: {
-		    text: 'Date'
+		    text: i18next.t('poolItem.hashrateChartXAxisTitle')
 		},
 		ordinal: false
 	    },
@@ -184,7 +100,7 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', /*'i18n!locales/poolItem
 		linkedTo: 0,
 		opposite: false,
 		title: {
-		    text: 'Hashrate'
+		    text: i18next.t('poolItem.hashrateChartYAxisTitle')
 		}
 	    }],
 	    tooltip: {
@@ -201,7 +117,8 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', /*'i18n!locales/poolItem
 			x: xPos,
 			y: yPos
 		    };
-		}
+		},
+		xDateFormat: '%A, %b %d, %H:%M'
 	    },
 	    plotOptions: {
 		area: {
@@ -213,10 +130,10 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', /*'i18n!locales/poolItem
 		}
 	    },
 	    series: [{
-		name: 'Accepted',
+		name: i18next.t('poolItem.hashrateChartTooltipAcceptedHashrate'),
 		type: 'area'
 	    }, {
-		name: 'Rejected',
+		name: i18next.t('poolItem.hashrateChartTooltipRejectedHashrate'),
 		type: 'area'
 	    }]
 	});
@@ -280,9 +197,10 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', /*'i18n!locales/poolItem
 
     /**
      * Reload the data of the hashrate chart. If isUpdate is true, just update
-     * the graph with new data. Else replace all data.
+     * the graph with new data. Else replace all data. If redraw is true, redraw
+     * the chart.
      */
-    PoolItem.prototype.reloadChartData = function(isUpdate) {
+    PoolItem.prototype.reloadChartData = function(isUpdate, redraw) {
 	var poolItem = this;
 	$.ajax({
 	    url: "/proxy/hashrate/pool",
@@ -296,7 +214,7 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', /*'i18n!locales/poolItem
 		// When pools are retrieved, create the items
 		if (data != undefined && data.hashrates != undefined) {
 		    // Initialize the chart if not already done.
-		    if (poolItem.chart == undefined) {
+		    if (poolItem.chart == undefined || redraw) {
 			poolItem.initChart();
 		    }
 
@@ -304,7 +222,7 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', /*'i18n!locales/poolItem
 		    if (!isUpdate) {
 			poolItem.setHashrateChartData(data.hashrates);
 		    } else {
-			// If it is an update, only happen the missing
+			// If it is an update, only append the missing
 			// data.
 			poolItem.updateHashrateChartData(data.hashrates);
 		    }

@@ -1,5 +1,6 @@
-define(['jquery', 'ractive', 'rv!templates/mainContainer', 'bootstrap', 'totop', 'highstock'], function($,
-	Ractive, template) {
+define(['jquery', 'ractive', 'rv!templates/mainContainer', 'i18n!locales', 'locales/localesConfig',
+	'bootstrap', 'bootstrap-select', 'totop', 'highstock'], function($, Ractive, template, i18next,
+	localesConfig) {
 
     // Store the current controller
     var currentController = null;
@@ -19,6 +20,8 @@ define(['jquery', 'ractive', 'rv!templates/mainContainer', 'bootstrap', 'totop',
 
 	initNavBarHandlers();
 
+	initI18n();
+
 	loadPageController('poolsPage');
     }
 
@@ -30,6 +33,51 @@ define(['jquery', 'ractive', 'rv!templates/mainContainer', 'bootstrap', 'totop',
 	    template: template
 	});
 
+	$('body').i18n();
+    }
+
+    function initI18n() {
+	var localesSelect = $('#localeSelect').selectpicker();
+	var currentLocale = i18next.lng();
+
+	// Populate available locales
+	if (localesConfig && localesConfig.locales) {
+	    localesConfig.locales
+		    .forEach(function(element, index, array) {
+			var option = $(new Option(element.label, element.code));
+			var src = "src='" + (element.iconData ? element.iconData : element.iconUrl) + "'";
+			option.attr('data-content', "<img class='countryFlagThumbnail' " + src + ">"
+				+ element.label);
+			localesSelect.append(option);
+		    });
+
+	    localesSelect.selectpicker('val', currentLocale);
+	}
+
+	// Refresh UI with updates locales and selected one
+	localesSelect.selectpicker('refresh');
+
+	// Add listener when changing locale
+	localesSelect.change(function() {
+	    var selectedLocale = localesSelect.find('option:selected').val();
+	    i18next.setLng(selectedLocale, {
+		fixLng: true
+	    }, function(lng) {
+		$('body').i18n();
+		fireLocaleChangedEvent();
+	    });
+
+	});
+
+    }
+
+    function fireLocaleChangedEvent() {
+	var event = document.createEvent('Event');
+	event.initEvent('localeChanged', false, false);
+	document.dispatchEvent(event);
+    }
+
+    function initToTopScroller() {
 	this.toTopBottomScroller = $('#totopscroller').totopscroller({
 	    showToBottom: true,
 	    link: false,
@@ -43,9 +91,7 @@ define(['jquery', 'ractive', 'rv!templates/mainContainer', 'bootstrap', 'totop',
 	    toPrevClass: 'totopscroller-prev',
 	    linkClass: 'totopscroller-lnk',
 	});
-    }
 
-    function initToTopScroller() {
 	$(document).ajaxComplete(function() {
 	    refreshToTopScroller();
 	});
@@ -65,8 +111,35 @@ define(['jquery', 'ractive', 'rv!templates/mainContainer', 'bootstrap', 'totop',
 	Highcharts.setOptions({
 	    global: {
 		useUTC: false
-	    }
+	    },
 	});
+
+	document.addEventListener('localeChanged', function() {
+	    setHighchartsLanguage();
+	}, false);
+
+	setHighchartsLanguage();
+
+	function setHighchartsLanguage() {
+	    Highcharts.setOptions({
+		lang: {
+		    months: i18next.t('charts.months', {
+			returnObjectTrees: true
+		    }),
+		    shortMonths: i18next.t('charts.shortMonths', {
+			returnObjectTrees: true
+		    }),
+		    thousandsSep: i18next.t('charts.thousandsSep'),
+		    noData: i18next.t('charts.noData'),
+		    numericSymbols: i18next.t('charts.numericSymbols', {
+			returnObjectTrees: true
+		    }),
+		    weekdays: i18next.t('charts.weekDays', {
+			returnObjectTrees: true
+		    })
+		}
+	    });
+	}
     }
 
     /**

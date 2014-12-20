@@ -59,13 +59,9 @@ import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 import org.glassfish.grizzly.http.CompressionConfig.CompressionMode;
-import org.glassfish.grizzly.http.server.CLStaticHttpHandler;
 import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
-import org.glassfish.grizzly.http.server.Request;
-import org.glassfish.grizzly.http.server.Response;
 import org.glassfish.grizzly.http.server.ServerConfiguration;
-import org.glassfish.grizzly.http.server.StaticHttpHandler;
 import org.glassfish.grizzly.http.server.StaticHttpHandlerBase;
 import org.glassfish.grizzly.ssl.SSLContextConfigurator;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
@@ -79,6 +75,8 @@ import org.slf4j.LoggerFactory;
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.database.DatabaseManager;
+import strat.mining.stratum.proxy.grizzly.CLStaticHttpHandlerWithIndexSupport;
+import strat.mining.stratum.proxy.grizzly.StaticHttpHandlerWithCharset;
 import strat.mining.stratum.proxy.manager.HashrateRecorder;
 import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
@@ -227,40 +225,63 @@ public class Launcher {
 			ResourceConfig config = new ResourceConfig(ProxyResources.class);
 			config.register(JacksonFeature.class);
 			apiHttpServer = GrizzlyHttpServerFactory.createHttpServer(baseUri, config, false);
-			ServerConfiguration serverConfiguration = apiHttpServer.getServerConfiguration();
-			apiHttpServer.getListener("grizzly").getCompressionConfig().setCompressionMode(CompressionMode.ON);
-			apiHttpServer.getListener("grizzly").getCompressionConfig()
-					.setCompressableMimeTypes("text/javascript", "application/json", "text/html", "text/css", "text/plain");
-			apiHttpServer.getListener("grizzly").getCompressionConfig().setCompressionMinSize(1024);
-			HttpHandler staticHandler = getStaticHandler();
-			if (staticHandler != null) {
-				serverConfiguration.addHttpHandler(staticHandler, "/");
-			}
+
+			initializeHttpCompression();
+
+			initializeStaticContentHandler();
 
 			if (ConfigurationManager.getInstance().getApiEnableSsl()) {
-				try {
-					checkCertificate();
-					SSLContextConfigurator sslContext = new SSLContextConfigurator();
-					sslContext.setKeyStoreFile(new File(ConfigurationManager.getInstance().getDatabaseDirectory(), KEYSTORE_FILE_NAME)
-							.getAbsolutePath());
-					sslContext.setKeyStorePass(KEYSTORE_PASSWORD);
-					sslContext.setKeyPass(KEYSTORE_PASSWORD);
-
-					apiHttpServer.getListener("grizzly").setSecure(true);
-					apiHttpServer.getListener("grizzly").setSSLEngineConfig(
-							new SSLEngineConfigurator(sslContext).setClientMode(false).setNeedClientAuth(false));
-
-					apiHttpServer.getListener("grizzly").registerAddOn(new SSLRedirectAddOn());
-				} catch (Exception e) {
-					LOGGER.error("Failed to generate the HTTPS certificate. HTTP instead of HTTPS will be used.", e);
-				}
+				initializeSslEngine();
 			}
 
+			// Initialize the HTTP Basic Authentication
 			apiHttpServer.getListener("grizzly").registerAddOn(new AuthenticationAddOn());
 
 			apiHttpServer.start();
 		} else {
 			LOGGER.info("API port disabled. GUI will not be available.");
+		}
+	}
+
+	/**
+	 * Initialize the handler which handles static resources HTTP requests.
+	 */
+	private static void initializeStaticContentHandler() {
+		HttpHandler staticHandler = getStaticHandler();
+		if (staticHandler != null) {
+			ServerConfiguration serverConfiguration = apiHttpServer.getServerConfiguration();
+			serverConfiguration.addHttpHandler(staticHandler, "/");
+		}
+	}
+
+	/**
+	 * Initialize the compression for HTTP requests.
+	 */
+	private static void initializeHttpCompression() {
+		apiHttpServer.getListener("grizzly").getCompressionConfig().setCompressionMode(CompressionMode.ON);
+		apiHttpServer.getListener("grizzly").getCompressionConfig()
+				.setCompressableMimeTypes("text/javascript", "application/json", "text/html", "text/css", "text/plain");
+		apiHttpServer.getListener("grizzly").getCompressionConfig().setCompressionMinSize(1024);
+	}
+
+	/**
+	 * Initialize the SSL engine
+	 */
+	private static void initializeSslEngine() {
+		try {
+			checkCertificate();
+			SSLContextConfigurator sslContext = new SSLContextConfigurator();
+			sslContext.setKeyStoreFile(new File(ConfigurationManager.getInstance().getDatabaseDirectory(), KEYSTORE_FILE_NAME).getAbsolutePath());
+			sslContext.setKeyStorePass(KEYSTORE_PASSWORD);
+			sslContext.setKeyPass(KEYSTORE_PASSWORD);
+
+			apiHttpServer.getListener("grizzly").setSecure(true);
+			apiHttpServer.getListener("grizzly").setSSLEngineConfig(
+					new SSLEngineConfigurator(sslContext).setClientMode(false).setNeedClientAuth(false));
+
+			apiHttpServer.getListener("grizzly").registerAddOn(new SSLRedirectAddOn());
+		} catch (Exception e) {
+			LOGGER.error("Failed to generate the HTTPS certificate. HTTP instead of HTTPS will be used.", e);
 		}
 	}
 
@@ -277,31 +298,8 @@ public class Launcher {
 			try {
 				File stratumProxyWebappJarFile = new File(ConfigurationManager.getInstallDirectory(), "lib/stratum-proxy-webapp.jar");
 				if (stratumProxyWebappJarFile.exists()) {
-					handler = new CLStaticHttpHandler(new URLClassLoader(
-							new URL[] { new URL("file://" + stratumProxyWebappJarFile.getAbsolutePath()) }), "/") {
-
-						private final Logger SUB_LOGGER = LoggerFactory.getLogger(CLStaticHttpHandler.class);
-
-						protected boolean handle(String resourcePath, Request request, Response response) throws Exception {
-							SUB_LOGGER.trace("Requested resource: {}.", resourcePath);
-							long time = System.currentTimeMillis();
-							String resourcePathFiltered = resourcePath;
-							// If the root is requested, then replace the
-							// requested resource by index.html
-							if ("/".equals(resourcePath)) {
-								resourcePathFiltered = "/index.html";
-							}
-							boolean found = super.handle(resourcePathFiltered, request, response);
-							time = System.currentTimeMillis() - time;
-							if (found) {
-								SUB_LOGGER.trace("Resource sent in {} ms: {}.", time, resourcePath);
-							} else {
-								SUB_LOGGER.trace("Resource not found: {}.", resourcePath);
-							}
-							return found;
-						}
-
-					};
+					handler = new CLStaticHttpHandlerWithIndexSupport(new URLClassLoader(new URL[] { new URL("file://"
+							+ stratumProxyWebappJarFile.getAbsolutePath()) }), "/");
 				} else {
 					LOGGER.warn("lib/stratum-proxy-webapp.jar not found. GUI will not be available.");
 				}
@@ -313,23 +311,7 @@ public class Launcher {
 			// environment. So use a static handler.
 			File installPath = new File(ConfigurationManager.getInstallDirectory());
 			File docRootPath = new File(installPath.getParentFile(), "src/main/resources/webapp");
-			handler = new StaticHttpHandler(docRootPath.getAbsolutePath()) {
-				private final Logger SUB_LOGGER = LoggerFactory.getLogger(StaticHttpHandler.class);
-
-				protected boolean handle(String uri, Request request, Response response) throws Exception {
-					SUB_LOGGER.trace("Requested resource: {}.", uri);
-					long time = System.currentTimeMillis();
-					boolean found = super.handle(uri, request, response);
-					time = System.currentTimeMillis() - time;
-					if (found) {
-						SUB_LOGGER.trace("Resource sent in {} ms: {}.", time, uri);
-					} else {
-						SUB_LOGGER.trace("Resource not found: {}.", uri);
-					}
-					return found;
-				}
-
-			};
+			handler = new StaticHttpHandlerWithCharset(docRootPath.getAbsolutePath());
 		}
 		// Disable the file cache if in development.
 		handler.setFileCacheEnabled(!ConfigurationManager.getVersion().equals("Dev"));
@@ -390,6 +372,12 @@ public class Launcher {
 		}
 	}
 
+	/**
+	 * Check that a valid SSl certificate already exists. If not, create a new
+	 * one.
+	 * 
+	 * @throws Exception
+	 */
 	private static void checkCertificate() throws Exception {
 		File storeFile = new File(ConfigurationManager.getInstance().getDatabaseDirectory(), KEYSTORE_FILE_NAME);
 		KeyStore keyStore = KeyStore.getInstance("JKS");
@@ -440,4 +428,5 @@ public class Launcher {
 			keyStore.store(new FileOutputStream(storeFile), KEYSTORE_PASSWORD.toCharArray());
 		}
 	}
+
 }

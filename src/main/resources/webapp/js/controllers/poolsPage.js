@@ -1,6 +1,7 @@
 define(
-	['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templates/poolsPage', 'config', 'controllers/poolItem', 'controllers/addPoolPopup', 'json', 'sort'],
-	function($, Ractive, AbstractPageController, template, config, PoolItem, AddPoolPopup) {
+	['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templates/poolsPage', 'i18n!locales', 'config',
+		'controllers/poolItem', 'controllers/addPoolPopup', 'json', 'sort'],
+	function($, Ractive, AbstractPageController, template, i18next, config, PoolItem, AddPoolPopup) {
 
 	    var PoolsPageController = function(pageName) {
 		AbstractPageController.call(this, pageName);
@@ -21,7 +22,9 @@ define(
 		    el: mainContainer,
 		    template: template
 		});
-		
+
+		mainContainer.i18n();
+
 		$.ajax({
 		    url: "/proxy/pool/list",
 		    dataType: "json",
@@ -31,7 +34,7 @@ define(
 			data.forEach(function(pool) {
 			    controller.addPoolInPage(pool);
 			});
-			
+
 			controller.startAutoRefresh();
 		    }
 		});
@@ -43,7 +46,7 @@ define(
 		});
 
 		// Initialize the auto-refresh countdown
-		this.getContainer().find('.autoRefreshCountDown').text('Auto refresh in -- seconds.');
+		this.getContainer().find('.autoRefreshCountDown').text(i18next.t('poolsPage.autoRefresh', {count: 1, indefinite_article: true}));
 		this.autoRefreshCountDownValue = config.autoRefreshDelay / 1000;
 
 		// Initialize the pool add button
@@ -85,7 +88,7 @@ define(
 		    controller.openEditPool(pool.name);
 		});
 	    };
-	    
+
 	    PoolsPageController.prototype.getPoolItemFromName = function(poolName) {
 		return this.items.find(function(item) {
 		    return item.pool.name == poolName;
@@ -139,10 +142,9 @@ define(
 
 			// Once all pools are present, sort them based on their
 			// priority
-			controller.getContainer().find('.poolItem').sort(
-				function(a, b) {
-				    return $(a).data('priority') - $(b).data('priority');
-				});
+			controller.getContainer().find('.poolItem').sort(function(a, b) {
+			    return $(a).data('priority') - $(b).data('priority');
+			});
 
 			controller.setIsRefreshing(false);
 
@@ -390,8 +392,7 @@ define(
 
 		// Update the auto-refresh countdown
 		var autoRefreshCountDown = this.getContainer().find('.autoRefreshCountDown');
-		autoRefreshCountDown.text('Auto refresh in ' + controller.autoRefreshCountDownValue
-			+ ' seconds.');
+		autoRefreshCountDown.text(i18next.t('poolsPage.autoRefresh', {count: controller.autoRefreshCountDownValue}));
 		this.lastAutoRefreshCountDownExecution = Date.now();
 		// Define the auto-refresh countdown update function
 		updateFunction = function() {
@@ -400,8 +401,7 @@ define(
 		    controller.lastAutoRefreshCountDownExecution = Date.now();
 		    controller.autoRefreshCountDownValue -= secondsSinceLastExecution;
 
-		    autoRefreshCountDown.text('Auto refresh in ' + controller.autoRefreshCountDownValue
-			    + ' seconds.');
+		    autoRefreshCountDown.text(i18next.t('poolsPage.autoRefresh', {count: controller.autoRefreshCountDownValue}));
 
 		    if (controller.autoRefreshCountDownValue <= 0) {
 			controller.refresh();
@@ -433,7 +433,8 @@ define(
 
 		// Update the auto-refresh countdown
 		var autoRefreshCountDown = this.getContainer().find('.autoRefreshCountDown');
-		autoRefreshCountDown.text('Auto refresh in -- seconds.');
+		i18next.t('autoRefresh');
+		autoRefreshCountDown.text(i18next.t('poolsPage.autoRefresh', {count: 1, indefinite_article: true}));
 	    };
 
 	    /**

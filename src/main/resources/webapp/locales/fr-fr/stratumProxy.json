@@ -1,0 +1,139 @@
+{
+	"charts": 
+	{
+		"months": 
+		[
+			"Janvier",
+			"Février",
+			"Mars",
+			"Avril",
+			"Mai",
+			"Juin",
+			"Juillet",
+			"Août",
+			"Septembre",
+			"Octobre",
+			"Novembre",
+			"Décembre"
+		],
+
+		"shortMonths": 
+		[
+			"Janv.",
+			"Févr.",
+			"Mars",
+			"Avr.",
+			"Mai",
+			"Juin",
+			"Juill.",
+			"Août",
+			"Sept.",
+			"Oct.",
+			"Nov.",
+			"Déc."
+		],
+
+		"thousandsSep": ",",
+		"noData": "Pas de donnée",
+		"numericSymbols": 
+		[
+			"k",
+			"M",
+			"G",
+			"T",
+			"P",
+			"E"
+		],
+
+		"weekDays": 
+		[
+			"Dimanche",
+			"Lundi",
+			"Mardi",
+			"Mercredi",
+			"Jeudi",
+			"Vendredi",
+			"Samedi"
+		]
+	},
+
+	"navbar": 
+	{
+		"title": "Stratum Proxy",
+		"poolsItem": "Pools",
+		"usersItem": "Utilisateurs",
+		"connectionsItem": "Connexions",
+		"settingsItem": "Configuration",
+		"logsItem": "Logs"
+	},
+
+	"footer": 
+	{
+		"donationMessage": "Merci pour vos donations (BTC)",
+		"translatorDonationMessage": "Traduit par Stratehm"
+	},
+
+	"poolsPage": 
+	{
+		"title": "Liste des pools",
+		"refreshButtonLabel": "Rafraichir",
+		"addButtonLabel": "Ajouter",
+		"autoRefresh": "Rafraichissement dans __count__ seconde.",
+		"autoRefresh_plural": "Rafraichissement dans __count__ secondes.",
+		"autoRefresh_undefinite": "Rafraichissement dans -- seconde."
+	},
+
+	"poolItem": 
+	{
+		"hostLabel": "Hôte",
+		"usernameLabel": "Utilisateur",
+		"passwordLabel": "Mot de passe",
+		"difficultyLabel": "Difficulté",
+		"isEnabledLabel": "Activé",
+		"isStableLabel": "Stable",
+		"isReadyLabel": "Prêt",
+		"isReadySinceLabel": "Prêt depuis",
+		"isActiveLabel": "Actif",
+		"isActiveSinceLabel": "Actif depuis",
+		"extranonce1Label": "Extranonce 1",
+		"extranonce2SizeLabel": "Taille extranonce 2",
+		"workerExtranonce2SizeLabel": "Taille de l'extranonce 2 des mineurs",
+		"numberOfWorkersLabel": "Nombre de mineurs",
+		"priorityLabel": "Priorité",
+		"weightLabel": "Poids",
+		"lastStopCauseLabel": "Cause du dernier arrêt",
+		"lastStopDateLabel": "Date du dernier arrêt",
+		"isExtranonceSubscribeEnabledLabel": "Abonné au changement d'extranonce",
+		"isAppendWorkerNameLabel": "Concaténation du nom du mineur",
+		"workerNameSeparatorLabel": "Séparateur",
+		"isUseWorkerPasswordLabel": "Utilisation du mot de passe du mineur",
+		"acceptedDifficultyLabel": "Difficulté acceptée",
+		"rejectedDifficultyLabel": "Difficulté refusée",
+		"acceptedHashrateLabel": "Puissance de calcul acceptée",
+		"rejectedHashrateLabel": "Puissance de calcul rejetée",
+		"setHighestPriorityButton": "Priorité maximum",
+		"disableButton": "Désactiver",
+		"enableButton": "Activer",
+		"removeButton": "Supprimer",
+		"editButton": "Modifier",
+		"noIsReadySince": "Jamais",
+		"noIsActiveSince": "Jamais",
+		"noDifficulty": "Non défini",
+		"noExtranonce1": "Non défini",
+		"noExtranonce2Size": "Non défini",
+		"noWorkerExtranonce2Size": "Non défini",
+		"noLastStopCause": "Jamais arrêté",
+		"noLastStopDate": "Jamais arrêté",
+		"hashrateChartTitle": "Puissance de calcul",
+		"hashrateChartXAxisTitle": "Date",
+		"hashrateChartYAxisTitle": "Puissance de calcul",
+		"hashrateChartTooltipAcceptedHashrate": "Accepté",
+		"hashrateChartTooltipRejectedHashrate": "Rejeté",
+		"hashrateChartZoom1Hour": "1h",
+		"hashrateChartZoom1Day": "1j",
+		"hashrateChartZoom1Week": "1sem.",
+		"hashrateChartZoom1Month": "1m.",
+		"hashrateChartZoom1Year": "1a",
+		"hashrateChartZoomAll": "Tout"
+	}
+}

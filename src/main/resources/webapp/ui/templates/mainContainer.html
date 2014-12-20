@@ -8,20 +8,26 @@
 						class="icon-bar"></span>
 				</button>
 				<a class="navbar-brand"
-					href="https://github.com/Stratehm/stratum-proxy" target="_blank">Stratum
-					Proxy</a>
+					href="https://github.com/Stratehm/stratum-proxy" target="_blank"
+					data-i18n="navbar.title">Stratum Proxy</a>
 			</div>
 			<div class="collapse navbar-collapse">
 				<ul id="navbarUl" class="nav navbar-nav">
 					<li class="active"><a id="poolsTabButton" href="#pools"
-						page-name="poolsPage">Pools</a></li>
-					<li><a id="usersTabButton" href="#users" page-name="usersPage">Users</a></li>
+						page-name="poolsPage" data-i18n="navbar.poolsItem">Pools</a></li>
+					<li><a id="usersTabButton" href="#users" page-name="usersPage"
+						data-i18n="navbar.usersItem">Users</a></li>
 					<li><a id="connectionsTabButton" href="#connections"
-						page-name="connectionsPage">Connections</a></li>
+						page-name="connectionsPage" data-i18n="navbar.connectionsItem">Connections</a></li>
 					<li><a id="settingsTabButton" href="#settings"
-						page-name="settingsPage">Settings</a></li>
-					<li><a id="settingsTabButton" href="#logs"
-						page-name="logsPage">Logs</a></li>
+						page-name="settingsPage" data-i18n="navbar.settingsItem">Settings</a></li>
+					<li><a id="logsTabButton" href="#logs" page-name="logsPage"
+						data-i18n="navbar.logsItem">Logs</a></li>
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li><select id="localeSelect"
+						class="span2 selectpicker navbar-btn">
+					</select></li>
 				</ul>
 
 			</div>
@@ -31,14 +37,17 @@
 
 	<div id="pageContainer"></div>
 
-	<div id="footer">
-		<div class="container">
-			<span class="donationText">Thank you for
-				your BTC donations: 19wv8FQKv3NkwTdzBCQn1AGsb9ghqBPWXi</span>
-		</div>
-	</div>
-
 	<div id="totopscroller"></div>
 
+</div>
+<div id="footer">
+	<div class="container">
+		<span class="donationText" data-i18n="footer.donationMessage">Thank
+			you for your BTC donations</span><span class="donationText">:&nbsp;19wv8FQKv3NkwTdzBCQn1AGsb9ghqBPWXi</span>
+		<div>
+			<span class="donationText"
+				data-i18n="footer.translatorDonationMessage"></span>
+		</div>
+	</div>
 </div>
 <!-- Wrap end -->
