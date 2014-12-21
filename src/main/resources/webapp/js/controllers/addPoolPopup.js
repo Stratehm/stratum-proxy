@@ -1,6 +1,6 @@
 define(
-	['jquery', 'ractivejs', 'rv!templates/addPoolPopup', 'bootstrap', 'json'],
-	function($, Ractive, template) {
+	['jquery', 'ractivejs', 'rv!templates/addPoolPopup', 'i18n!locales', 'bootstrap', 'json'],
+	function($, Ractive, template, i18next) {
 
 	    var AddPoolPopup = function(parentController, parentElement) {
 		this.parentController = parentController;
@@ -8,58 +8,19 @@ define(
 		this.ractive = new Ractive({
 		    el: $('body'),
 		    template: template,
+		    data: {
+			isEnabled: true,
+			workerNameSeparator: '.'
+		    }
 		});
-
-		this.updateLabels();
 
 		this.popup = $('#addPoolModal').modal({
 		    keyboard: true,
 		    backdrop: 'static'
 		});
 		this.popup.find('.validateButton').off('click').click($.proxy(validate, this));
-	    }
-
-	    AddPoolPopup.prototype.updateLabels = function() {
-		// Set the i18n labels
-		this.ractive.set({
-		    title: 'Add a pool',
-		    closeButtonLabel: 'Close',
-		    poolNameLabel: 'Pool name',
-		    poolNamePlaceholder: '',
-		    poolNameHelp: 'The name of the pool. If not set, default to pool URL.',
-		    poolHostLabel: '',
-		    poolHostPlaceholder: '',
-		    poolHostHelp: '',
-		    usernameLabel: '',
-		    usernamePlaceholder: '',
-		    usernameHelp: '',
-		    passwordLabel: '',
-		    passwordPlaceholder: '',
-		    passwordHelp: '',
-		    priorityLabel: '',
-		    priorityPlaceholder: '',
-		    priorityHelp: '',
-		    weightLabel: '',
-		    weightPlaceholder: '',
-		    weightHelp: '',
-		    enableExtranonceSubscribeLabel: '',
-		    enableExtranonceSubscribeHelp: '',
-		    startPoolLabel: '',
-		    startPoolHelp: '',
-		    appendWorkerNamesLabel: '',
-		    appendWorkerNamesHelp: '',
-		    workerNameSeparatorLabel: '',
-		    workerNameSeparatorPlaceholder: '',
-		    workerNameSeparatorHelp: '',
-		    useWorkerPasswordLabel: '',
-		    useWorkerPassword: '',
-		    useWorkerPasswordHelp: '',
-		    mandatoryFieldsLabel: '',
-		    appendWorkerNameMandatoryFieldsLabel: '',
-		    userWorkerPaswwordMandatoryFieldsLabel: '',
-		    addButtonLabel: '',
-		    cancelButtonLabel: '',
-		});
+		
+		this.popup.i18n();
 	    }
 
 	    function validate() {

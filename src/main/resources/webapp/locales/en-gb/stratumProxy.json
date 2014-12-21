@@ -80,7 +80,15 @@
 		"addButtonLabel": "Add",
 		"autoRefresh": "Auto refresh in __count__ second.",
 		"autoRefresh_plural": "Auto refresh in __count__ seconds.",
-		"autoRefresh_undefinite": "Auto refresh in -- second."
+		"autoRefresh_undefinite": "Auto refresh in -- second.",
+		"removePool": 
+		{
+			"keepHistoryConfirmationPopup": 
+			{
+				"title": "Keep history confirmation",
+				"message": "Do you want to keep the hash rate history for __poolName__ ? If so, when a new pool with the same will be added, this history will be reused."
+			}
+		}
 	},
 
 	"poolItem": 
@@ -135,5 +143,46 @@
 		"hashrateChartZoom1Month": "1m",
 		"hashrateChartZoom1Year": "1y",
 		"hashrateChartZoomAll": "All"
+	},
+
+	"addPoolPopup": 
+	{
+		"title": "Add a pool",
+		"closeButtonLabel": "Close",
+		"poolNameLabel": "Pool name",
+		"poolNamePlaceholder": "",
+		"poolNameHelp": "The name of the pool. If not set, default to pool URL.",
+		"poolHostLabel": "Pool URL",
+		"poolHostPlaceholder": "eu.pool.com:3333",
+		"poolHostHelp": "The URL of the pool without stratum+tcp://",
+		"usernameLabel": "User name",
+		"usernamePlaceholder": "",
+		"usernameHelp": "",
+		"passwordLabel": "Password",
+		"passwordPlaceholder": "",
+		"passwordHelp": "",
+		"priorityLabel": "Priority",
+		"priorityPlaceholder": "",
+		"priorityHelp": "",
+		"weightLabel": "Weight",
+		"weightPlaceholder": "",
+		"weightHelp": "",
+		"enableExtranonceSubscribeLabel": "Enable extranonce subscribe",
+		"enableExtranonceSubscribeHelp": "Only enable with compatible pools like Nicehash. Pool may not connect if not compatible.",
+		"startPoolLabel": "Start pool",
+		"startPoolHelp": "",
+		"appendWorkerNamesLabel": "Append worker names to user name",
+		"appendWorkerNamesHelp": "If selected, the worker name will be appended to the pool username with the worker name separator.",
+		"workerNameSeparatorLabel": "Worker name separator",
+		"workerNameSeparatorPlaceholder": "",
+		"workerNameSeparatorHelp": "",
+		"useWorkerPasswordLabel": "Use worker password",
+		"useWorkerPassword": "",
+		"useWorkerPasswordHelp": "If selected, use the worker password instead of the pool password.",
+		"mandatoryFieldsLabel": "Mandatory fields",
+		"appendWorkerNameMandatoryFieldsLabel": "Mandatory if \"Append worker names to user name\" is not enabled",
+		"userWorkerPaswwordMandatoryFieldsLabel": "Mandatory if \"Use worker password\" is not enabled",
+		"addButtonLabel": "Add",
+		"cancelButtonLabel": "Cancel"
 	}
 }

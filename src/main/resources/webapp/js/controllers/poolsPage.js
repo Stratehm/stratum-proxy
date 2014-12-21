@@ -1,7 +1,9 @@
 define(
-	['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templates/poolsPage', 'i18n!locales', 'config',
-		'controllers/poolItem', 'controllers/addPoolPopup', 'json', 'sort'],
-	function($, Ractive, AbstractPageController, template, i18next, config, PoolItem, AddPoolPopup) {
+	['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templates/poolsPage',
+		'i18n!locales', 'config', 'controllers/poolItem', 'controllers/addPoolPopup',
+		'controllers/confirmationPopup', 'json', 'sort'],
+	function($, Ractive, AbstractPageController, template, i18next, config, PoolItem, AddPoolPopup,
+		ConfirmationPopup) {
 
 	    var PoolsPageController = function(pageName) {
 		AbstractPageController.call(this, pageName);
@@ -46,7 +48,10 @@ define(
 		});
 
 		// Initialize the auto-refresh countdown
-		this.getContainer().find('.autoRefreshCountDown').text(i18next.t('poolsPage.autoRefresh', {count: 1, indefinite_article: true}));
+		this.getContainer().find('.autoRefreshCountDown').text(i18next.t('poolsPage.autoRefresh', {
+		    count: 1,
+		    indefinite_article: true
+		}));
 		this.autoRefreshCountDownValue = config.autoRefreshDelay / 1000;
 
 		// Initialize the pool add button
@@ -323,23 +328,16 @@ define(
 	     * Remove the pool with the given name. Ask a confirmation.
 	     */
 	    PoolsPageController.prototype.removePool = function(poolName) {
-		var modal = $('#poolRemoveConfirmationModal').modal({
-		    keyboard: true,
-		    backdrop: true
-		}), controller = this, removePoolFunction;
-		modal.find('.modal-title').text('Keep history confirmation');
-		modal.find('.modal-body').text(
-			'Do you want to keep the hash rate history for ' + poolName + ' ?');
-
-		removePoolFunction = function(keepHistory) {
-		    modal.modal('hide');
+		var controller = this;
+		
+		var removePoolFunction = function(result) {
 		    $.ajax({
 			url: '/proxy/pool/remove',
 			dataType: "json",
 			type: "POST",
 			data: JSON.stringify({
 			    poolName: poolName,
-			    keepHistory: keepHistory
+			    keepHistory: result == 'yes'
 			}),
 			contentType: "application/json",
 			success: function(data) {
@@ -357,14 +355,16 @@ define(
 			}
 		    });
 		};
-
-		modal.find('.yesButton').off('click').click(function() {
-		    removePoolFunction(true);
+		
+		var modal = new ConfirmationPopup({
+		    title: i18next.t('poolsPage.removePool.keepHistoryConfirmationPopup.title'),
+		    message: i18next.t('poolsPage.removePool.keepHistoryConfirmationPopup.message', {
+			poolName: poolName
+		    }),
+		    yesCallback: removePoolFunction,
+		    noCallback: removePoolFunction
 		});
 
-		modal.find('.noButton').off('click').click(function() {
-		    removePoolFunction(false);
-		});
 	    };
 
 	    /**
@@ -392,7 +392,9 @@ define(
 
 		// Update the auto-refresh countdown
 		var autoRefreshCountDown = this.getContainer().find('.autoRefreshCountDown');
-		autoRefreshCountDown.text(i18next.t('poolsPage.autoRefresh', {count: controller.autoRefreshCountDownValue}));
+		autoRefreshCountDown.text(i18next.t('poolsPage.autoRefresh', {
+		    count: controller.autoRefreshCountDownValue
+		}));
 		this.lastAutoRefreshCountDownExecution = Date.now();
 		// Define the auto-refresh countdown update function
 		updateFunction = function() {
@@ -401,7 +403,9 @@ define(
 		    controller.lastAutoRefreshCountDownExecution = Date.now();
 		    controller.autoRefreshCountDownValue -= secondsSinceLastExecution;
 
-		    autoRefreshCountDown.text(i18next.t('poolsPage.autoRefresh', {count: controller.autoRefreshCountDownValue}));
+		    autoRefreshCountDown.text(i18next.t('poolsPage.autoRefresh', {
+			count: controller.autoRefreshCountDownValue
+		    }));
 
 		    if (controller.autoRefreshCountDownValue <= 0) {
 			controller.refresh();
@@ -434,7 +438,10 @@ define(
 		// Update the auto-refresh countdown
 		var autoRefreshCountDown = this.getContainer().find('.autoRefreshCountDown');
 		i18next.t('autoRefresh');
-		autoRefreshCountDown.text(i18next.t('poolsPage.autoRefresh', {count: 1, indefinite_article: true}));
+		autoRefreshCountDown.text(i18next.t('poolsPage.autoRefresh', {
+		    count: 1,
+		    indefinite_article: true
+		}));
 	    };
 
 	    /**

@@ -3,143 +3,181 @@
 		<div class="modal-content">
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal">
-					<span aria-hidden="true">&times;</span><span class="sr-only">{{closeButtonLabel}}</span>
+					<span aria-hidden="true">&times;</span><span class="sr-only"
+						data-i18n="addPoolPopup.closeButtonLabel">Close</span>
 				</button>
-				<h4 class="modal-title">{{title}}</h4>
+				<h4 class="modal-title" data-i18n="addPoolPopup.title">Add a
+					pool</h4>
 			</div>
 			<div class="modal-body">
 				<form class="form-horizontal">
 					<fieldset>
 						<div class="form-group">
-							<label class="col-md-4 control-label" for="poolName">{{poolNameLabel}}</label>
+							<label class="col-md-4 control-label" for="poolName"
+								data-i18n="addPoolPopup.poolNameLabel">Pool name</label>
 							<div class="col-md-8">
 								<input id="poolNameField" name="poolName"
-									placeholder="{{poolNamePlaceholder}}"
-									class="form-control input-md" type="text" value="{{poolName}}">
-								<span class="help-block">{{poolNameHelp}}</span>
+									class="form-control input-md" type="text" value="{{poolName}}"
+									data-i18n="[placeholder]addPoolPopup.poolNamePlaceholder">
+								<span class="help-block" data-i18n="addPoolPopup.poolNameHelp">The
+									name of the pool. If not set, default to pool URL</span>
 							</div>
 						</div>
 
 						<div class="form-group">
-							<label class="col-md-4 control-label" for="poolHost">{{poolHostLabel}}
-								*</label>
+							<label class="col-md-4 control-label" for="poolHost"><span
+								data-i18n="addPoolPopup.poolHostLabel">Pool URL</span><span>&nbsp;*</span></label>
 							<div class="col-md-8">
 								<input id="poolHostField" name="poolHost"
-									placeholder="{{poolHostPlaceholder}}"
+									data-i18n="[placeholder]addPoolPopup.poolHostPlaceholder"
 									class="form-control input-md" required="" type="text"
-									value="{{poolHost}}"> <span class="help-block">{{poolHostHelp}}</span>
+									value="{{poolHost}}" placeholder="eu.pool.com:3333"> <span class="help-block"
+									data-i18n="addPoolPopup.poolHostHelp">The URL of the
+									pool without stratum+tcp://</span>
 							</div>
 						</div>
 
 						<div class="form-group">
-							<label class="col-md-4 control-label" for="username">{{usernameLabel}}
-								**</label>
+							<label class="col-md-4 control-label" for="username"><span
+								data-i18n="addPoolPopup.usernameLabel">User name</span><span>&nbsp;**</span></label>
 							<div class="col-md-8">
 								<input id="usernameField" name="username"
-									placeholder="{{usernamePlaceholder}}"
+									data-i18n="[placeholder]addPoolPopup.usernamePlaceholder"
 									class="form-control input-md" required="" type="text"
-									value="{{username}}"> <span class="help-block">{{usernameHelp}}</span>
+									value="{{username}}"> <span class="help-block"
+									data-i18n="addPoolPopup.usernameHelp"></span>
 
 							</div>
 						</div>
 
 						<div class="form-group">
-							<label class="col-md-4 control-label" for="password">{{passwordLabel}}
-								***</label>
+							<label class="col-md-4 control-label" for="password"><span
+								data-i18n="addPoolPopup.passwordLabel">Password</span> <span>&nbsp;***</span></label>
 							<div class="col-md-8">
 								<input id="passwordField" name="password"
-									placeholder="{{passwordPlaceholder}}"
+									data-i18n="[placeholder]addPoolPopup.passwordPlaceholder"
 									class="form-control input-md" required="" type="text"
-									value="{{password}}"> <span class="help-block">{{passwordHelp}}</span>
+									value="{{password}}"> <span class="help-block"
+									data-i18n="addPoolPopup.passwordHelp"></span>
 							</div>
 						</div>
 
 						<div class="form-group">
-							<label class="col-md-4 control-label" for="priority">{{priorityLabel}}</label>
+							<label class="col-md-4 control-label" for="priority"
+								data-i18n="addPoolPopup.priorityLabel">Priority</label>
 							<div class="col-md-8">
 								<input id="priorityField" name="priority"
-									placeholder="{{priorityPlaceholder}}"
+									data-i18n="[placeholder]addPoolPopup.priorityPlaceholder"
 									class="form-control input-md" type="text" value="{{priority}}"><span
-									class="help-block">{{priorityHelp}}</span>
+									class="help-block" data-i18n="addPoolPopup.priorityHelp"></span>
 							</div>
 						</div>
 
 						<div class="form-group">
-							<label class="col-md-4 control-label" for="priority">{{weightLabel}}</label>
+							<label class="col-md-4 control-label" for="priority"
+								data-i18n="addPoolPopup.weightLabel">Weight</label>
 							<div class="col-md-8">
 								<input id="weightField" name="weight"
-									placeholder="{{weightPlaceholder}}"
+									data-i18n="[placeholder]addPoolPopup.weightPlaceholder"
 									class="form-control input-md" type="text" value="{{weight}}">
-								<span class="help-block">{{weightHelp}}</span>
+								<span class="help-block" data-i18n="addPoolPopup.weightHelp"></span>
 							</div>
 						</div>
 
 						<div class="form-group">
 							<label class="col-md-4 control-label"
-								for="enableExtranonceSubscribe">{{enableExtranonceSubscribeLabel}}</label>
+								for="enableExtranonceSubscribe"
+								data-i18n="addPoolPopup.enableExtranonceSubscribeLabel">Enable extranonce
+									subscribe</label>
 							<div class="col-md-8">
 								<div class="checkbox">
 									<input type="checkbox" id="enableExtranonceSubscribeField"
 										name="enableExtranonceSubscribe"
 										checked="{{enableExtranonceSubscribe}}">
 								</div>
-								<p class="help-block">{{enableExtranonceSubscribeHelp}}</p>
+								<p class="help-block"
+									data-i18n="addPoolPopup.enableExtranonceSubscribeHelp">Only enable with compatible pools
+										like Nicehash. Pool may not connect if not compatible.</p>
 							</div>
 						</div>
 
 						<div class="form-group">
-							<label class="col-md-4 control-label" for="isEnabled">{{startPoolLabel}}</label>
+							<label class="col-md-4 control-label" for="isEnabled"
+								data-i18n="addPoolPopup.startPoolLabel">Start
+									pool</label>
 							<div class="col-md-8">
 								<div class="checkbox">
 									<input type="checkbox" id="isEnabledField" name="isEnabled"
 										checked="{{isEnabled}}">
 								</div>
-								<p class="help-block">{{startPoolHelp}}</p>
+								<p class="help-block" data-i18n="addPoolPopup.startPoolHelp"></p>
 							</div>
 						</div>
 
 						<div class="form-group">
-							<label class="col-md-4 control-label" for="appendWorkerNames">{{appendWorkerNamesLabel}}</label>
+							<label class="col-md-4 control-label" for="appendWorkerNames"
+								data-i18n="addPoolPopup.appendWorkerNamesLabel">Append
+									worker names to user name</label>
 							<div class="col-md-8">
 								<div class="checkbox">
 									<input type="checkbox" id="appendWorkerNamesField"
 										name="appendWorkerNames" checked="{{appendWorkerNames}}">
 								</div>
-								<p class="help-block">{{appendWorkerNamesHelp}}</p>
+								<p class="help-block"
+									data-i18n="addPoolPopup.appendWorkerNamesHelp">If selected, the worker name will be
+										appended to the pool username with the worker name separator.</p>
 							</div>
 						</div>
 
 						<div class="form-group">
-							<label class="col-md-4 control-label" for="workerNameSeparator">{{workerNameSeparatorLabel}}</label>
+							<label class="col-md-4 control-label" for="workerNameSeparator"
+								data-i18n="addPoolPopup.workerNameSeparatorLabel">Worker
+									name separator</label>
 							<div class="col-md-8">
 								<input type="text" id="workerNameSeparatorField"
-									class="form-control" placeholder="{{workerNameSeparatorPlaceholder}}" name="workerNameSeparator"
-									value='{{workerNameSeparator}}'>
-								<p class="help-block">{{workerNameSeparatorHelp}}</p>
+									class="form-control"
+									data-i18n="[placeholder]addPoolPopup.workerNameSeparatorPlaceholder"
+									name="workerNameSeparator" value='{{workerNameSeparator}}'>
+								<p class="help-block"
+									data-i18n="addPoolPopup.workerNameSeparatorHelp"></p>
 							</div>
 						</div>
 
 						<div class="form-group">
-							<label class="col-md-4 control-label" for="useWorkerPassword">{{useWorkerPasswordLabel}}</label>
+							<label class="col-md-4 control-label" for="useWorkerPassword"
+								data-i18n="addPoolPopup.useWorkerPasswordLabel">Use
+									worker password</label>
 							<div class="col-md-8">
 								<div class="checkbox">
 									<input id="useWorkerPasswordField" name="useWorkerPassword"
 										type="checkbox" checked="{{useWorkerPassword}}">
 								</div>
-								<p class="help-block">{{useWorkerPasswordHelp}}</p>
+								<p class="help-block"
+									data-i18n="addPoolPopup.useWorkerPasswordHelp">If selected, use the worker password
+										instead of the pool password.</p>
 							</div>
 						</div>
 
 					</fieldset>
 				</form>
-				<p class="help-block">* {{mandatoryFieldsLabel}}</p>
-				<p class="help-block">** {{appendWorkerNameMandatoryFieldsLabel}}</p>
-				<p class="help-block">*** {{userWorkerPaswwordMandatoryFieldsLabel}} Mandatory if "Use worker password" is
-					not enabled</p>
+				<p class="help-block">
+					<span>*&nbsp;</span><span
+						data-i18n="addPoolPopup.mandatoryFieldsLabel">Mandatory fields</span>
+				</p>
+				<p class="help-block">
+					<span>**&nbsp;</span><span
+						data-i18n="addPoolPopup.appendWorkerNameMandatoryFieldsLabel">Mandatory if "Append worker names to user name" is not enabled</span>
+				</p>
+				<p class="help-block">
+					<span>***&nbsp;</span><span
+						data-i18n="addPoolPopup.userWorkerPaswwordMandatoryFieldsLabel">Mandatory if "Use worker password" is not enabled</span>
+				</p>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default validateButton">{{addButtonLabel}}</button>
-				<button type="button" class="btn btn-default" data-dismiss="modal">{{cancelButtonLabel}}</button>
+				<button type="button" class="btn btn-default validateButton"
+					data-i18n="addPoolPopup.addButtonLabel">Add</button>
+				<button type="button" class="btn btn-default" data-dismiss="modal"
+					data-i18n="addPoolPopup.cancelButtonLabel">Cancel</button>
 			</div>
 		</div>
 	</div>

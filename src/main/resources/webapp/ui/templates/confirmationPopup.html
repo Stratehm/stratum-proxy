@@ -1,0 +1,20 @@
+<div id="confirmationModal-{{confirmationPopupId}}"
+	class="modal fade bs-example-modal-sm"
+	tabindex="-1" role="dialog">
+	<div class="modal-dialog modal-sm">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close">
+					<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+				</button>
+				<h4 class="modal-title">{{title}}</h4>
+			</div>
+			<div class="modal-body">{{message}}</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default yesButton" data-i18n="confirmationPopup.yesButtonLabel">Yes</button>
+				<button type="button" class="btn btn-default noButton" data-i18n="confirmationPopup.noButtonLabel">No</button>
+				<button type="button" class="btn btn-default cancelButton" data-i18n="confirmationPopup.cancelButtonLabel">Cancel</button>
+			</div>
+		</div>
+	</div>
+</div>

@@ -80,7 +80,15 @@
 		"addButtonLabel": "Ajouter",
 		"autoRefresh": "Rafraichissement dans __count__ seconde.",
 		"autoRefresh_plural": "Rafraichissement dans __count__ secondes.",
-		"autoRefresh_undefinite": "Rafraichissement dans -- seconde."
+		"autoRefresh_undefinite": "Rafraichissement dans -- seconde.",
+		"removePool": 
+		{
+			"keepHistoryConfirmationPopup": 
+			{
+				"title": "Conserver l'historique",
+				"message": "Voulez-vous conserver l'historique du pool __poolName__ ? Si oui, lorsque vous rajouterez un pool avec ce même nom, cet historique sera réutilisé."
+			}
+		}
 	},
 
 	"poolItem": 
@@ -135,5 +143,46 @@
 		"hashrateChartZoom1Month": "1m.",
 		"hashrateChartZoom1Year": "1a",
 		"hashrateChartZoomAll": "Tout"
+	},
+
+	"addPoolPopup": 
+	{
+		"title": "Ajouter un pool",
+		"closeButtonLabel": "Fermer",
+		"poolNameLabel": "Nom du pool",
+		"poolNamePlaceholder": "",
+		"poolNameHelp": "Le nom du pool. Si vide, utilise l'URL par défaut",
+		"poolHostLabel": "URL du pool",
+		"poolHostPlaceholder": "eu.pool.com:3333",
+		"poolHostHelp": "L'URL du pool sans stratum+tcp://",
+		"usernameLabel": "Nom d'utilisateur",
+		"usernamePlaceholder": "",
+		"usernameHelp": "",
+		"passwordLabel": "Mot de passe",
+		"passwordPlaceholder": "",
+		"passwordHelp": "",
+		"priorityLabel": "Priorité",
+		"priorityPlaceholder": "",
+		"priorityHelp": "",
+		"weightLabel": "Poids",
+		"weightPlaceholder": "",
+		"weightHelp": "",
+		"enableExtranonceSubscribeLabel": "Abonnement au changement d'extranonce",
+		"enableExtranonceSubscribeHelp": "A activer seulement si le pool est compatible (Nicehash par example).La connexion au pool peut échouer s'il n'est pas compatible.",
+		"startPoolLabel": "Démarrer le pool",
+		"startPoolHelp": "",
+		"appendWorkerNamesLabel": "Suffixer avec le nom d'utilisateur du mineur",
+		"appendWorkerNamesHelp": "Si activé, le nom d'utilisateur du pool sera suffix avec le nom d'utilisateur du mineur. Les deux noms seront séparés par le séparateur spécifié.",
+		"workerNameSeparatorLabel": "Séparateur",
+		"workerNameSeparatorPlaceholder": "",
+		"workerNameSeparatorHelp": "",
+		"useWorkerPasswordLabel": "Utiliser le mot de passe du mineur",
+		"useWorkerPassword": "",
+		"useWorkerPasswordHelp": "Si activé, le mot de passe du mineur sera utilisé à la place du mot de passe du pool.",
+		"mandatoryFieldsLabel": "Obligatoire",
+		"appendWorkerNameMandatoryFieldsLabel": "Obligatoire si \"Suffixer avec le nom d'utilisateur du mineur\" n'est pas activé",
+		"userWorkerPaswwordMandatoryFieldsLabel": "Obligatoire si \"Utiliser le mot de passe du mineur\" n'est pas activé",
+		"addButtonLabel": "Ajouter",
+		"cancelButtonLabel": "Annuler"
 	}
 }
