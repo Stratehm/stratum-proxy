@@ -1,0 +1,165 @@
+<div id="editPoolModal" class="modal fade" tabindex="-1" role="dialog">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">
+					<span aria-hidden="true">&times;</span><span class="sr-only"
+						data-i18n="editPoolPopup.closeButtonLabel">Close</span>
+				</button>
+				<h4 class="modal-title" data-i18n="editPoolPopup.title">Edit
+					pool</h4>
+			</div>
+			<div class="modal-body">
+				<form class="form-horizontal">
+					<fieldset>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="poolHost"><span
+								data-i18n="editPoolPopup.poolHostLabel">Pool URL</span><span>&nbsp;*</span></label>
+							<div class="col-md-8">
+								<input id="poolHostField" name="poolHost"
+									data-i18n="[placeholder]editPoolPopup.poolHostPlaceholder"
+									class="form-control input-md" required="" type="text"
+									value="{{poolHost}}" placeholder="eu.pool.com:3333"> <span
+									class="help-block" data-i18n="editPoolPopup.poolHostHelp">The
+									URL of the pool without stratum+tcp://</span>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="username"><span
+								data-i18n="editPoolPopup.usernameLabel">User name</span><span>&nbsp;*&nbsp;**</span></label>
+							<div class="col-md-8">
+								<input id="usernameField" name="username"
+									data-i18n="[placeholder]editPoolPopup.usernamePlaceholder"
+									class="form-control input-md" required="" type="text"
+									value="{{username}}"> <span class="help-block"
+									data-i18n="editPoolPopup.usernameHelp"></span>
+
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="password"><span
+								data-i18n="editPoolPopup.passwordLabel">Password</span> <span>&nbsp;*&nbsp;***</span></label>
+							<div class="col-md-8">
+								<input id="passwordField" name="password"
+									data-i18n="[placeholder]editPoolPopup.passwordPlaceholder"
+									class="form-control input-md" required="" type="text"
+									value="{{password}}"> <span class="help-block"
+									data-i18n="editPoolPopup.passwordHelp"></span>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="priority"
+								data-i18n="editPoolPopup.priorityLabel">Priority</label>
+							<div class="col-md-8">
+								<input id="priorityField" name="priority"
+									data-i18n="[placeholder]editPoolPopup.priorityPlaceholder"
+									class="form-control input-md" type="text" value="{{priority}}"><span
+									class="help-block" data-i18n="editPoolPopup.priorityHelp"></span>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="priority"
+								data-i18n="editPoolPopup.weightLabel">Weight</label>
+							<div class="col-md-8">
+								<input id="weightField" name="weight"
+									data-i18n="[placeholder]editPoolPopup.weightPlaceholder"
+									class="form-control input-md" type="text" value="{{weight}}">
+								<span class="help-block" data-i18n="editPoolPopup.weightHelp"></span>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label"
+								for="enableExtranonceSubscribe"><span
+								data-i18n="editPoolPopup.enableExtranonceSubscribeLabel">Enable
+									extranonce subscribe</span><span>&nbsp;*</span></label>
+							<div class="col-md-8">
+								<div class="checkbox">
+									<input type="checkbox" id="enableExtranonceSubscribeField"
+										name="enableExtranonceSubscribe"
+										checked="{{enableExtranonceSubscribe}}">
+								</div>
+								<p class="help-block"
+									data-i18n="editPoolPopup.enableExtranonceSubscribeHelp">Only
+									enable with compatible pools like Nicehash. Pool may not
+									connect if not compatible.</p>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="appendWorkerNames"><span
+								data-i18n="editPoolPopup.appendWorkerNamesLabel">Append
+									worker names to user name</span><span>&nbsp;*</span></label>
+							<div class="col-md-8">
+								<div class="checkbox">
+									<input type="checkbox" id="appendWorkerNamesField"
+										name="appendWorkerNames" checked="{{appendWorkerNames}}">
+								</div>
+								<p class="help-block"
+									data-i18n="editPoolPopup.appendWorkerNamesHelp">If
+									selected, the worker name will be appended to the pool username
+									with the worker name separator.</p>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="workerNameSeparator"
+								data-i18n="editPoolPopup.workerNameSeparatorLabel">Worker
+								name separator</label>
+							<div class="col-md-8">
+								<input type="text" id="workerNameSeparatorField"
+									class="form-control"
+									data-i18n="[placeholder]editPoolPopup.workerNameSeparatorPlaceholder"
+									name="workerNameSeparator" value='{{workerNameSeparator}}'>
+								<p class="help-block"
+									data-i18n="editPoolPopup.workerNameSeparatorHelp"></p>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="useWorkerPassword"
+								data-i18n="editPoolPopup.useWorkerPasswordLabel">Use
+								worker password</label>
+							<div class="col-md-8">
+								<div class="checkbox">
+									<input id="useWorkerPasswordField" name="useWorkerPassword"
+										type="checkbox" checked="{{useWorkerPassword}}">
+								</div>
+								<p class="help-block"
+									data-i18n="editPoolPopup.useWorkerPasswordHelp">If
+									selected, use the worker password instead of the pool password.</p>
+							</div>
+						</div>
+
+					</fieldset>
+				</form>
+				<p class="help-block">
+					<span>*&nbsp;</span><span
+						data-i18n="editPoolPopup.mandatoryFieldsLabel">If modified,
+						the pool will restart to apply the new setting.</span>
+				</p>
+				<p class="help-block">
+					<span>**&nbsp;</span><span
+						data-i18n="editPoolPopup.appendWorkerNameMandatoryFieldsLabel">Mandatory
+						if "Append worker names to user name" is not enabled</span>
+				</p>
+				<p class="help-block">
+					<span>***&nbsp;</span><span
+						data-i18n="editPoolPopup.userWorkerPaswwordMandatoryFieldsLabel">Mandatory
+						if "Use worker password" is not enabled</span>
+				</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default validateButton"
+					data-i18n="editPoolPopup.validateButtonLabel">Update</button>
+				<button type="button" class="btn btn-default" data-dismiss="modal"
+					data-i18n="editPoolPopup.cancelButtonLabel">Cancel</button>
+			</div>
+		</div>
+	</div>
+</div>

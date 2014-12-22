@@ -1008,7 +1008,7 @@ public class Pool {
 
 	public void setAppendWorkerNames(boolean isAppendWorkerNames) {
 		if (isReady) {
-			throw new IllegalStateException("The pool is ready. Stop the pool before updating the extranonceSubscribeEnabled.");
+			throw new IllegalStateException("The pool is ready. Stop the pool before updating the appendWorkerNames.");
 		}
 		this.isAppendWorkerNames = isAppendWorkerNames;
 	}

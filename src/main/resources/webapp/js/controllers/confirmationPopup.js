@@ -1,5 +1,5 @@
-define(['jquery', 'ractivejs', 'rv!templates/confirmationPopup', 'i18n!locales'], function($, Ractive, template,
-	i18next) {
+define(['jquery', 'ractivejs', 'rv!templates/confirmationPopup', 'i18n!locales'], function($, Ractive,
+	template, i18next) {
 
     var defaultOptions = {
 	displayYesButton: true,
@@ -20,9 +20,7 @@ define(['jquery', 'ractivejs', 'rv!templates/confirmationPopup', 'i18n!locales']
 
     var ConfirmationPopup = function(options) {
 	var confirmationPopupId = ConfirmationPopup.nextConfirmationPopupId++;
-	var opts = {};
-	$.extend(opts, defaultOptions);
-	$.extend(opts, options);
+	var opts = $.extend({}, defaultOptions, options);
 
 	this.ractive = new Ractive({
 	    el: opts.targetElement,
@@ -38,23 +36,22 @@ define(['jquery', 'ractivejs', 'rv!templates/confirmationPopup', 'i18n!locales']
 	    keyboard: true,
 	    backdrop: true
 	});
-	
+
 	this.yesButton = this.popupJquery.find('.yesButton');
 	this.noButton = this.popupJquery.find('.noButton');
-	this.cancelButton = this.popupJquery.find('.cancelButton') 
-	
-	if(!opts.displayYesButton) {
+	this.cancelButton = this.popupJquery.find('.cancelButton')
+
+	if (!opts.displayYesButton) {
 	    this.yesButton.hide();
 	}
-	
-	if(!opts.displayNoButton) {
+
+	if (!opts.displayNoButton) {
 	    this.noButton.hide();
 	}
-	
-	if(!opts.displayCancelButton) {
+
+	if (!opts.displayCancelButton) {
 	    this.cancelButton.hide();
 	}
-	
 
 	this.yesButton.find('.yesButton').click($.proxy(function() {
 	    this.result = opts.yesResultValue;

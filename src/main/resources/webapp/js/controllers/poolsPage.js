@@ -1,9 +1,9 @@
 define(
 	['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templates/poolsPage',
 		'i18n!locales', 'config', 'controllers/poolItem', 'controllers/addPoolPopup',
-		'controllers/confirmationPopup', 'json', 'sort'],
+		'controllers/confirmationPopup', 'controllers/editPoolPopup', 'json', 'sort'],
 	function($, Ractive, AbstractPageController, template, i18next, config, PoolItem, AddPoolPopup,
-		ConfirmationPopup) {
+		ConfirmationPopup, EditPoolPopup) {
 
 	    var PoolsPageController = function(pageName) {
 		AbstractPageController.call(this, pageName);
@@ -205,84 +205,9 @@ define(
 	     * @param poolName
 	     */
 	    PoolsPageController.prototype.openEditPool = function(poolName) {
-		var controller = this, pool;
+		var pool = this.getPoolItemFromName(poolName).pool;
 
-		pool = controller.getPoolItemFromName(poolName).pool;
-
-		var modal = $('#editPoolModal').modal({
-		    keyboard: true,
-		    backdrop: 'static'
-		}), controller = this;
-		modal.find('.modal-title').text('Edit the pool ' + pool.name);
-
-		// Initialize fields
-		modal.find('#poolHostField').val(pool.host);
-		modal.find('#usernameField').val(pool.username);
-		modal.find('#passwordField').val(pool.password);
-		modal.find('#priorityField').val(pool.priority);
-		modal.find('#weightField').val(pool.weight);
-		modal.find('#enableExtranonceSubscribeField').prop('checked',
-			pool.isExtranonceSubscribeEnabled);
-		modal.find('#appendWorkerNamesField').prop('checked', pool.appendWorkerNames);
-		modal.find('#workerNameSeparatorField').val(pool.workerNamesSeparator);
-		modal.find('#useWorkerPasswordField').prop('checked', pool.useWorkerPassword);
-
-		modal
-			.find('.validateButton')
-			.off('click')
-			.click(
-				function() {
-
-				    var poolHost = modal.find('#poolHostField').val(), username = modal.find(
-					    '#usernameField').val(), password = modal.find('#passwordField')
-					    .val(), priority = modal.find('#priorityField').val(), weight = modal
-					    .find('#weightField').val(), enableExtranonceSubscribe = modal
-					    .find('#enableExtranonceSubscribeField').is(':checked'), appendWorkerNames = modal
-					    .find('#appendWorkerNamesField').is(':checked'), workerNameSeparator = modal
-					    .find('#workerNameSeparatorField').val(), useWorkerPassword = modal
-					    .find('#useWorkerPasswordField').is(':checked');
-
-				    modal.modal('hide');
-				    $.ajax({
-					url: '/proxy/pool/update',
-					dataType: "json",
-					type: "POST",
-					data: JSON.stringify({
-					    poolName: pool.name,
-					    poolHost: poolHost,
-					    username: username,
-					    password: password,
-					    priority: priority,
-					    weight: weight,
-					    enableExtranonceSubscribe: enableExtranonceSubscribe,
-					    appendWorkerNames: appendWorkerNames,
-					    workerNameSeparator: workerNameSeparator,
-					    useWorkerPassword: useWorkerPassword
-					}),
-					contentType: "application/json",
-					success: function(data) {
-					    // When priority is set, refresh the
-					    // list.
-					    if (data.status == 'Failed') {
-						window.alert('Failed to update the pool. Message: '
-							+ data.message);
-					    } else if (data.status == 'PartiallyDone') {
-						window.alert('Pool updated but not started. Message: '
-							+ data.message);
-						controller.refresh();
-					    } else {
-						controller.refresh();
-					    }
-					},
-					error: function(request, textStatus, errorThrown) {
-					    var jsonObject = JSON.parse(request.responseText);
-					    window.alert('Failed to update the pool. Status: ' + textStatus
-						    + ', error: ' + errorThrown + ', message: '
-						    + jsonObject.message);
-					}
-				    });
-				});
-
+		var modal = new EditPoolPopup(pool, this);
 	    };
 
 	    /**
@@ -329,7 +254,7 @@ define(
 	     */
 	    PoolsPageController.prototype.removePool = function(poolName) {
 		var controller = this;
-		
+
 		var removePoolFunction = function(result) {
 		    $.ajax({
 			url: '/proxy/pool/remove',
@@ -355,7 +280,7 @@ define(
 			}
 		    });
 		};
-		
+
 		var modal = new ConfirmationPopup({
 		    title: i18next.t('poolsPage.removePool.keepHistoryConfirmationPopup.title'),
 		    message: i18next.t('poolsPage.removePool.keepHistoryConfirmationPopup.message', {

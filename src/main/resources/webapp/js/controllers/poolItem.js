@@ -13,7 +13,7 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config'
 	this.poolItemJquery = $('#poolItem-' + poolItemId);
 
 	this.poolItemJquery.i18n();
-	
+
 	var self = this;
 	document.addEventListener('localeChanged', function() {
 	    self.reloadChartData(false, true);

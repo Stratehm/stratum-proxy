@@ -32,7 +32,7 @@ define(['jquery'], function() {
     PageController.prototype.refresh = function() {
 	// Do nothing. Will be implemented by sub-classes
     };
-    
+
     PageController.prototype.getContainer = function() {
 	return $('#' + this.pageName);
     };

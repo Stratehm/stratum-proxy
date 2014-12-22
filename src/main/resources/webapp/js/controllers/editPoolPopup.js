@@ -1,32 +1,38 @@
-define(['jquery', 'ractivejs', 'rv!templates/addPoolPopup', 'i18n!locales', 'bootstrap', 'json'], function($,
-	Ractive, template, i18next) {
+define(['jquery', 'ractivejs', 'rv!templates/editPoolPopup', 'i18n!locales', 'bootstrap', 'json'], function(
+	$, Ractive, template, i18next) {
 
-    var AddPoolPopup = function(parentController, parentElement) {
+    var EditPoolPopup = function(pool, parentController, parentElement) {
 	this.parentController = parentController;
+	var newPool = $.extend({}, pool);
 
 	this.ractive = new Ractive({
 	    el: parentElement ? parentElement : $('body'),
 	    template: template,
-	    data: {
-		isEnabled: true,
-		workerNameSeparator: '.'
-	    }
+	    data: newPool
 	});
 
-	this.popup = $('#addPoolModal').modal({
+	this.ractive.set(newPool);
+
+	this.popup = $('#editPoolModal').modal({
 	    keyboard: true,
 	    backdrop: 'static'
 	});
 	this.popup.find('.validateButton').off('click').click($.proxy(validate, this));
 
-	this.popup.i18n();
-    }
+	this.popup.i18n({
+	    poolName: newPool.name
+	});
+
+	this.modal.find('.validateButton').click();
+
+    };
 
     function validate() {
 	var thisController = this;
+	this.modal.modal('hide');
 
 	$.ajax({
-	    url: '/proxy/pool/add',
+	    url: '/proxy/pool/update',
 	    dataType: "json",
 	    type: "POST",
 	    data: JSON.stringify(thisController.ractive.get()),
@@ -39,10 +45,10 @@ define(['jquery', 'ractivejs', 'rv!templates/addPoolPopup', 'i18n!locales', 'boo
 
     function onSuccess(data) {
 	if (data.status == 'Failed') {
-	    window.alert('Failed to add the pool. Message: ' + data.message);
+	    window.alert('Failed to update the pool. Message: ' + data.message);
 	} else {
 	    if (data.status == 'PartiallyDone') {
-		window.alert('Pool added but not started. Message: ' + data.message);
+		window.alert('Pool updated but not started. Message: ' + data.message);
 	    }
 
 	    if (this.parentController != undefined && this.parentController.refresh != undefined) {
@@ -54,11 +60,10 @@ define(['jquery', 'ractivejs', 'rv!templates/addPoolPopup', 'i18n!locales', 'boo
 
     function onError(request, textStatus, errorThrown) {
 	var jsonObject = JSON.parse(request.responseText);
-	window.alert('Failed to add the pool. Status: ' + textStatus + ', error: ' + errorThrown
+	window.alert('Failed to update the pool. Status: ' + textStatus + ', error: ' + errorThrown
 		+ ', message: ' + jsonObject.message);
 	this.popup.modal('hide');
     }
 
-    return AddPoolPopup;
-
+    return EditPoolPopup;
 });
