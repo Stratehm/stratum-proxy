@@ -132,17 +132,20 @@
 		"noWorkerExtranonce2Size": "Not set",
 		"noLastStopCause": "Never stopped",
 		"noLastStopDate": "Never stopped",
-		"hashrateChartTitle": "Hashrate",
-		"hashrateChartXAxisTitle": "Date",
-		"hashrateChartYAxisTitle": "Hashrate",
-		"hashrateChartTooltipAcceptedHashrate": "Accepted",
-		"hashrateChartTooltipRejectedHashrate": "Rejected",
-		"hashrateChartZoom1Hour": "1h",
-		"hashrateChartZoom1Day": "1d",
-		"hashrateChartZoom1Week": "1w",
-		"hashrateChartZoom1Month": "1m",
-		"hashrateChartZoom1Year": "1y",
-		"hashrateChartZoomAll": "All"
+		"chart": 
+		{
+			"title": "Hashrate",
+			"xAxisTitle": "Date",
+			"yAxisTitle": "Hashrate",
+			"tooltipAcceptedHashrate": "Accepted",
+			"tooltipRejectedHashrate": "Rejected",
+			"zoom1Hour": "1h",
+			"zoom1Day": "1d",
+			"zoom1Week": "1w",
+			"zoom1Month": "1m",
+			"zoom1Year": "1y",
+			"zoomAll": "All"
+		}
 	},
 
 	"addPoolPopup": 
@@ -220,5 +223,39 @@
 		"userWorkerPaswwordMandatoryFieldsLabel": "Mandatory if \"Use worker password\" is not enabled",
 		"validateButtonLabel": "Update",
 		"cancelButtonLabel": "Cancel"
+	},
+
+	"usersPage": 
+	{
+		"title": "User list",
+		"refreshButtonLabel": "Refresh",
+		"autoRefresh": "Auto refresh in __count__ second.",
+		"autoRefresh_plural": "Auto refresh in __count__ seconds.",
+		"autoRefresh_undefinite": "Auto refresh in -- second."
+	},
+
+	"userItem": 
+	{
+		"firstConnectionDateLabel": "First connection date",
+		"lastShareSubmittedLabel": "Last share submitted",
+		"acceptedHashrateLabel": "Accepted hashrate",
+		"rejectedHashrateLabel": "Rejected hashrate",
+		"numberOfConnectionsLabel": "Number of connections",
+		"kickButtonLabel": "Kick",
+		"banButtonLabel": "Ban",
+		"chart": 
+		{
+			"title": "Hashrate",
+			"xAxisTitle": "Date",
+			"yAxisTitle": "Hashrate",
+			"tooltipAcceptedHashrate": "Accepted",
+			"tooltipRejectedHashrate": "Rejected",
+			"zoom1Hour": "1h",
+			"zoom1Day": "1d",
+			"zoom1Week": "1w",
+			"zoom1Month": "1m",
+			"zoom1Year": "1y",
+			"zoomAll": "All"
+		}
 	}
 }

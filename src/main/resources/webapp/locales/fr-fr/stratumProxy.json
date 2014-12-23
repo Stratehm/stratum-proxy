@@ -132,17 +132,20 @@
 		"noWorkerExtranonce2Size": "Non défini",
 		"noLastStopCause": "Jamais arrêté",
 		"noLastStopDate": "Jamais arrêté",
-		"hashrateChartTitle": "Puissance de calcul",
-		"hashrateChartXAxisTitle": "Date",
-		"hashrateChartYAxisTitle": "Puissance de calcul",
-		"hashrateChartTooltipAcceptedHashrate": "Accepté",
-		"hashrateChartTooltipRejectedHashrate": "Rejeté",
-		"hashrateChartZoom1Hour": "1h",
-		"hashrateChartZoom1Day": "1j",
-		"hashrateChartZoom1Week": "1sem.",
-		"hashrateChartZoom1Month": "1m.",
-		"hashrateChartZoom1Year": "1a",
-		"hashrateChartZoomAll": "Tout"
+		"chart": 
+		{
+			"title": "Puissance de calcul",
+			"xAxisTitle": "Date",
+			"yAxisTitle": "Puissance de calcul",
+			"tooltipAcceptedHashrate": "Accepté",
+			"tooltipRejectedHashrate": "Rejeté",
+			"zoom1Hour": "1h",
+			"zoom1Day": "1j",
+			"zoom1Week": "1sem.",
+			"zoom1Month": "1m.",
+			"zoom1Year": "1a",
+			"zoomAll": "Tout"
+		}
 	},
 
 	"addPoolPopup": 
@@ -220,5 +223,39 @@
 		"userWorkerPaswwordMandatoryFieldsLabel": "Obligatoire si \"Utiliser le mot de passe du mineur\" n'est pas activé",
 		"validateButtonLabel": "Mettre à jour",
 		"cancelButtonLabel": "Annuler"
+	},
+
+	"usersPage": 
+	{
+		"title": "Liste d'utilisateurs",
+		"refreshButtonLabel": "Rafraichir",
+		"autoRefresh": "Rafraichissement dans __count__ seconde.",
+		"autoRefresh_plural": "Rafraichissement dans __count__ secondes.",
+		"autoRefresh_undefinite": "Rafraichissement dans -- seconde."
+	},
+
+	"userItem": 
+	{
+		"firstConnectionDateLabel": "Date de première connexion",
+		"lastShareSubmittedLabel": "Dernier share soumis",
+		"acceptedHashrateLabel": "Puissance de calcul acceptée",
+		"rejectedHashrateLabel": "Puissance de calcul rejetée",
+		"numberOfConnectionsLabel": "Nombre de connections",
+		"kickButtonLabel": "Déconnecter",
+		"banButtonLabel": "Bannir",
+		"chart": 
+		{
+			"title": "Puissance de calcul",
+			"xAxisTitle": "Date",
+			"yAxisTitle": "Puissance de calcul",
+			"tooltipAcceptedHashrate": "Accepté",
+			"tooltipRejectedHashrate": "Rejeté",
+			"zoom1Hour": "1h",
+			"zoom1Day": "1j",
+			"zoom1Week": "1sem.",
+			"zoom1Month": "1m.",
+			"zoom1Year": "1a",
+			"zoomAll": "Tout"
+		}
 	}
 }

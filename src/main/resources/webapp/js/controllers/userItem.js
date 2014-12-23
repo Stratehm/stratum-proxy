@@ -1,18 +1,18 @@
-define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config', 'highstock'], function($,
+define(['jquery', 'ractivejs', 'rv!templates/userItem', 'i18n!locales', 'config', 'highstock'], function($,
 	Ractive, template, i18next, config) {
 
-    var PoolItem = function(renderToElement) {
-	var poolItemId = PoolItem.nextPoolItemId++;
+    var UserItem = function(renderToElement) {
+	var userItemId = UserItem.nextUserItemId++;
 	this.ractive = new Ractive({
 	    el: renderToElement,
 	    template: template,
 	    data: {
-		poolItemId: poolItemId
+		userItemId: userItemId
 	    }
 	});
-	this.poolItemJquery = $('#poolItem-' + poolItemId);
+	this.userItemJquery = $('#userItem-' + userItemId);
 
-	this.poolItemJquery.i18n();
+	this.userItemJquery.i18n();
 
 	var self = this;
 	document.addEventListener('localeChanged', function() {
@@ -20,14 +20,14 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config'
 	}, false);
     };
 
-    PoolItem.nextPoolItemId = 0;
+    UserItem.nextUserItemId = 0;
 
-    PoolItem.prototype.setPool = function(pool) {
+    UserItem.prototype.setUser = function(user) {
 	// Update the values in the panel
-	this.updatePool(pool);
+	this.updateUser(user);
 
 	// Initialize a tooltip when the text overflows
-	this.poolItemJquery.find('.tooltipOnOverflow').bind('mouseenter', function() {
+	this.userItemJquery.find('.tooltipOnOverflow').bind('mouseenter', function() {
 	    var $this = $(this);
 	    if (this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
 		$this.attr('title', $this.text());
@@ -38,12 +38,12 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config'
 	this.reloadChartData(false);
     };
 
-    PoolItem.prototype.initChart = function() {
+    UserItem.prototype.initChart = function() {
 	// Remove the loader
-	this.poolItemJquery.find(".hashrateChart").empty();
+	this.userItemJquery.find(".hashrateChart").empty();
 
 	// Create the chart
-	this.poolItemJquery.find(".hashrateChart").highcharts('StockChart', {
+	this.userItemJquery.find(".hashrateChart").highcharts('StockChart', {
 	    chart: {
 		zoomType: 'x'
 	    },
@@ -53,26 +53,26 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config'
 		buttons: [{
 		    type: 'hour',
 		    count: 1,
-		    text: i18next.t('poolItem.chart.zoom1Hour')
+		    text: i18next.t('userItem.chart.zoom1Hour')
 		}, {
 		    type: 'day',
 		    count: 1,
-		    text: i18next.t('poolItem.chart.zoom1Day')
+		    text: i18next.t('userItem.chart.zoom1Day')
 		}, {
 		    type: 'week',
 		    count: 1,
-		    text: i18next.t('poolItem.chart.zoom1Week')
+		    text: i18next.t('userItem.chart.zoom1Week')
 		}, {
 		    type: 'month',
 		    count: 1,
-		    text: i18next.t('poolItem.chart.zoom1Month')
+		    text: i18next.t('userItem.chart.zoom1Month')
 		}, {
 		    type: 'year',
 		    count: 1,
-		    text: i18next.t('poolItem.chart.zoom1Year')
+		    text: i18next.t('userItem.chart.zoom1Year')
 		}, {
 		    type: 'all',
-		    text: i18next.t('poolItem.chart.zoomAll')
+		    text: i18next.t('userItem.chart.zoomAll')
 		}]
 	    },
 	    navigator: {
@@ -82,12 +82,12 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config'
 		enabled: false
 	    },
 	    title: {
-		text: i18next.t('poolItem.chart.title')
+		text: i18next.t('userItem.chart.title')
 	    },
 	    xAxis: {
 		type: 'datetime',
 		title: {
-		    text: i18next.t('poolItem.chart.xAxisTitle')
+		    text: i18next.t('userItem.chart.xAxisTitle')
 		},
 		ordinal: false
 	    },
@@ -100,7 +100,7 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config'
 		linkedTo: 0,
 		opposite: false,
 		title: {
-		    text: i18next.t('poolItem.chart.yAxisTitle')
+		    text: i18next.t('userItem.chart.yAxisTitle')
 		}
 	    }],
 	    tooltip: {
@@ -117,8 +117,7 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config'
 			x: xPos,
 			y: yPos
 		    };
-		},
-		xDateFormat: '%A, %b %d, %H:%M'
+		}
 	    },
 	    plotOptions: {
 		area: {
@@ -130,69 +129,50 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config'
 		}
 	    },
 	    series: [{
-		name: i18next.t('poolItem.chart.tooltipAcceptedHashrate'),
+		name: i18next.t('userItem.chart.tooltipAcceptedHashrate'),
 		type: 'area'
 	    }, {
-		name: i18next.t('poolItem.chart.tooltipRejectedHashrate'),
+		name: i18next.t('userItem.chart.tooltipRejectedHashrate'),
 		type: 'area'
 	    }]
 	});
 
-	// Associate the chart with the poolItem
-	this.chart = this.poolItemJquery.find(".hashrateChart").highcharts();
+	// Associate the chart with the UserItem
+	this.chart = this.userItemJquery.find(".hashrateChart").highcharts();
     };
 
-    PoolItem.prototype.updatePool = function(pool) {
-	this.pool = pool;
+    UserItem.prototype.updateUser = function(user) {
+	this.user = user;
 
-	// The the pool values
-	this.ractive.set(pool);
-
-	// Associate the pool priority to the jQuery object to allow
-	// sorting of
-	// pools.
-	this.poolItemJquery.data('priority', pool.priority);
-
-	// Apply the color of the panel header based on the pool status
-	// By default, the color is white (panel-default). This color is
-	// the disabled pool color.
+	// Apply the color of the panel header based on the user status
+	// By default, the color is white (panel-default). This color is the
+	// inactive user color.
 	var panelHeaderLevel = 'panel-default';
-	if (pool.isEnabled) {
-	    if (!pool.isReady) {
-		panelHeaderLevel = 'panel-danger';
-	    } else {
-		if (pool.isActive) {
-		    panelHeaderLevel = 'panel-primary';
-		} else {
-		    if (!pool.isStable) {
-			panelHeaderLevel = 'panel-warning';
-		    } else {
-			panelHeaderLevel = 'panel-success';
-		    }
-		}
-	    }
+	if (user.connections == null || user.connections.length < 1) {
+	    user.isActive = false;
+	    panelHeaderLevel = 'panel-danger';
+	} else {
+	    user.isActive = true;
+	    panelHeaderLevel = 'panel-success';
 	}
-	this.ractive.set('panelHeaderLevel', panelHeaderLevel);
+
+	this.ractive.set(user);
+	this.ractive.set({
+	    panelHeaderLevel: panelHeaderLevel
+	});
+
     };
 
-    PoolItem.prototype.remove = function() {
-	this.poolItemJquery.remove();
+    UserItem.prototype.remove = function() {
+	this.userItemJquery.remove();
     };
 
-    PoolItem.prototype.getEditButton = function() {
-	return this.poolItemJquery.find(".edit");
+    UserItem.prototype.getKickButton = function() {
+	return this.userItemJquery.find(".kickUser");
     };
 
-    PoolItem.prototype.getSetHighestPriorityButton = function() {
-	return this.poolItemJquery.find(".setHighestPriority");
-    };
-
-    PoolItem.prototype.getEnableDisableButton = function() {
-	return this.poolItemJquery.find(".enableDisable");
-    };
-
-    PoolItem.prototype.getRemoveButton = function() {
-	return this.poolItemJquery.find(".remove");
+    UserItem.prototype.getBanButton = function() {
+	return this.userItemJquery.find(".banUser");
     };
 
     /**
@@ -200,36 +180,36 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config'
      * the graph with new data. Else replace all data. If redraw is true, redraw
      * the chart.
      */
-    PoolItem.prototype.reloadChartData = function(isUpdate, redraw) {
-	var poolItem = this;
+    UserItem.prototype.reloadChartData = function(isUpdate, redraw) {
+	var userItem = this;
 	$.ajax({
-	    url: "/proxy/hashrate/pool",
+	    url: "/proxy/hashrate/user",
 	    dataType: "json",
 	    type: "POST",
 	    data: JSON.stringify({
-		poolName: this.pool.name
+		username: this.user.name
 	    }),
 	    contentType: "application/json",
 	    success: function(data) {
-		// When pools are retrieved, create the items
+		// When users hashrates are retrieved, create the graph
 		if (data != undefined && data.hashrates != undefined) {
 		    // Initialize the chart if not already done.
-		    if (poolItem.chart == undefined || redraw) {
-			poolItem.initChart();
+		    if (userItem.chart == undefined || redraw) {
+			userItem.initChart();
 		    }
 
 		    // If it is not an update, load the full data
 		    if (!isUpdate) {
-			poolItem.setHashrateChartData(data.hashrates);
+			userItem.setHashrateChartData(data.hashrates);
 		    } else {
-			// If it is an update, only append the missing data.
-			poolItem.updateHashrateChartData(data.hashrates);
+			// If it is an update, only happen the missing data.
+			userItem.updateHashrateChartData(data.hashrates);
 		    }
 		}
 	    },
 	    error: function(request, textStatus, errorThrown) {
 		var jsonObject = JSON.parse(request.responseText);
-		window.alert('Failed to get hashrates for pool ' + poolItem.pool.name + '. Status: '
+		window.alert('Failed to get hashrates for user ' + userItem.user.name + '. Status: '
 			+ textStatus + ', error: ' + errorThrown + ', message: ' + jsonObject.message);
 	    }
 	});
@@ -238,7 +218,7 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config'
     /**
      * Set the given hashrates in the chart. Replace all existing data.
      */
-    PoolItem.prototype.setHashrateChartData = function(hashrates) {
+    UserItem.prototype.setHashrateChartData = function(hashrates) {
 	var acceptedData = new Array();
 	var rejectedData = new Array();
 
@@ -264,7 +244,7 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config'
      * Merge the given hashrates with the ones already present in the graph.
      * Just happens the new ones.
      */
-    PoolItem.prototype.updateHashrateChartData = function(hashrates) {
+    UserItem.prototype.updateHashrateChartData = function(hashrates) {
 
 	var maxTime = this.chart.xAxis[0].getExtremes().dataMax;
 	// Check all newest values and add them if they are
@@ -281,5 +261,5 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config'
 	}
     };
 
-    return PoolItem;
+    return UserItem;
 });
