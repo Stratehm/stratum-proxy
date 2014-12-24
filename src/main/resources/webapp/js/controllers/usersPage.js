@@ -30,8 +30,8 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 	    contentType: "application/json",
 	    success: function(data) {
 		// When users are retrieved, create the items
-		data.forEach(function(pool) {
-		    controller.addUserInPage(pool);
+		data.forEach(function(user) {
+		    controller.addUserInPage(user);
 		});
 
 		controller.startAutoRefresh();
@@ -45,7 +45,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 	});
 
 	// Initialize the auto-refresh countdown
-	this.getContainer().find('.autoRefreshCountDown').text(i18next.t('poolsPage.autoRefresh', {
+	this.getContainer().find('.autoRefreshCountDown').text(i18next.t('usersPage.autoRefresh', {
 	    count: 1,
 	    indefinite_article: true
 	}));
@@ -53,7 +53,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
     };
 
     UsersPageController.prototype.onUnload = function() {
-	// Clear all pools.
+	// Clear all users.
 	this.items.forEach(function(item) {
 	    item.remove();
 	});
@@ -117,7 +117,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 		controller.items.forEach(function(userItem) {
 		    // Look for the user of the userItem in the received users.
 		    var user = data.find(function(user) {
-			return user.name == poolItem.user.name;
+			return user.name == userItem.user.name;
 		    });
 		    // If the user is not in the received users, then delete it.
 		    if (user == null) {
@@ -130,14 +130,16 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 		// and if they are active.
 		controller.getContainer().find('.userItem').sort(function(a, b) {
 		    var result = 0;
-		    if ($(a).data('isActive') && !$(b).data('isActive')) {
+		    var aUser = $(a).data('user');
+		    var bUser = $(b).data('user');
+		    if (aUser.isActive && !bUser.isActive) {
 			result = -1;
-		    } else if (!$(a).data('isActive') && $(b).data('isActive')) {
+		    } else if (!aUser.isActive && bUser.isActive) {
 			result = 1;
 		    } else {
-			if ($(a).data('name') < $(b).data('name')) {
+			if (aUser.name < $bUser.name) {
 			    result = -1;
-			} else if ($(a).data('name') > $(b).data('name')) {
+			} else if (aUser.name > bUser.name) {
 			    result = 1;
 			} else {
 			    result = 0;
@@ -232,7 +234,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 	// Update the auto-refresh countdown
 	var autoRefreshCountDown = this.getContainer().find('.autoRefreshCountDown');
 	i18next.t('autoRefresh');
-	autoRefreshCountDown.text(i18next.t('poolsPage.autoRefresh', {
+	autoRefreshCountDown.text(i18next.t('usersPage.autoRefresh', {
 	    count: 1,
 	    indefinite_article: true
 	}));

@@ -160,7 +160,8 @@ define(['jquery', 'ractivejs', 'rv!templates/userItem', 'i18n!locales', 'config'
 	this.ractive.set({
 	    panelHeaderLevel: panelHeaderLevel
 	});
-
+	
+	this.userItemJquery.data('user', user);
     };
 
     UserItem.prototype.remove = function() {
