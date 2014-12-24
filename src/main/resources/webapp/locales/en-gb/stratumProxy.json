@@ -257,5 +257,17 @@
 			"zoom1Year": "1y",
 			"zoomAll": "All"
 		}
+	},
+	
+	"logsPage": {
+		"title": "Logs",
+		"traceLevel": "TRACE",
+		"debugLevel": "DEBUG",
+		"infoLevel": "INFO",
+		"warnLevel": "WARN",
+		"errorLevel": "ERROR",
+		"fatalLevel": "FATAL",
+		"offLevel": "OFF",
+		"autoScrollLabel": "Enable auto scroll"
 	}
 }

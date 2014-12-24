@@ -1,25 +1,30 @@
-<div id="logsPage" class="container" style="display: none;">
+<div id="logsPage" class="container">
 	<div class="container container-sm-height">
 		<div class="row row-sm-height">
 			<div class="col-sm-3 col-sm-height col-middle">
-				<h1>Logs</h1>
+				<h1 data-i18n="logsPage.title">Logs</h1>
 			</div>
 			<div
 				class="col-sm-9 autoRefreshContainer col-sm-height col-middle text-right">
 				<select class="selectpicker show-tick logLevelSelectPicker"
 					data-header="Select the new log level">
-					<option>TRACE</option>
-					<option>DEBUG</option>
-					<option>INFO</option>
-					<option>WARN</option>
-					<option>ERROR</option>
-					<option>FATAL</option>
-					<option>OFF</option>
+					<option data-i18n="logsPage.traceLevel">TRACE</option>
+					<option data-i18n="logsPage.debugLevel">DEBUG</option>
+					<option data-i18n="logsPage.infoLevel">INFO</option>
+					<option data-i18n="logsPage.warnLevel">WARN</option>
+					<option data-i18n="logsPage.errorLevel">ERROR</option>
+					<option data-i18n="logsPage.fatalLevel">FATAL</option>
+					<option data-i18n="logsPage.offLevel">OFF</option>
 				</select>
 			</div>
 		</div>
 	</div>
 	<div class="row logsPageContainer">
 		<pre class="logs logsContainer"></pre>
+	</div>
+
+	<div class="form-group">
+		<input type="checkbox" id="autoScrollCheckbox" name="autoScroll" checked="{{autoScrollCheckbox}}">&nbsp;<label
+			class="control-label" for="autoScroll" data-i18n="logsPage.autoScrollLabel">Enable auto scroll</label>
 	</div>
 </div>

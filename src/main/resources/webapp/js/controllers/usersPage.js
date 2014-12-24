@@ -17,7 +17,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
     UsersPageController.prototype.onLoad = function(mainContainer) {
 	var controller = this;
 
-	var ractive = new Ractive({
+	this.ractive = new Ractive({
 	    el: mainContainer,
 	    template: template
 	});
