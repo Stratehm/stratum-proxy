@@ -722,8 +722,8 @@ public class ProxyManager {
 	 * @throws URISyntaxException
 	 */
 	private void checkUpdatePoolParameters(UpdatePoolDTO updatePoolDTO) throws BadParameterException, URISyntaxException {
-		checkPoolParameters(updatePoolDTO.getPoolHost(), updatePoolDTO.getUsername(), updatePoolDTO.getAppendWorkerNames(),
-				updatePoolDTO.getPassword(), updatePoolDTO.getUseWorkerPassword());
+		checkPoolParameters(updatePoolDTO.getHost(), updatePoolDTO.getUsername(), updatePoolDTO.getAppendWorkerNames(), updatePoolDTO.getPassword(),
+				updatePoolDTO.getUseWorkerPassword());
 	}
 
 	/**
@@ -975,29 +975,29 @@ public class ProxyManager {
 	public void updatePool(UpdatePoolDTO poolToUpdate) throws NotFoundException, SocketException, PoolStartException, URISyntaxException,
 			BadParameterException {
 		boolean hasBeenStopped = false;
-		Pool pool = getPool(poolToUpdate.getPoolName());
+		Pool pool = getPool(poolToUpdate.getName());
 
 		if (pool == null) {
-			throw new NotFoundException("The pool with name " + poolToUpdate.getPoolName() + " has not been found.");
+			throw new NotFoundException("The pool with name " + poolToUpdate.getName() + " has not been found.");
 		}
 
 		checkUpdatePoolParameters(poolToUpdate);
 
-		if (poolToUpdate.getPoolHost() != null && !poolToUpdate.getPoolHost().equals(pool.getHost())) {
+		if (poolToUpdate.getHost() != null && !poolToUpdate.getHost().equals(pool.getHost())) {
 			if (!hasBeenStopped) {
 				pool.stopPool("Pool updated and needed to restart.");
 			}
 			hasBeenStopped = true;
-			pool.setHost(poolToUpdate.getPoolHost());
+			pool.setHost(poolToUpdate.getHost());
 		}
 
-		if (poolToUpdate.getEnableExtranonceSubscribe() != null
-				&& !poolToUpdate.getEnableExtranonceSubscribe().equals(pool.getIsExtranonceSubscribeEnabled())) {
+		if (poolToUpdate.getIsExtranonceSubscribeEnabled() != null
+				&& !poolToUpdate.getIsExtranonceSubscribeEnabled().equals(pool.getIsExtranonceSubscribeEnabled())) {
 			if (!hasBeenStopped) {
 				pool.stopPool("Pool updated and needed to restart.");
 			}
 			hasBeenStopped = true;
-			pool.setIsExtranonceSubscribeEnabled(poolToUpdate.getEnableExtranonceSubscribe());
+			pool.setIsExtranonceSubscribeEnabled(poolToUpdate.getIsExtranonceSubscribeEnabled());
 		}
 
 		if (poolToUpdate.getPassword() != null && !poolToUpdate.getPassword().equals(pool.getPassword())) {
@@ -1044,8 +1044,8 @@ public class ProxyManager {
 			pool.setAppendWorkerNames(poolToUpdate.getAppendWorkerNames());
 		}
 
-		if (poolToUpdate.getWorkerNameSeparator() != null && !poolToUpdate.getWorkerNameSeparator().equals(pool.getWorkerSeparator())) {
-			pool.setWorkerSeparator(poolToUpdate.getWorkerNameSeparator());
+		if (poolToUpdate.getWorkerNamesSeparator() != null && !poolToUpdate.getWorkerNamesSeparator().equals(pool.getWorkerSeparator())) {
+			pool.setWorkerSeparator(poolToUpdate.getWorkerNamesSeparator());
 		}
 
 		if (poolToUpdate.getUseWorkerPassword() != null && !poolToUpdate.getUseWorkerPassword().equals(pool.isUseWorkerPassword())) {

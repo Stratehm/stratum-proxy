@@ -32,14 +32,14 @@ define(['jquery', 'ractivejs', 'rv!templates/confirmationPopup', 'i18n!locales']
 	    }
 	});
 
-	this.popupJquery = $('#confirmationModal-' + confirmationPopupId).modal({
+	this.popup = $('#confirmationModal-' + confirmationPopupId).modal({
 	    keyboard: true,
 	    backdrop: true
 	});
 
-	this.yesButton = this.popupJquery.find('.yesButton');
-	this.noButton = this.popupJquery.find('.noButton');
-	this.cancelButton = this.popupJquery.find('.cancelButton')
+	this.yesButton = this.popup.find('.yesButton');
+	this.noButton = this.popup.find('.noButton');
+	this.cancelButton = this.popup.find('.cancelButton')
 
 	if (!opts.displayYesButton) {
 	    this.yesButton.hide();
@@ -73,7 +73,7 @@ define(['jquery', 'ractivejs', 'rv!templates/confirmationPopup', 'i18n!locales']
 	    }
 	}, this));
 
-	this.popupJquery.find('.cancelButton, .close').click($.proxy(function() {
+	this.popup.find('.cancelButton, .close').click($.proxy(function() {
 	    if (opts.cancelCallback) {
 		opts.cancelCallback.call(opts.callbackContext ? opts.callbackContext : this, this.result);
 	    }
@@ -84,12 +84,16 @@ define(['jquery', 'ractivejs', 'rv!templates/confirmationPopup', 'i18n!locales']
 
 	this.result = opts.cancelResultValue;
 
+	this.popup.on('hidden.bs.modal', $.proxy(function() {
+	    this.popup.remove();
+	}, this));
+
     }
 
     ConfirmationPopup.nextConfirmationPopupId = 0;
 
     ConfirmationPopup.prototype.hide = function() {
-	this.popupJquery.modal('hide');
+	this.popup.modal('hide');
     }
 
     ConfirmationPopup.prototype.getResult = function() {

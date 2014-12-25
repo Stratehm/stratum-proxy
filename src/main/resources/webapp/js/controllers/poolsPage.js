@@ -205,7 +205,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
     PoolsPageController.prototype.openEditPool = function(poolName) {
 	var pool = this.getPoolItemFromName(poolName).pool;
 
-	var modal = new EditPoolPopup(pool, this);
+	new EditPoolPopup($.extend({}, pool), this);
     };
 
     /**
@@ -228,7 +228,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 	    dataType: "json",
 	    type: "POST",
 	    data: JSON.stringify({
-		poolName: poolName,
+		poolName: poolName
 	    }),
 	    contentType: "application/json",
 	    success: function(data) {

@@ -114,11 +114,11 @@
 			<version>1.50</version>
 		</dependency>
 
-<!-- 		<dependency> -->
-<!-- 			<groupId>org.bouncycastle</groupId> -->
-<!-- 			<artifactId>bcprov-jdk15on</artifactId> -->
-<!-- 			<version>1.50</version> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.bouncycastle</groupId> -->
+		<!-- <artifactId>bcprov-jdk15on</artifactId> -->
+		<!-- <version>1.50</version> -->
+		<!-- </dependency> -->
 
 	</dependencies>
 
@@ -228,6 +228,22 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.github.bringking</groupId>
+				<artifactId>requirejs-maven-plugin</artifactId>
+				<version>2.0.4</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>optimize</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<configFile>${basedir}/jsOptimizer.js</configFile>
+					<filterConfig>true</filterConfig>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

@@ -23,31 +23,31 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UpdatePoolDTO {
 
-	private String poolName;
-	private String poolHost;
+	private String name;
+	private String host;
 	private String username;
 	private String password;
 	private Integer priority;
 	private Integer weight;
-	private Boolean enableExtranonceSubscribe;
+	private Boolean isExtranonceSubscribeEnabled;
 	private Boolean appendWorkerNames;
-	private String workerNameSeparator;
+	private String workerNamesSeparator;
 	private Boolean useWorkerPassword;
 
-	public String getPoolName() {
-		return poolName;
+	public String getName() {
+		return name;
 	}
 
-	public void setPoolName(String poolName) {
-		this.poolName = poolName;
+	public void setName(String name) {
+		this.name = name;
 	}
 
-	public String getPoolHost() {
-		return poolHost;
+	public String getHost() {
+		return host;
 	}
 
-	public void setPoolHost(String poolHost) {
-		this.poolHost = poolHost;
+	public void setHost(String host) {
+		this.host = host;
 	}
 
 	public String getUsername() {
@@ -74,12 +74,20 @@ public class UpdatePoolDTO {
 		this.priority = priority;
 	}
 
-	public Boolean getEnableExtranonceSubscribe() {
-		return enableExtranonceSubscribe;
+	public Integer getWeight() {
+		return weight;
 	}
 
-	public void setEnableExtranonceSubscribe(Boolean enableExtranonceSubscribe) {
-		this.enableExtranonceSubscribe = enableExtranonceSubscribe;
+	public void setWeight(Integer weight) {
+		this.weight = weight;
+	}
+
+	public Boolean getIsExtranonceSubscribeEnabled() {
+		return isExtranonceSubscribeEnabled;
+	}
+
+	public void setIsExtranonceSubscribeEnabled(Boolean isExtranonceSubscribeEnabled) {
+		this.isExtranonceSubscribeEnabled = isExtranonceSubscribeEnabled;
 	}
 
 	public Boolean getAppendWorkerNames() {
@@ -90,12 +98,12 @@ public class UpdatePoolDTO {
 		this.appendWorkerNames = appendWorkerNames;
 	}
 
-	public String getWorkerNameSeparator() {
-		return workerNameSeparator;
+	public String getWorkerNamesSeparator() {
+		return workerNamesSeparator;
 	}
 
-	public void setWorkerNameSeparator(String workerNameSeparator) {
-		this.workerNameSeparator = workerNameSeparator;
+	public void setWorkerNamesSeparator(String workerNamesSeparator) {
+		this.workerNamesSeparator = workerNamesSeparator;
 	}
 
 	public Boolean getUseWorkerPassword() {
@@ -106,21 +114,13 @@ public class UpdatePoolDTO {
 		this.useWorkerPassword = useWorkerPassword;
 	}
 
-	public Integer getWeight() {
-		return weight;
-	}
-
-	public void setWeight(Integer weight) {
-		this.weight = weight;
-	}
-
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("AddPoolDTO [poolName=");
-		builder.append(poolName);
-		builder.append(", poolHost=");
-		builder.append(poolHost);
+		builder.append("UpdatePoolDTO [name=");
+		builder.append(name);
+		builder.append(", host=");
+		builder.append(host);
 		builder.append(", username=");
 		builder.append(username);
 		builder.append(", password=");
@@ -129,12 +129,12 @@ public class UpdatePoolDTO {
 		builder.append(priority);
 		builder.append(", weight=");
 		builder.append(weight);
-		builder.append(", enableExtranonceSubscribe=");
-		builder.append(enableExtranonceSubscribe);
+		builder.append(", isExtranonceSubscribeEnabled=");
+		builder.append(isExtranonceSubscribeEnabled);
 		builder.append(", appendWorkerNames=");
 		builder.append(appendWorkerNames);
-		builder.append(", workerNameSeparator=");
-		builder.append(workerNameSeparator);
+		builder.append(", workerNamesSeparator=");
+		builder.append(workerNamesSeparator);
 		builder.append(", useWorkerPassword=");
 		builder.append(useWorkerPassword);
 		builder.append("]");

@@ -1,12 +1,12 @@
 require.config({
     paths: {
-	'jquery': 'libs/jquery-2.1.1.min',
+	'jquery': 'libs/jquery-2.1.3',
 	'json': 'libs/json2',
-	'bootstrap': 'libs/bootstrap.min',
-	'highstock': 'libs/highstock',
+	'bootstrap': 'libs/bootstrap',
+	'highstock': 'libs/highstock.src',
 
 	// bootstrap plugin to format ComboBox
-	'bootstrap-select': 'libs/bootstrap-select.min',
+	'bootstrap-select': 'libs/bootstrap-select',
 
 	// Jquery plugin to add a ToTopBottom button
 	'totop': 'libs/jquery-plugins/jquery-totop',
@@ -14,28 +14,28 @@ require.config({
 	// Jquery plugin to allow element sorting on jquery collections
 	'sort': 'libs/jquery-plugins/jquery-sort',
 
-	// requirejs text plugin
-	'text': 'libs/requirejs-plugins/text',
-
 	// requirejs ractive plugin
 	'rv': 'libs/requirejs-plugins/rv',
-	
+
 	// requirejs i18n plugin
 	'i18n': 'libs/requirejs-plugins/i18next',
-	
+
 	// The i18next library
 	'i18next': 'libs/i18next.amd.withJQuery',
 
+	// Builder needed for optimization process
+	'i18next-builder': 'libs/i18next-builder',
+
 	// used for optimization of the rv plugin
-	'ractive': 'libs/ractive.min',
+	'ractive': 'libs/ractive',
 
 	// runtime version of ractive
-	'ractivejsWithoutDefaults': 'libs/ractive.runtime.min',
+	'ractivejsWithoutDefaults': 'libs/ractive.runtime',
 
 	// return the Ractive module with the custom default options (to use in
 	// modules)
 	'ractivejs': 'libs/ractive.customDefaults',
-	
+
 	'ui': '../ui',
 	'templates': '../ui/templates',
 	'controllers': 'controllers',
@@ -62,13 +62,12 @@ require.config({
 	    exports: 'JSON'
 	}
     },
-    stubModules: ['rv'],
     i18next: {
-        fallbackLng  : "en",
-        fallbackOnNull: true,
-        lowerCaseLng : true,
-        resGetPath   : "__lng__/__ns__.json",
-        ns: "stratumProxy"
+	fallbackLng: "en",
+	fallbackOnNull: true,
+	lowerCaseLng: true,
+	resGetPath: "__lng__/__ns__.json",
+	ns: "stratumProxy"
     }
 
 });

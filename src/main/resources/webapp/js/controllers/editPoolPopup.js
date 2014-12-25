@@ -3,15 +3,12 @@ define(['jquery', 'ractivejs', 'rv!templates/editPoolPopup', 'i18n!locales', 'bo
 
     var EditPoolPopup = function(pool, parentController, parentElement) {
 	this.parentController = parentController;
-	var newPool = $.extend({}, pool);
 
 	this.ractive = new Ractive({
 	    el: parentElement ? parentElement : $('body'),
 	    template: template,
-	    data: newPool
+	    data: pool
 	});
-
-	this.ractive.set(newPool);
 
 	this.popup = $('#editPoolModal').modal({
 	    keyboard: true,
@@ -20,16 +17,18 @@ define(['jquery', 'ractivejs', 'rv!templates/editPoolPopup', 'i18n!locales', 'bo
 	this.popup.find('.validateButton').off('click').click($.proxy(validate, this));
 
 	this.popup.i18n({
-	    poolName: newPool.name
+	    poolName: pool.name
 	});
 
-	this.modal.find('.validateButton').click();
+	this.popup.on('hidden.bs.modal', $.proxy(function() {
+	    this.popup.remove();
+	}, this));
 
     };
 
     function validate() {
 	var thisController = this;
-	this.modal.modal('hide');
+	this.popup.modal('hide');
 
 	$.ajax({
 	    url: '/proxy/pool/update',

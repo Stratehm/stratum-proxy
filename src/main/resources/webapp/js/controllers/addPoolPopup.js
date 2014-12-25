@@ -20,6 +20,10 @@ define(['jquery', 'ractivejs', 'rv!templates/addPoolPopup', 'i18n!locales', 'boo
 	this.popup.find('.validateButton').off('click').click($.proxy(validate, this));
 
 	this.popup.i18n();
+
+	this.popup.on('hidden.bs.modal', $.proxy(function() {
+	    this.popup.remove();
+	}, this));
     }
 
     function validate() {

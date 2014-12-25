@@ -89,7 +89,7 @@ define(['jquery', 'ractive', 'rv!templates/mainContainer', 'i18n!locales', 'loca
 	    toTopClass: 'totopscroller-top',
 	    toBottomClass: 'totopscroller-bottom',
 	    toPrevClass: 'totopscroller-prev',
-	    linkClass: 'totopscroller-lnk',
+	    linkClass: 'totopscroller-lnk'
 	});
 
 	$(document).ajaxComplete(function() {
@@ -111,7 +111,7 @@ define(['jquery', 'ractive', 'rv!templates/mainContainer', 'i18n!locales', 'loca
 	Highcharts.setOptions({
 	    global: {
 		useUTC: false
-	    },
+	    }
 	});
 
 	document.addEventListener('localeChanged', function() {

@@ -20,7 +20,7 @@
 								<input id="poolHostField" name="poolHost"
 									data-i18n="[placeholder]editPoolPopup.poolHostPlaceholder"
 									class="form-control input-md" required="" type="text"
-									value="{{poolHost}}" placeholder="eu.pool.com:3333"> <span
+									value="{{host}}" placeholder="eu.pool.com:3333"> <span
 									class="help-block" data-i18n="editPoolPopup.poolHostHelp">The
 									URL of the pool without stratum+tcp://</span>
 							</div>
@@ -82,7 +82,7 @@
 								<div class="checkbox">
 									<input type="checkbox" id="enableExtranonceSubscribeField"
 										name="enableExtranonceSubscribe"
-										checked="{{enableExtranonceSubscribe}}">
+										checked="{{isExtranonceSubscribeEnabled}}">
 								</div>
 								<p class="help-block"
 									data-i18n="editPoolPopup.enableExtranonceSubscribeHelp">Only
@@ -115,7 +115,7 @@
 								<input type="text" id="workerNameSeparatorField"
 									class="form-control"
 									data-i18n="[placeholder]editPoolPopup.workerNameSeparatorPlaceholder"
-									name="workerNameSeparator" value='{{workerNameSeparator}}'>
+									name="workerNameSeparator" value='{{workerNamesSeparator}}'>
 								<p class="help-block"
 									data-i18n="editPoolPopup.workerNameSeparatorHelp"></p>
 							</div>
