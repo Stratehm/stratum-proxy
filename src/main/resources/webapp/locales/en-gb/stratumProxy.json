@@ -269,5 +269,9 @@
 		"fatalLevel": "FATAL",
 		"offLevel": "OFF",
 		"autoScrollLabel": "Enable auto scroll"
+	},
+	
+	"misc": {
+		"notAvailable": "Not yet available"
 	}
 }

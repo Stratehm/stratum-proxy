@@ -25,8 +25,8 @@ define(['jquery'], function() {
 	this.hide();
 	if (this.onUnload != undefined) {
 	    this.onUnload();
-	    this.getContainer().remove();
 	}
+	this.getContainer().remove();
     };
 
     PageController.prototype.refresh = function() {
