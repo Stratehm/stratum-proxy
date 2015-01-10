@@ -10,6 +10,18 @@ To build the package, you must have a JDK installed in version >= 7 and maven 3
 
 ##Packaging
 
+_**Advice**_:
+It is highly recommended to install NodeJS before building the package. It will speed up the Javascript Optimization phase. If not installed, the packing will still work but may be really long (since the Javascript Optimization phase will use the Java Rhino Javascript Engine which is slower).
+If NodeJS is not installed, set the MAVEN_OPTS environment variable before packaging with the following parameters: -Xmx512M -Xss2M
+
+On Windows:
+```batch
+cd /directory/which/contain/pom.xmlFileOfTheProject
+
+mvn clean package
+```
+
+On Linux:
 ```sh
 cd /directory/which/contain/pom.xmlFileOfTheProject
 

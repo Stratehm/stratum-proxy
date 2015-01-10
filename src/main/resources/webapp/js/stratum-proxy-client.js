@@ -1,4 +1,4 @@
-define(['jquery', 'ractive', 'rv!templates/mainContainer', 'i18n!locales', 'locales/localesConfig',
+define(['jquery', 'ractivejs', 'rv!templates/mainContainer', 'i18n!locales', 'locales/localesConfig',
 	'bootstrap', 'bootstrap-select', 'totop', 'highstock'], function($, Ractive, template, i18next,
 	localesConfig) {
 
@@ -26,19 +26,20 @@ define(['jquery', 'ractive', 'rv!templates/mainContainer', 'i18n!locales', 'loca
     }
 
     function initContainer() {
-	$('#loadingDiv').empty();
+	$('#loadingWrapper').empty();
 
 	var ractive = new Ractive({
 	    el: $('body'),
-	    template: template
+	    template: template,
+	    oncomplete: function() {
+		$('body').i18n();
+	    }
 	});
-
-	$('body').i18n();
     }
 
     function initI18n() {
 	var localesSelect = $('#localeSelect').selectpicker();
-	var currentLocale = i18next.lng();
+	var currentLocale = i18next.lng() || 'en-gb';
 
 	// Populate available locales
 	if (localesConfig && localesConfig.locales) {
@@ -51,24 +52,30 @@ define(['jquery', 'ractive', 'rv!templates/mainContainer', 'i18n!locales', 'loca
 			localesSelect.append(option);
 		    });
 
+	    localesSelect.val(currentLocale);
 	    localesSelect.selectpicker('val', currentLocale);
 	}
 
 	// Refresh UI with updates locales and selected one
+	localesSelect.selectpicker('render');
 	localesSelect.selectpicker('refresh');
 
 	// Add listener when changing locale
 	localesSelect.change(function() {
 	    var selectedLocale = localesSelect.find('option:selected').val();
-	    i18next.setLng(selectedLocale, {
-		fixLng: true
-	    }, function(lng) {
-		$('body').i18n();
-		fireLocaleChangedEvent();
-	    });
-
+	    setLocale(selectedLocale);
 	});
 
+	setLocale(currentLocale);
+    }
+
+    function setLocale(newLocale) {
+	i18next.setLng(newLocale, {
+	    fixLng: true
+	}, function(lng) {
+	    $('body').i18n();
+	    fireLocaleChangedEvent();
+	});
     }
 
     function fireLocaleChangedEvent() {

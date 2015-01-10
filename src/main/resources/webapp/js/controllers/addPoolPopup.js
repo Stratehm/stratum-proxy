@@ -10,7 +10,10 @@ define(['jquery', 'ractivejs', 'rv!templates/addPoolPopup', 'i18n!locales', 'boo
 	    data: {
 		isEnabled: true,
 		workerNameSeparator: '.'
-	    }
+	    },
+	    oncomplete: $.proxy(function() {
+		this.popup.i18n();
+	    }, this)
 	});
 
 	this.popup = $('#addPoolModal').modal({
@@ -18,8 +21,6 @@ define(['jquery', 'ractivejs', 'rv!templates/addPoolPopup', 'i18n!locales', 'boo
 	    backdrop: 'static'
 	});
 	this.popup.find('.validateButton').off('click').click($.proxy(validate, this));
-
-	this.popup.i18n();
 
 	this.popup.on('hidden.bs.modal', $.proxy(function() {
 	    this.popup.remove();
@@ -30,7 +31,7 @@ define(['jquery', 'ractivejs', 'rv!templates/addPoolPopup', 'i18n!locales', 'boo
 	var thisController = this;
 
 	$.ajax({
-	    url: '/proxy/pool/add',
+	    url: 'proxy/pool/add',
 	    dataType: "json",
 	    type: "POST",
 	    data: JSON.stringify(thisController.ractive.get()),

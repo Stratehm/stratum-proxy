@@ -6,7 +6,8 @@
 	<includeBaseDirectory>false</includeBaseDirectory>
 	<fileSets>
 		<fileSet>
-			<directory>src/main/resources/webapp</directory>
+			<!-- <directory>src/main/resources/webapp</directory> -->
+			<directory>target/webapp-optimizer</directory>
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
 	</fileSets>

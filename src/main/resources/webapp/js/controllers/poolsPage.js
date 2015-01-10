@@ -21,13 +21,14 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 
 	this.ractive = new Ractive({
 	    el: mainContainer,
-	    template: template
+	    template: template,
+	    oncomplete: $.proxy(function() {
+		mainContainer.i18n();
+	    }, this)
 	});
 
-	mainContainer.i18n();
-
 	$.ajax({
-	    url: "/proxy/pool/list",
+	    url: "proxy/pool/list",
 	    dataType: "json",
 	    contentType: "application/json",
 	    success: function(data) {
@@ -104,7 +105,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 
 	// Reload pool data
 	$.ajax({
-	    url: "/proxy/pool/list",
+	    url: "proxy/pool/list",
 	    dataType: "json",
 	    contentType: "application/json",
 	    success: function(data) {
@@ -173,7 +174,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 
 	// Update the priority
 	$.ajax({
-	    url: "/proxy/pool/priority",
+	    url: "proxy/pool/priority",
 	    dataType: "json",
 	    type: "POST",
 	    data: JSON.stringify({
@@ -217,9 +218,9 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 	var controller = this, url;
 
 	if (isEnabled) {
-	    url = "/proxy/pool/enable";
+	    url = "proxy/pool/enable";
 	} else {
-	    url = "/proxy/pool/disable";
+	    url = "proxy/pool/disable";
 	}
 
 	// Reload pool data
@@ -255,7 +256,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 
 	var removePoolFunction = function(result) {
 	    $.ajax({
-		url: '/proxy/pool/remove',
+		url: 'proxy/pool/remove',
 		dataType: "json",
 		type: "POST",
 		data: JSON.stringify({

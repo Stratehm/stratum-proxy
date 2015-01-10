@@ -19,13 +19,14 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 
 	this.ractive = new Ractive({
 	    el: mainContainer,
-	    template: template
+	    template: template,
+	    oncomplete: $.proxy(function() {
+		mainContainer.i18n();
+	    }, this)
 	});
 
-	mainContainer.i18n();
-
 	$.ajax({
-	    url: "/proxy/user/list",
+	    url: "proxy/user/list",
 	    dataType: "json",
 	    contentType: "application/json",
 	    success: function(data) {
@@ -90,7 +91,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 
 	// Reload user data
 	$.ajax({
-	    url: "/proxy/user/list",
+	    url: "proxy/user/list",
 	    dataType: "json",
 	    contentType: "application/json",
 	    success: function(data) {

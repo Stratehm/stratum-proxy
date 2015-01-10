@@ -63,12 +63,18 @@ require.config({
 	}
     },
     i18next: {
-	fallbackLng: "en",
+	fallbackLng: "en-gb",
 	fallbackOnNull: true,
 	lowerCaseLng: true,
 	resGetPath: "__lng__/__ns__.json",
-	ns: "stratumProxy"
-    }
+	ns: "stratumProxy",
+	supportedLngs: {
+            'en-gb': ["stratumProxy"],
+            'fr-fr': ["stratumProxy"]
+        }
+    },
+    inlineI18next: true,
+    stubModules: ["i18n", "i18next-builder", "rv", "ractive"]
 
 });
 

@@ -8,11 +8,12 @@ define(['jquery', 'ractivejs', 'rv!templates/userItem', 'i18n!locales', 'config'
 	    template: template,
 	    data: {
 		userItemId: userItemId
-	    }
+	    },
+	    oncomplete: $.proxy(function() {
+		this.userItemJquery.i18n();
+	    }, this)
 	});
 	this.userItemJquery = $('#userItem-' + userItemId);
-
-	this.userItemJquery.i18n();
 
 	var self = this;
 	document.addEventListener('localeChanged', function() {
@@ -184,7 +185,7 @@ define(['jquery', 'ractivejs', 'rv!templates/userItem', 'i18n!locales', 'config'
     UserItem.prototype.reloadChartData = function(isUpdate, redraw) {
 	var userItem = this;
 	$.ajax({
-	    url: "/proxy/hashrate/user",
+	    url: "proxy/hashrate/user",
 	    dataType: "json",
 	    type: "POST",
 	    data: JSON.stringify({

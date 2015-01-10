@@ -8,11 +8,13 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config'
 	    template: template,
 	    data: {
 		poolItemId: poolItemId
-	    }
+	    },
+	    oncomplete: $.proxy(function() {
+		this.poolItemJquery.i18n();
+	    }, this)
 	});
-	this.poolItemJquery = $('#poolItem-' + poolItemId);
 
-	this.poolItemJquery.i18n();
+	this.poolItemJquery = $('#poolItem-' + poolItemId);
 
 	var self = this;
 	document.addEventListener('localeChanged', function() {
@@ -203,7 +205,7 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config'
     PoolItem.prototype.reloadChartData = function(isUpdate, redraw) {
 	var poolItem = this;
 	$.ajax({
-	    url: "/proxy/hashrate/pool",
+	    url: "proxy/hashrate/pool",
 	    dataType: "json",
 	    type: "POST",
 	    data: JSON.stringify({

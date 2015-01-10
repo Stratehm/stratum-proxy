@@ -21,10 +21,12 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 	    template: template,
 	    data: {
 		autoScrollCheckbox: false
-	    }
+	    },
+	    oncomplete: $.proxy(function() {
+		mainContainer.i18n();
+	    }, this)
 	});
 
-	mainContainer.i18n();
 
 	this.loadLevel();
 	this.refresh();
@@ -49,7 +51,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 	selectPicker.selectpicker('refresh');
 
 	$.ajax({
-	    url: '/proxy/log/level',
+	    url: 'proxy/log/level',
 	    dataType: "json",
 	    type: "GET",
 	    contentType: "application/json",
@@ -79,7 +81,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 	    var selectedValue = selectPicker.find('option:selected').text();
 	    selectPicker.selectpicker('refresh');
 	    $.ajax({
-		url: '/proxy/log/level',
+		url: 'proxy/log/level',
 		dataType: "json",
 		type: "POST",
 		data: JSON.stringify({
@@ -100,7 +102,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
     LogsPageController.prototype.refresh = function() {
 	var controller = this;
 	$.ajax({
-	    url: '/proxy/log/since',
+	    url: 'proxy/log/since',
 	    dataType: "json",
 	    type: "POST",
 	    data: JSON.stringify({

@@ -1,7 +1,7 @@
 /**
  * stratum-proxy is a proxy supporting the crypto-currency stratum pool mining
  * protocol.
- * Copyright (C) 2014  Stratehm (stratehm@hotmail.com)
+ * Copyright (C) 2014-2015  Stratehm (stratehm@hotmail.com)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

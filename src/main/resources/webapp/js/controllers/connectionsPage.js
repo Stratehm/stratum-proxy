@@ -13,10 +13,11 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 
 	this.ractive = new Ractive({
 	    el: mainContainer,
-	    template: template
+	    template: template,
+	    oncomplete: $.proxy(function() {
+		mainContainer.i18n();
+	    }, this)
 	});
-
-	mainContainer.i18n();
     };
 
     return ConnectionsPageController;
