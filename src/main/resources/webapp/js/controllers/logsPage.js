@@ -137,8 +137,8 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 	var logString = "", controller = this;
 
 	logsData.forEach(function(logEntry) {
-	    controller.lastLogLineTimestamp = logEntry.key;
-	    logString += logEntry.value;
+	    controller.lastLogLineTimestamp = logEntry.timestamp;
+	    logString += logEntry.message;
 	});
 
 	this.getContainer().find('.logsContainer').append(logString);

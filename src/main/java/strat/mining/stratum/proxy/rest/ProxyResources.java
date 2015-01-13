@@ -18,7 +18,6 @@
  */
 package strat.mining.stratum.proxy.rest;
 
-import java.io.IOException;
 import java.net.SocketException;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
@@ -56,6 +55,7 @@ import strat.mining.stratum.proxy.rest.dto.ChangePriorityDTO;
 import strat.mining.stratum.proxy.rest.dto.ConnectionIdentifierDTO;
 import strat.mining.stratum.proxy.rest.dto.HashrateDTO;
 import strat.mining.stratum.proxy.rest.dto.HashrateHistoryDTO;
+import strat.mining.stratum.proxy.rest.dto.LogEntry;
 import strat.mining.stratum.proxy.rest.dto.LogLevelDTO;
 import strat.mining.stratum.proxy.rest.dto.PoolDetailsDTO;
 import strat.mining.stratum.proxy.rest.dto.PoolNameDTO;
@@ -618,7 +618,16 @@ public class ProxyResources {
 		Response response = null;
 		if (timestamp != null) {
 			List<Entry<Long, String>> logs = logManager.getLogSince(timestamp.getTimestamp());
-			response = Response.status(Response.Status.OK).entity(logs).build();
+			List<LogEntry> logEntries = new ArrayList<LogEntry>(logs.size());
+
+			for (Entry<Long, String> logEntry : logs) {
+				LogEntry logEntryDto = new LogEntry();
+				logEntryDto.setTimestamp(logEntry.getKey());
+				logEntryDto.setMessage(logEntry.getValue());
+				logEntries.add(logEntryDto);
+			}
+
+			response = Response.status(Response.Status.OK).entity(logEntries).build();
 		} else {
 			response = Response.status(Response.Status.BAD_REQUEST).build();
 		}
