@@ -39,6 +39,8 @@ import org.apache.log4j.LogManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strat.mining.stratum.proxy.configuration.ConfigurationManager;
+import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.database.DatabaseManager;
 import strat.mining.stratum.proxy.database.model.HashrateModel;
 import strat.mining.stratum.proxy.exception.BadParameterException;
@@ -59,6 +61,7 @@ import strat.mining.stratum.proxy.rest.dto.LogEntry;
 import strat.mining.stratum.proxy.rest.dto.LogLevelDTO;
 import strat.mining.stratum.proxy.rest.dto.PoolDetailsDTO;
 import strat.mining.stratum.proxy.rest.dto.PoolNameDTO;
+import strat.mining.stratum.proxy.rest.dto.ProxyVersionDTO;
 import strat.mining.stratum.proxy.rest.dto.RemovePoolDTO;
 import strat.mining.stratum.proxy.rest.dto.StatusDTO;
 import strat.mining.stratum.proxy.rest.dto.TimestampDTO;
@@ -631,6 +634,19 @@ public class ProxyResources {
 		} else {
 			response = Response.status(Response.Status.BAD_REQUEST).build();
 		}
+
+		return response;
+	}
+
+	@GET
+	@Path("misc/version")
+	public Response getProxyVersion() {
+		Response response = null;
+
+		ProxyVersionDTO dto = new ProxyVersionDTO();
+		dto.setProxyVersion(ConfigurationManager.getVersion());
+		dto.setFullName(Constants.VERSION);
+		response = Response.status(Response.Status.OK).entity(dto).build();
 
 		return response;
 	}

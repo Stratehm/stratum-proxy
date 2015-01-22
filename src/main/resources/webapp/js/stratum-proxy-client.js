@@ -28,11 +28,30 @@ define(['jquery', 'ractivejs', 'rv!templates/mainContainer', 'i18n!locales', 'lo
     function initContainer() {
 	$('#loadingWrapper').empty();
 
-	var ractive = new Ractive({
+	this.ractive = new Ractive({
 	    el: $('body'),
 	    template: template,
 	    oncomplete: function() {
 		$('body').i18n();
+		initVersion();
+	    }
+	});
+	
+
+    }
+    
+    function initVersion() {
+	$.ajax({
+	    url: "proxy/misc/version",
+	    dataType: "json",
+	    type: "GET",
+	    contentType: "application/json",
+	    context: this,
+	    success: function(data) {
+		ractive.set(data);
+	    },
+	    error: function(request, textStatus, errorThrown) {
+		ractive.set('proxyVersion', 'Unknown')
 	    }
 	});
     }
