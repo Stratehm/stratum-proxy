@@ -27,7 +27,6 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 	    }, this)
 	});
 
-
 	this.loadLevel();
 	this.refresh();
 	this.startAutoRefresh();
@@ -48,6 +47,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 	var selectPicker = this.getContainer().find('.logLevelSelectPicker');
 	var controller = this;
 	selectPicker.prop('disabled', true);
+	selectPicker.selectpicker('render');
 	selectPicker.selectpicker('refresh');
 
 	$.ajax({
@@ -57,8 +57,10 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 	    contentType: "application/json",
 	    success: function(data) {
 		if (data != undefined) {
+		    selectPicker.val(data.logLevel);
 		    selectPicker.selectpicker('val', data.logLevel);
 		    selectPicker.prop('disabled', false);
+		    selectPicker.selectpicker('render');
 		    selectPicker.selectpicker('refresh');
 		    controller.initLogLevelSelect();
 		}
