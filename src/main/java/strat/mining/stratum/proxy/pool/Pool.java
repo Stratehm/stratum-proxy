@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
+import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.AuthorizationException;
 import strat.mining.stratum.proxy.exception.PoolStartException;
@@ -124,6 +125,8 @@ public class Pool {
 	private Integer connectionRetryDelay = Constants.DEFAULT_POOL_CONNECTION_RETRY_DELAY;
 	private Integer reconnectStabilityPeriod = Constants.DEFAULT_POOL_RECONNECTION_STABILITY_PERIOD;
 	private Integer noNotifyTimeout = Constants.DEFAULT_NOTIFY_NOTIFICATION_TIMEOUT;
+
+	private int extranonce1TailSize = ConfigurationManager.getInstance().getExtranonce1TailSize();
 
 	private Boolean isRejectReconnect = false;
 
@@ -383,13 +386,13 @@ public class Pool {
 	public void processSetExtranonce(MiningSetExtranonceNotification setExtranonce) {
 		extranonce1 = setExtranonce.getExtranonce1();
 
-		if (setExtranonce.getExtranonce2Size() - Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE < 1) {
+		if (setExtranonce.getExtranonce2Size() - extranonce1TailSize < 1) {
 			// If the extranonce2size is not big enough, we cannot generate
 			// unique extranonce for workers, so deactivate the pool.
 			LOGGER.error("The extranonce2Size for the pool {} is to low. Size: {}, mininum needed {}.", getName(), extranonce2Size,
-					Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1);
+					extranonce1TailSize + 1);
 			stopPool("Pool asked extranonce change with too small extranonce2 size (" + extranonce2Size + ". Minimum needed is "
-					+ (Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1));
+					+ (extranonce1TailSize + 1));
 			retryConnect(true);
 		} else {
 			extranonce2Size = setExtranonce.getExtranonce2Size();
@@ -404,12 +407,12 @@ public class Pool {
 		extranonce1 = response.getExtranonce1();
 		extranonce2Size = response.getExtranonce2Size();
 
-		if (extranonce2Size - Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE < 1) {
+		if (extranonce2Size - extranonce1TailSize < 1) {
 			// If the extranonce2size is not big enough, we cannot generate
 			// unique extranonce for workers, so deactivate the pool.
 			LOGGER.error("The extranonce2Size for the pool {} is too low. Size: {}, mininum needed {}.", getName(), extranonce2Size,
-					Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1);
-			stopPool("The pool extranonce2 size is too low (" + extranonce2Size + "). Minimum is " + (Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE + 1));
+					extranonce1TailSize + 1);
+			stopPool("The pool extranonce2 size is too low (" + extranonce2Size + "). Minimum is " + (extranonce1TailSize + 1));
 			retryConnect(true);
 		} else {
 			sendSubscribeExtranonceRequest();
@@ -629,20 +632,20 @@ public class Pool {
 	 * @return
 	 */
 	public Integer getWorkerExtranonce2Size() {
-		return extranonce2Size != null ? extranonce2Size - Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE : 0;
+		return extranonce2Size != null ? extranonce2Size - extranonce1TailSize : 0;
 	}
 
 	private Deque<String> buildTails() {
 		Deque<String> result = new ConcurrentLinkedDeque<String>();
-		int nbTails = (int) Math.pow(2, Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE * 8);
-		int tailNbChars = Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE * 2;
+		int nbTails = (int) Math.pow(2, extranonce1TailSize * 8);
+		int tailNbChars = extranonce1TailSize * 2;
 		for (int i = 0; i < nbTails; i++) {
 			String tail = Integer.toHexString(i);
 
-			if (tail.length() > Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE * 2) {
+			if (tail.length() > extranonce1TailSize * 2) {
 				tail = tail.substring(0, tailNbChars);
 			} else {
-				while (tail.length() < Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE * 2) {
+				while (tail.length() < extranonce1TailSize * 2) {
 					tail = "0" + tail;
 				}
 			}

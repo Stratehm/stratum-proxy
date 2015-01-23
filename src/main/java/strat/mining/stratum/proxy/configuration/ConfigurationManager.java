@@ -113,6 +113,8 @@ public class ConfigurationManager {
 
 	private Boolean logRealShareDifficulty = false;
 
+	private Integer extranonce1TailSize = Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE;
+
 	private ObjectMapper jsonParser;
 
 	public static ConfigurationManager getInstance() {
@@ -216,8 +218,7 @@ public class ConfigurationManager {
 		hashrateDatabaseHistoryDepth = configuration.getHashrateDatabaseHistoryDepth() != null ? configuration.getHashrateDatabaseHistoryDepth()
 				: hashrateDatabaseHistoryDepth;
 		noMidsate = configuration.getNoMidstate() != null ? configuration.getNoMidstate() : noMidsate;
-		validateGetworkShares = configuration.getValidateGetworkShares() != null ? configuration.getValidateGetworkShares()
-				: validateGetworkShares;
+		validateGetworkShares = configuration.getValidateGetworkShares() != null ? configuration.getValidateGetworkShares() : validateGetworkShares;
 
 		poolSwitchingStrategy = configuration.getPoolSwitchingStrategy() != null ? configuration.getPoolSwitchingStrategy() : poolSwitchingStrategy;
 		weightedRoundRobinRoundDuration = configuration.getWeightedRoundRobinRoundDuration() != null ? configuration
@@ -251,6 +252,8 @@ public class ConfigurationManager {
 		if (apiPassword != null && apiPassword.trim().isEmpty()) {
 			apiPassword = null;
 		}
+
+		defineExtranonce1TailSize(configuration.getWorkerNumberLimit());
 
 		buildPoolsFromConfigurationFile(configuration);
 	}
@@ -392,8 +395,7 @@ public class ConfigurationManager {
 		hashrateDatabaseHistoryDepth = cliParser.getHashrateDatabaseHistoryDepth() != null ? cliParser.getHashrateDatabaseHistoryDepth()
 				: hashrateDatabaseHistoryDepth;
 		noMidsate = cliParser.isNoMidstate() != null ? cliParser.isNoMidstate() : noMidsate;
-		validateGetworkShares = cliParser.isValidateGetworkShares() != null ? cliParser.isValidateGetworkShares()
-				: validateGetworkShares;
+		validateGetworkShares = cliParser.isValidateGetworkShares() != null ? cliParser.isValidateGetworkShares() : validateGetworkShares;
 
 		poolSwitchingStrategy = cliParser.getPoolSwitchingStrategy() != null ? cliParser.getPoolSwitchingStrategy() : poolSwitchingStrategy;
 		weightedRoundRobinRoundDuration = cliParser.getWeightedRoundRobinRoundDuration() != null ? cliParser.getWeightedRoundRobinRoundDuration() * 60000
@@ -427,7 +429,24 @@ public class ConfigurationManager {
 			apiPassword = null;
 		}
 
+		defineExtranonce1TailSize(cliParser.getWorkerNumberLimit());
+
 		buildPoolsFromCommandLine(cliParser);
+	}
+
+	/**
+	 * Define the extranonce1 tail size based on the max number of workers
+	 * connected on the proxy.
+	 * 
+	 * @param workerNumberLimit
+	 */
+	private void defineExtranonce1TailSize(Integer workerNumberLimit) {
+		// If the limit is 65536, the extranonce1 tail size is 2 bytes => 65536
+		// Else, if not set or with another value, use the default size: 1 byte
+		// => 256
+		if (workerNumberLimit != null && workerNumberLimit == 65536) {
+			extranonce1TailSize = 2;
+		}
 	}
 
 	/**
@@ -863,6 +882,10 @@ public class ConfigurationManager {
 
 	public Boolean getLogRealShareDifficulty() {
 		return logRealShareDifficulty;
+	}
+
+	public Integer getExtranonce1TailSize() {
+		return extranonce1TailSize;
 	}
 
 }

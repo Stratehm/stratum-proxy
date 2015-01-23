@@ -68,6 +68,8 @@ public class Configuration {
 
 	private Boolean logRealShareDifficulty;
 
+	private Integer workerNumberLimit;
+
 	@Valid
 	private List<Pool> pools;
 
@@ -320,6 +322,26 @@ public class Configuration {
 
 	public void setApiPassword(String apiPassword) {
 		this.apiPassword = apiPassword;
+	}
+
+	public Integer getWorkerNumberLimit() {
+		return workerNumberLimit;
+	}
+
+	public void setWorkerNumberLimit(Integer workerNumberLimit) {
+		this.workerNumberLimit = workerNumberLimit;
+	}
+
+	public Boolean getDisableGetwork() {
+		return disableGetwork;
+	}
+
+	public Boolean getDisableStratum() {
+		return disableStratum;
+	}
+
+	public Boolean getDisableApi() {
+		return disableApi;
 	}
 
 	public Boolean getDisableLogAppend() {

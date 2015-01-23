@@ -175,6 +175,9 @@ public class CommandLineOptions {
 	@Option(name = "--log-real-share-difficulty", usage = "For each share submitted by a worker, the real difficulty is written in the logs. WARN: Only works for SHA256 and Scrypt pools. Should be enabled only for debugging purposes since it is CPU intensive.", handler = BooleanOptionHandler.class)
 	private Boolean logRealShareDifficulty;
 
+	@Option(name = "--worker-number-limit", usage = "Represent the maximum number of workers allowed on the proxy. Only two values are accepted: 256 and 65536. Default to 256. 65536 may lead to some disconnections on some pools (should be rare).")
+	private Integer workerNumberLimit;
+
 	public CommandLineOptions() {
 		parser = new CmdLineParser(this);
 	}
@@ -365,6 +368,10 @@ public class CommandLineOptions {
 
 	public Boolean getLogRealShareDifficulty() {
 		return logRealShareDifficulty;
+	}
+
+	public Integer getWorkerNumberLimit() {
+		return workerNumberLimit;
 	}
 
 }
