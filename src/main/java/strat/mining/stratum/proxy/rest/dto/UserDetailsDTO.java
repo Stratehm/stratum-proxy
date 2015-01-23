@@ -30,6 +30,8 @@ public class UserDetailsDTO {
 	private String lastShareSubmitted;
 	private Long acceptedHashesPerSeconds;
 	private Long rejectedHashesPerSeconds;
+	private Double acceptedDifficulty;
+	private Double rejectedDifficulty;
 	private List<WorkerConnectionDTO> connections;
 
 	public String getName() {
@@ -78,6 +80,22 @@ public class UserDetailsDTO {
 
 	public void setLastShareSubmitted(String lastShareSubmitted) {
 		this.lastShareSubmitted = lastShareSubmitted;
+	}
+
+	public Double getAcceptedDifficulty() {
+		return acceptedDifficulty;
+	}
+
+	public void setAcceptedDifficulty(Double acceptedDifficulty) {
+		this.acceptedDifficulty = acceptedDifficulty;
+	}
+
+	public Double getRejectedDifficulty() {
+		return rejectedDifficulty;
+	}
+
+	public void setRejectedDifficulty(Double rejectedDifficulty) {
+		this.rejectedDifficulty = rejectedDifficulty;
 	}
 
 }

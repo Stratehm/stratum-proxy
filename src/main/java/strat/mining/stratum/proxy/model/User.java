@@ -49,6 +49,9 @@ public class User {
 	private Deque<Share> lastAcceptedShares;
 	private Deque<Share> lastRejectedShares;
 
+	private double acceptedDifficulty;
+	private double rejectedDifficulty;
+
 	private Date creationTime;
 	private Date lastShareSubmitted;
 
@@ -110,9 +113,11 @@ public class User {
 	 */
 	public void updateShareLists(Share share, boolean isAccepted) {
 		if (isAccepted) {
+			acceptedDifficulty += share.getDifficulty();
 			lastAcceptedShares.addLast(share);
 			HashrateUtils.purgeShareList(lastAcceptedShares, samplingHashesPeriod);
 		} else {
+			rejectedDifficulty += share.getDifficulty();
 			lastRejectedShares.addLast(share);
 			HashrateUtils.purgeShareList(lastRejectedShares, samplingHashesPeriod);
 		}
@@ -139,6 +144,14 @@ public class User {
 
 	public Date getLastShareSubmitted() {
 		return lastShareSubmitted;
+	}
+
+	public double getAcceptedDifficulty() {
+		return acceptedDifficulty;
+	}
+
+	public double getRejectedDifficulty() {
+		return rejectedDifficulty;
 	}
 
 	/**

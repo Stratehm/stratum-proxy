@@ -240,6 +240,8 @@
 		"lastShareSubmittedLabel": "Last share submitted",
 		"acceptedHashrateLabel": "Accepted hashrate",
 		"rejectedHashrateLabel": "Rejected hashrate",
+		"acceptedDifficultyLabel": "Accepted difficulty",
+		"rejectedDifficultyLabel": "Rejected difficulty",
 		"numberOfConnectionsLabel": "Number of connections",
 		"kickButtonLabel": "Kick",
 		"banButtonLabel": "Ban",

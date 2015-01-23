@@ -240,6 +240,8 @@
 		"lastShareSubmittedLabel": "Dernier share soumis",
 		"acceptedHashrateLabel": "Puissance de calcul acceptée",
 		"rejectedHashrateLabel": "Puissance de calcul rejetée",
+		"acceptedDifficultyLabel": "Difficulté acceptée",
+        "rejectedDifficultyLabel": "Difficulté rejetée",
 		"numberOfConnectionsLabel": "Nombre de connections",
 		"kickButtonLabel": "Déconnecter",
 		"banButtonLabel": "Bannir",
