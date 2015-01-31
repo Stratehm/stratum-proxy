@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>strat.mining.stratum</groupId>
 	<artifactId>stratum-proxy</artifactId>
-	<version>0.6.0-SNAPSHOT</version>
+	<version>0.7.0-SNAPSHOT</version>
 	<name>stratum-proxy</name>
 	<url>https://github.com/Stratehm/stratum-proxy</url>
 
@@ -125,8 +125,7 @@
 		<!-- To generate the API docs -->
 		<dependency>
 			<groupId>com.wordnik</groupId>
-			<artifactId>swagger-jersey2-jaxrs_2.10</artifactId>
-			<scope>compile</scope>
+			<artifactId>swagger-annotations</artifactId>
 			<version>1.3.12</version>
 		</dependency>
 
