@@ -69,91 +69,1594 @@ A WebClient is available at the address: http://127.0.0.1:8888 (The port can be 
 
 ##API Details
 
-A REST API is available. Methods parameters or result are in JSON. By default, the methods can be accessed at the URL http://hostIp:8888/proxy/. 
+An API is available. Methods parameters or result are in JSON. By default, the methods can be accessed at the URL http://hostIp:8888/proxy/. 
 
 The Content-Type of HTTP requests has to be application/json, else a 415 Unsupported Media Type error may be returned.
 
 Here after is the API methods description:
 
- * pool/list: (GET) List all the pools.
+#
 
-```
-Parameters: None
-Return: [ { "name": string, "host": string, "username": string, "password": string, "isActive": boolean, "isEnabled": boolean, "isStable": boolean, "isActiveSince": Date(dd-MM-yy HH:mm:ss Z), "difficulty": string, "extranonce1": string, "extranonce2Size": integer, "workerExtranonce2Size": integer, "numberOfWorkerConnections": integer, "priority": integer, "acceptedDifficulty": double, "rejectedDifficulty": double, "isExtranonceSubscribeEnabled": boolean, "acceptedHashesPerSeconds": long, "rejectedHashesPerSeconds": long }, ... ]
-```
+Api Version: 1.0
 
- * user/list: (GET) List all the seen users.
-```
-Parameters: None
-Return: [ { "name": string, "firstConnectionDate": Date(dd-MM-yy HH:mm:ss Z), "lastShareSubmitted": Date(dd-MM-yy HH:mm:ss Z), "acceptedHashesPerSeconds": long, "rejectedHashesPerSeconds": long, "connections": [ { "remoteHost": string, "authorizedUsers": [ string, ... ], "acceptedHashesPerSeconds": long, "rejectedHashesPerSeconds": long, "isActiveSince": Date(dd-MM-yy HH:mm:ss Z), "poolName": string }, ... ] } ]
-```
+## APIs
+### /
+#### Overview
+API to manage the proxy
+
+#### **POST** `/user/unban`
+##### unbanUser 
+
+Unban a user.
 
 
- * connection/list: (GET) List all the active workers connection
-```
-Parameters: None
-Return: [ { "remoteHost": string, "authorizedUsers": [ string, ... ], "acceptedHashesPerSeconds": long, "rejectedHashesPerSeconds": long, "isActiveSince": Date(dd-MM-yy HH:mm:ss Z), "poolName": string }, ... ]
-```
+###### Parameters
+- body
 
- * pool/add: (POST) Add a new pool
-```
-Parameters: { "poolName": string (optional=poolHost), "poolHost": string, "username": string, "password": string, "priority": integer (optional=lowestOne), "enableExtranonceSubscribe": boolean (optional=false),  "isEnabled": boolean (optional=true), "appendWorkerNames": boolean (optional=false), "workerNameSeparator": string (optional=.), "useWorkerPassword": boolean (optional=false)}
-Return: {"status": string, "message": string}. Returned statuses are DONE, DONE_PARTIALLY (if added but not started) or FAILED.
-```
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#UserNameDTO">UserNameDTO</a></td>
+    </tr>
+</table>
 
- * pool/remove: (POST) Remove a pool
-```
-Parameters: { "poolName": string}
-Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
-```
+###### Response
+[StatusDTO](#StatusDTO)
 
- * pool/priority: (POST) Change the priority of a pool
-```
-Parameters: {"poolName": string, "priority": integer}
-Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
-```
 
- * pool/disable: (POST) Disable the pool with the given name
-```
-Parameters: {"poolName": string}
-Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
-```
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
 
- * pool/enable: (POST) Disable the pool with the given name
-```
-Parameters: {"poolName": string}
-Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
-```
 
- * log/level: (POST) Change the log level. 
-```
-Parameters: {"logLevel": string}. Valid Levels are FATAL, ERROR, WARN, INFO, DEBUG, TRACE, OFF.
-Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
-```
+- - -
+#### **GET** `/user/ban/list`
+##### listBannedUsers 
 
- * user/kick: (POST) Kick all connections of the user 
-```
-Parameters: {"username": string}.
-Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
-```
+List all banned users.
 
- * user/ban: (POST) Kick all connections of the user then ban the user until the next proxy restart.
-```
-Parameters: {"username": string}.
-Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
-```
 
- * user/unban: (POST) Unban the user
-```
-Parameters: {"username": string}.
-Return: {"status": string, "message": string}. Returned statuses are DONE or FAILED.
-```
+###### Parameters
 
- * user/ban/list: (GET) List all banned users
-```
-Parameters: none
-Return: [ string, ... ]. Returned statuses are DONE or FAILED.
-```
+###### Response
+[List[string]](#)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/connection/kick`
+##### kickConnection 
+
+Kill the connection with the given address and port.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#ConnectionIdentifierDTO">ConnectionIdentifierDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/user/ban`
+##### banUser 
+
+Ban the given username until the proxy restart. The user will not be authorized to reconnect.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#UserNameDTO">UserNameDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/address/ban`
+##### banIp 
+
+Ban the given ip address.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#AddressDTO">AddressDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/address/unban`
+##### unbanAddress 
+
+Unban the given ip address.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#AddressDTO">AddressDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/address/kick`
+##### kickAddress 
+
+Kick all connections with the given address.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#AddressDTO">AddressDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **GET** `/pool/list`
+##### getPoolsList 
+
+Return the list of all pools.
+
+
+###### Parameters
+
+###### Response
+[List[PoolDetailsDTO]](#PoolDetailsDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/pool/add`
+##### addPool 
+
+Add a pool.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#AddPoolDTO">AddPoolDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+| 500    | Failed to add the pool. | [StatusDTO](#StatusDTO) |
+| 500    | Pool added but not started. | [StatusDTO](#StatusDTO) |
+
+
+- - -
+#### **POST** `/pool/remove`
+##### removePool 
+
+Remove a pool.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#RemovePoolDTO">RemovePoolDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+| 404    | Pool not found. | [StatusDTO](#StatusDTO) |
+
+
+- - -
+#### **POST** `/pool/disable`
+##### disablePool 
+
+Disable a pool.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#PoolNameDTO">PoolNameDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+| 500    | Failed to start the pool. | [StatusDTO](#StatusDTO) |
+| 404    | Pool not found. | [StatusDTO](#StatusDTO) |
+
+
+- - -
+#### **POST** `/pool/enable`
+##### enablePool 
+
+Enable a pool.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#PoolNameDTO">PoolNameDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+| 404    | Pool not found. | [StatusDTO](#StatusDTO) |
+| 500    | Failed to start the pool. | [StatusDTO](#StatusDTO) |
+
+
+- - -
+#### **POST** `/pool/priority`
+##### setPoolPriority 
+
+Change the priority of a pool.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#ChangePriorityDTO">ChangePriorityDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+| 404    | Pool not found. | [StatusDTO](#StatusDTO) |
+| 400    | Bad parameter sent. | [StatusDTO](#StatusDTO) |
+
+
+- - -
+#### **POST** `/pool/update`
+##### updatePool 
+
+Update a pool.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#UpdatePoolDTO">UpdatePoolDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+| 500    | Failed to update the pool. | [StatusDTO](#StatusDTO) |
+| 400    | Bad parameter sent. | [StatusDTO](#StatusDTO) |
+| 404    | Pool not found. | [StatusDTO](#StatusDTO) |
+
+
+- - -
+#### **POST** `/log/level`
+##### setLogLevel 
+
+Change the log level.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#LogLevelDTO">LogLevelDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+| 400    | Log level not known. | [StatusDTO](#StatusDTO) |
+
+
+- - -
+#### **GET** `/log/level`
+##### getLogLevel 
+
+Return the log level.
+
+
+###### Parameters
+
+###### Response
+[LogLevelDTO](#LogLevelDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/user/kick`
+##### kickUser 
+
+Kick the given username. Kill all connections where the user has been seen (WARN: this may kill connections supporting other users)
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#UserNameDTO">UserNameDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **GET** `/user/list`
+##### getUsersList 
+
+Get the list of users that has been connected at least once since the proxy is started.
+
+
+###### Parameters
+
+###### Response
+[List[UserDetailsDTO]](#UserDetailsDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/log/since`
+##### getLogSince 
+
+Return log message since the given timestamp.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#TimestampDTO">TimestampDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[List[LogEntry]](#LogEntry)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+| 400    | Timestamp is empty. | - |
+
+
+- - -
+#### **GET** `/misc/version`
+##### getProxyVersion 
+
+Return the version of the proxy.
+
+
+###### Parameters
+
+###### Response
+[ProxyVersionDTO](#ProxyVersionDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/address/ban/list`
+##### listBannedAddress 
+
+List all banned addresses.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#AddressDTO">AddressDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[List[string]](#)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **GET** `/connection/list`
+##### getConnectionsList 
+
+Return the list of all worker connections.
+
+
+###### Parameters
+
+###### Response
+[List[WorkerConnectionDTO]](#WorkerConnectionDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/hashrate/user`
+##### getUserHashrateHistory 
+
+Return the hashrate history of a user.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#UserNameDTO">UserNameDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[List[HashrateModel]](#HashrateModel)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/hashrate/pool`
+##### getPoolHashrateHistory 
+
+Return the hashrate history of a pool.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#PoolNameDTO">PoolNameDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[List[HashrateModel]](#HashrateModel)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+| 500    | Error during pool hashrate history response build. | - |
+| 404    | Pool not found. | - |
+
+
+- - -
+
+## Data Types
+
+
+## <a name="AddPoolDTO">AddPoolDTO</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>boolean</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>boolean</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>int</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>boolean</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>boolean</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>int</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
+## <a name="AddressDTO">AddressDTO</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
+## <a name="ChangePriorityDTO">ChangePriorityDTO</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>int</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
+## <a name="ConnectionIdentifierDTO">ConnectionIdentifierDTO</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>int</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
+## <a name="HashrateModel">HashrateModel</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>long</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>long</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>long</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
+## <a name="LogEntry">LogEntry</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>long</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
+## <a name="LogLevelDTO">LogLevelDTO</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
+## <a name="PoolDetailsDTO">PoolDetailsDTO</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>int</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>int</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>long</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>boolean</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>boolean</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>boolean</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>long</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>int</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>double</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>boolean</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>boolean</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>boolean</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>int</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>int</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>boolean</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>double</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
+## <a name="PoolNameDTO">PoolNameDTO</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
+## <a name="ProxyVersionDTO">ProxyVersionDTO</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
+## <a name="RemovePoolDTO">RemovePoolDTO</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>boolean</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
+## <a name="StatusDTO">StatusDTO</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
+## <a name="TimestampDTO">TimestampDTO</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>long</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
+## <a name="UpdatePoolDTO">UpdatePoolDTO</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>boolean</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>int</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>boolean</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>boolean</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>int</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
+## <a name="UserDetailsDTO">UserDetailsDTO</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>long</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>long</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>double</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td><a href="#WorkerConnectionDTO">Array[WorkerConnectionDTO]</a></td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>double</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
+## <a name="UserNameDTO">UserNameDTO</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
+## <a name="WorkerConnectionDTO">WorkerConnectionDTO</a>
+
+<table border="1">
+    <tr>
+        <th>type</th>
+        <th>required</th>
+        <th>access</th>
+        <th>description</th>
+        <th>notes</th>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>long</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>long</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>boolean</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>Array[string]</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>string</td>
+        <td>optional</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+</table>
+
+
+
 
 
 #License
