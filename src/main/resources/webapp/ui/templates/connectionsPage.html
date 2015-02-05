@@ -1,5 +1,17 @@
 <div id="connectionsPage" class="container" >
-	<div>
-		<h1 data-i18n="misc.notAvailable">Not yet available</h1>
-	</div>
+    <div class="container container-sm-height">
+        <div class="row row-sm-height">
+            <div class="col-sm-3 col-sm-height col-middle">
+                <h1 data-i18n="connectionsPage.title">Connections list</h1>
+            </div>
+            <div
+                class="col-sm-9 autoRefreshContainer col-sm-height col-middle text-right">
+                <span class="h6 autoRefreshCountDown"></span><a
+                    class="btn btn-default btn-mini refreshButton"><i
+                    class="icon-black glyphicon glyphicon-refresh"></i> <span
+                    data-i18n="connectionsPage.refreshButtonLabel">Refresh</span></a>
+            </div>
+        </div>
+    </div>
+    <div class="row connectionsItemContainer"></div>
 </div>

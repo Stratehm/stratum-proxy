@@ -273,6 +273,17 @@
 		"autoScrollLabel": "Activer le scroll automatique"
 	},
 	
+	"connectionItem": {
+       "remoteHostLabel": "Adresse distante",
+       "authorizedUsersLabel": "Utilisateurs autorisés",
+       "acceptedHashrateLabel": "Puissance de calcul accepté",
+       "rejectedHashrateLabel": "Puissance de calcul rejeté",
+       "isActiveSinceLabel": "Actif depuis",
+       "workingOnPoolLabel": "Attribué au pool",
+       "extranonceNotificationSupportedLabel": "Support du changement d'extranonce",
+       "connectionTypeLabel": "Type de connection"
+    },
+	
 	"misc": {
 		"notAvailable": "Pas encore disponible"
 	}

@@ -273,6 +273,17 @@
 		"autoScrollLabel": "Enable auto scroll"
 	},
 	
+	"connectionItem": {
+	   "remoteHostLabel": "Remote host",
+	   "authorizedUsersLabel": "Authorized users",
+	   "acceptedHashrateLabel": "Accepted hashrate",
+	   "rejectedHashrateLabel": "Rejected hashrate",
+	   "isActiveSinceLabel": "Is active since",
+	   "workingOnPoolLabel": "Working on pool",
+	   "extranonceNotificationSupportedLabel": "Is extranonce notification supported",
+	   "connectionTypeLabel": "Connection type"
+	},
+	
 	"misc": {
 		"notAvailable": "Not yet available"
 	}
