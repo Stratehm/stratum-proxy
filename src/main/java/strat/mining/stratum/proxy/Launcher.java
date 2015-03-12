@@ -294,20 +294,7 @@ public class Launcher {
         // to get the web content.
         if (ConfigurationManager.isRunningFromJar()) {
             try {
-                // File stratumProxyWebappJarFile = new
-                // File(ConfigurationManager.getInstallDirectory(),
-                // "lib/stratum-proxy-webapp.jar");
                 handler = new CLStaticHttpHandlerWithIndexSupport(Launcher.class.getClassLoader(), "/");
-                // File stratumProxyWebappJarFile = new
-                // File(ConfigurationManager.getInstallDirectory(),
-                // "lib/stratum-proxy-webapp.jar");
-                // if (stratumProxyWebappJarFile.exists()) {
-                // handler = new CLStaticHttpHandlerWithIndexSupport(new
-                // URLClassLoader(new URL[] { new URL("file://"
-                // + stratumProxyWebappJarFile.getAbsolutePath()) }), "/");
-                // } else {
-                // LOGGER.warn("lib/stratum-proxy-webapp.jar not found. GUI will not be available.");
-                // }
             } catch (Exception e) {
                 LOGGER.warn("Failed to initialize the Web content loader. GUI will not be available.", e);
             }
