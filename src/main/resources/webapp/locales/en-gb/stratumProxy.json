@@ -231,7 +231,15 @@
 		"refreshButtonLabel": "Refresh",
 		"autoRefresh": "Auto refresh in __count__ second.",
 		"autoRefresh_plural": "Auto refresh in __count__ seconds.",
-		"autoRefresh_undefinite": "Auto refresh in -- second."
+		"autoRefresh_undefinite": "Auto refresh in -- second.",
+		"banUser": 
+        {
+            "confirmationPopup": 
+            {
+                "title": "Ban user confirmation",
+                "message": "Do you really want to ban __username__ ? The user will be banned until the next proxy start."
+            }
+        }
 	},
 
 	"userItem": 

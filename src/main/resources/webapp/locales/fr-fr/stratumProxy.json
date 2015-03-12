@@ -231,7 +231,15 @@
 		"refreshButtonLabel": "Rafraichir",
 		"autoRefresh": "Rafraichissement dans __count__ seconde.",
 		"autoRefresh_plural": "Rafraichissement dans __count__ secondes.",
-		"autoRefresh_undefinite": "Rafraichissement dans -- seconde."
+		"autoRefresh_undefinite": "Rafraichissement dans -- seconde.",
+		"banUser": 
+        {
+            "confirmationPopup": 
+            {
+                "title": "Confirmer le bannissement de l'utilisateur",
+                "message": "Etes-vous sûr de vouloir bannir l'utilisateur __username__ ? L'utilisateur sera alors banni jusqu'au prochain redémarrage du proxy."
+            }
+        }
 	},
 
 	"userItem": 

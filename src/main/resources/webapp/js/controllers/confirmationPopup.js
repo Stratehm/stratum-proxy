@@ -53,7 +53,7 @@ define(['jquery', 'ractivejs', 'rv!templates/confirmationPopup', 'i18n!locales']
 	    this.cancelButton.hide();
 	}
 
-	this.yesButton.find('.yesButton').click($.proxy(function() {
+	this.yesButton.click($.proxy(function() {
 	    this.result = opts.yesResultValue;
 	    if (opts.yesCallback) {
 		opts.yesCallback.call(opts.callbackContext ? opts.callbackContext : this, this.result);
@@ -63,7 +63,7 @@ define(['jquery', 'ractivejs', 'rv!templates/confirmationPopup', 'i18n!locales']
 	    }
 	}, this));
 
-	this.noButton.find('.noButton').click($.proxy(function() {
+	this.noButton.click($.proxy(function() {
 	    this.result = opts.noResultValue;
 	    if (opts.noCallback) {
 		opts.noCallback.call(opts.callbackContext ? opts.callbackContext : this, this.result);

@@ -1,6 +1,6 @@
 define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templates/usersPage',
-	'i18n!locales', 'config', 'controllers/userItem', 'json', 'sort'], function($, Ractive,
-	AbstractPageController, template, i18next, config, UserItem) {
+	'i18n!locales', 'config', 'controllers/userItem', 'controllers/confirmationPopup', 'json', 'sort'], function($, Ractive,
+	AbstractPageController, template, i18next, config, UserItem, ConfirmationPopup) {
 
     var UsersPageController = function(pageName) {
 	AbstractPageController.call(this, pageName);
@@ -69,15 +69,78 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 	this.items.push(item);
 
 	// Initialize all buttons handlers
+	item.getKickButton().click(function() {
+	    controller.kickUser(user.name);
+	});
 
-	// TODO
-	// item.getEnableDisableButton().click(
-	// function() {
-	// controller.setPoolEnabled(pool.name, item
-	// .getEnableDisableButton().text() == 'Enable');
-	// });
+	item.getBanButton().click(function() {
+	    controller.banUser(user.name);
+	});
 
     };
+
+    UsersPageController.prototype.kickUser = function(username) {
+	var controller = this;
+
+	$.ajax({
+	    url: 'proxy/user/kick',
+	    dataType: "json",
+	    type: "POST",
+	    data: JSON.stringify({
+		username: username
+	    }),
+	    contentType: "application/json",
+	    success: function(data) {
+		if (data.status != 'Done') {
+		    window.alert('Failed to kick the user. Message: ' + data.message);
+		} else {
+		    controller.refresh();
+		}
+	    },
+	    error: function(request, textStatus, errorThrown) {
+		var jsonObject = JSON.parse(request.responseText);
+		window.alert('Failed to kick the user. Status: ' + textStatus + ', error: ' + errorThrown
+			+ ', message: ' + jsonObject.message);
+	    }
+	});
+    }
+    
+    UsersPageController.prototype.banUser = function(username) {
+	var controller = this;
+
+	var banUserFunction = function() {
+	    $.ajax({
+		url: 'proxy/user/ban',
+		dataType: "json",
+		type: "POST",
+		data: JSON.stringify({
+		    username: username
+		}),
+		contentType: "application/json",
+		success: function(data) {
+		    if (data.status != 'Done') {
+			window.alert('Failed to ban the user. Message: ' + data.message);
+		    } else {
+			controller.refresh();
+		    }
+		},
+		error: function(request, textStatus, errorThrown) {
+		    var jsonObject = JSON.parse(request.responseText);
+		    window.alert('Failed to ban the user. Status: ' + textStatus + ', error: ' + errorThrown
+			    + ', message: ' + jsonObject.message);
+		}
+	    });
+	};
+
+	var modal = new ConfirmationPopup({
+	    title: i18next.t('usersPage.banUser.confirmationPopup.title'),
+	    message: i18next.t('usersPage.banUser.confirmationPopup.message', {
+		username: username
+	    }),
+	    yesCallback: banUserFunction,
+	    displayCancelButton: false
+	});
+    }
 
     UsersPageController.prototype.getUserItemFromName = function(userName) {
 	return this.items.find(function(item) {
