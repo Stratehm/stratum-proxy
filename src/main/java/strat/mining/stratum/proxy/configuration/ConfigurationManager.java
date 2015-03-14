@@ -113,6 +113,8 @@ public class ConfigurationManager {
 
     private String ipVersion = Constants.IP_VERSION_AUTO;
 
+    private Double suggestedPoolDifficulty;
+
     private Boolean logRealShareDifficulty = false;
 
     private Integer extranonce1TailSize = Constants.DEFAULT_EXTRANONCE1_TAIL_SIZE;
@@ -233,6 +235,8 @@ public class ConfigurationManager {
         apiEnableSsl = configuration.getApiEnableSsl();
 
         ipVersion = configuration.getIpVersion();
+
+        suggestedPoolDifficulty = configuration.getSuggestedPoolDifficulty();
 
         logRealShareDifficulty = configuration.getLogRealShareDifficulty() != null ? configuration.getLogRealShareDifficulty()
                 : logRealShareDifficulty;
@@ -410,6 +414,8 @@ public class ConfigurationManager {
         disableApi = cliParser.isDisableApi() != null ? cliParser.isDisableApi() : disableApi;
 
         ipVersion = cliParser.getIpVersion();
+
+        suggestedPoolDifficulty = cliParser.getSuggestedPoolDifficulty();
 
         logRealShareDifficulty = cliParser.getLogRealShareDifficulty() != null ? cliParser.getLogRealShareDifficulty() : logRealShareDifficulty;
 
@@ -896,6 +902,10 @@ public class ConfigurationManager {
 
     public String getIpVersion() {
         return ipVersion;
+    }
+
+    public Double getSuggestedPoolDifficulty() {
+        return suggestedPoolDifficulty;
     }
 
 }

@@ -181,6 +181,9 @@ public class CommandLineOptions {
     @Option(name = "--ip-version", usage = "Force the version of IP protocol to use. Valid values are: v4, v6, auto. (auto by default)")
     private String ipVersion;
 
+    @Option(name = "--suggest-pool-difficulty", usage = "Suggest the difficulty to the pool. The pool may ignore the suggested difficulty. (if not compatible or for any other reasons)")
+    private Double suggestedPoolDifficulty;
+
     public CommandLineOptions() {
         parser = new CmdLineParser(this);
     }
@@ -379,6 +382,10 @@ public class CommandLineOptions {
 
     public String getIpVersion() {
         return ipVersion;
+    }
+
+    public Double getSuggestedPoolDifficulty() {
+        return suggestedPoolDifficulty;
     }
 
 }

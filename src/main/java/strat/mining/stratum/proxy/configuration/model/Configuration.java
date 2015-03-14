@@ -72,6 +72,8 @@ public class Configuration {
 
     private String ipVersion;
 
+    private Double suggestedPoolDifficulty;
+
     @Valid
     private List<Pool> pools;
 
@@ -372,6 +374,14 @@ public class Configuration {
 
     public void setIpVersion(String ipVersion) {
         this.ipVersion = ipVersion;
+    }
+
+    public Double getSuggestedPoolDifficulty() {
+        return suggestedPoolDifficulty;
+    }
+
+    public void setSuggestedPoolDifficulty(Double suggestedPoolDifficulty) {
+        this.suggestedPoolDifficulty = suggestedPoolDifficulty;
     }
 
 }
