@@ -118,6 +118,9 @@ public class Launcher {
             // Start initialization of the database manager
             initDatabaseManager();
 
+            // Initialize the IP protocol version to use
+            initIpVersion(configurationManager);
+
             // Initialize the proxy manager
             initProxyManager(configurationManager);
 
@@ -207,6 +210,24 @@ public class Launcher {
     private static void initDatabaseManager() {
         // Just get the instance to create it.
         DatabaseManager.getInstance();
+    }
+
+    /**
+     * Initialize the IP protocol version to use
+     * 
+     * @param configurationManager
+     */
+    private static void initIpVersion(ConfigurationManager configurationManager) {
+        if (Constants.IP_VERSION_V4.equals(configurationManager.getIpVersion())) {
+            System.setProperty("java.net.preferIPv4Stack", "true");
+            System.setProperty("java.net.preferIPv6Addresses", "false");
+        } else if (Constants.IP_VERSION_V6.equals(configurationManager.getIpVersion())) {
+            System.setProperty("java.net.preferIPv4Stack", "false");
+            System.setProperty("java.net.preferIPv6Addresses", "true");
+        } else {
+            System.setProperty("java.net.preferIPv4Stack", "false");
+            System.setProperty("java.net.preferIPv6Addresses", "false");
+        }
     }
 
     /**

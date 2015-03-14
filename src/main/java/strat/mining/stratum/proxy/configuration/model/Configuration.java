@@ -25,343 +25,353 @@ import javax.validation.Valid;
 
 public class Configuration {
 
-	private String logDirectory;
-	private String logLevel;
-	private String apiLogLevel;
+    private String logDirectory;
+    private String logLevel;
+    private String apiLogLevel;
 
-	private Integer stratumListenPort;
-	private String stratumListenAddress;
-	private Integer getworkListenPort;
-	private String getworkListenAddress;
-	private Integer apiListenPort;
-	private String apiListenAddress;
+    private Integer stratumListenPort;
+    private String stratumListenAddress;
+    private Integer getworkListenPort;
+    private String getworkListenAddress;
+    private Integer apiListenPort;
+    private String apiListenAddress;
 
-	private Integer poolConnectionRetryDelay;
-	private Integer poolReconnectStabilityPeriod;
-	private Integer poolNoNotifyTimeout;
-	private Boolean rejectReconnectOnDifferentHost;
+    private Integer poolConnectionRetryDelay;
+    private Integer poolReconnectStabilityPeriod;
+    private Integer poolNoNotifyTimeout;
+    private Boolean rejectReconnectOnDifferentHost;
 
-	private Integer poolHashrateSamplingPeriod;
-	private Integer userHashrateSamplingPeriod;
-	private Integer connectionHashrateSamplingPeriod;
+    private Integer poolHashrateSamplingPeriod;
+    private Integer userHashrateSamplingPeriod;
+    private Integer connectionHashrateSamplingPeriod;
 
-	private String databaseDirectory;
-	private Integer hashrateDatabaseSamplingPeriod;
-	private Integer hashrateDatabaseHistoryDepth;
+    private String databaseDirectory;
+    private Integer hashrateDatabaseSamplingPeriod;
+    private Integer hashrateDatabaseHistoryDepth;
 
-	private Boolean isScrypt;
-	private Boolean noMidstate;
-	private Boolean validateGetworkShares;
+    private Boolean isScrypt;
+    private Boolean noMidstate;
+    private Boolean validateGetworkShares;
 
-	private String poolSwitchingStrategy;
-	private Integer weightedRoundRobinRoundDuration;
+    private String poolSwitchingStrategy;
+    private Integer weightedRoundRobinRoundDuration;
 
-	private Boolean disableGetwork;
-	private Boolean disableStratum;
-	private Boolean disableApi;
-	private Boolean disableLogAppend;
+    private Boolean disableGetwork;
+    private Boolean disableStratum;
+    private Boolean disableApi;
+    private Boolean disableLogAppend;
 
-	private String apiUser;
-	private String apiPassword;
+    private String apiUser;
+    private String apiPassword;
 
-	private Boolean apiEnableSsl;
+    private Boolean apiEnableSsl;
 
-	private Boolean logRealShareDifficulty;
+    private Boolean logRealShareDifficulty;
 
-	private Integer workerNumberLimit;
+    private Integer workerNumberLimit;
 
-	@Valid
-	private List<Pool> pools;
+    private String ipVersion;
 
-	public String getLogDirectory() {
-		return logDirectory;
-	}
+    @Valid
+    private List<Pool> pools;
 
-	public void setLogDirectory(String logDirectory) {
-		this.logDirectory = logDirectory;
-	}
+    public String getLogDirectory() {
+        return logDirectory;
+    }
 
-	public String getLogLevel() {
-		return logLevel;
-	}
+    public void setLogDirectory(String logDirectory) {
+        this.logDirectory = logDirectory;
+    }
 
-	public void setLogLevel(String logLevel) {
-		this.logLevel = logLevel;
-	}
+    public String getLogLevel() {
+        return logLevel;
+    }
 
-	public String getApiLogLevel() {
-		return apiLogLevel;
-	}
+    public void setLogLevel(String logLevel) {
+        this.logLevel = logLevel;
+    }
 
-	public void setApiLogLevel(String apiLogLevel) {
-		this.apiLogLevel = apiLogLevel;
-	}
+    public String getApiLogLevel() {
+        return apiLogLevel;
+    }
 
-	public Integer getStratumListenPort() {
-		return stratumListenPort;
-	}
+    public void setApiLogLevel(String apiLogLevel) {
+        this.apiLogLevel = apiLogLevel;
+    }
 
-	public void setStratumListenPort(Integer stratumListenPort) {
-		this.stratumListenPort = stratumListenPort;
-	}
+    public Integer getStratumListenPort() {
+        return stratumListenPort;
+    }
 
-	public String getStratumListenAddress() {
-		return stratumListenAddress;
-	}
+    public void setStratumListenPort(Integer stratumListenPort) {
+        this.stratumListenPort = stratumListenPort;
+    }
 
-	public void setStratumListenAddress(String stratumListenAddress) {
-		this.stratumListenAddress = stratumListenAddress;
-	}
+    public String getStratumListenAddress() {
+        return stratumListenAddress;
+    }
 
-	public Integer getGetworkListenPort() {
-		return getworkListenPort;
-	}
+    public void setStratumListenAddress(String stratumListenAddress) {
+        this.stratumListenAddress = stratumListenAddress;
+    }
 
-	public void setGetworkListenPort(Integer getworkListenPort) {
-		this.getworkListenPort = getworkListenPort;
-	}
+    public Integer getGetworkListenPort() {
+        return getworkListenPort;
+    }
 
-	public String getGetworkListenAddress() {
-		return getworkListenAddress;
-	}
+    public void setGetworkListenPort(Integer getworkListenPort) {
+        this.getworkListenPort = getworkListenPort;
+    }
 
-	public void setGetworkListenAddress(String getworkListenAddress) {
-		this.getworkListenAddress = getworkListenAddress;
-	}
-
-	public Integer getApiListenPort() {
-		return apiListenPort;
-	}
-
-	public void setApiListenPort(Integer apiListenPort) {
-		this.apiListenPort = apiListenPort;
-	}
-
-	public String getApiListenAddress() {
-		return apiListenAddress;
-	}
-
-	public void setApiListenAddress(String apiListenAddress) {
-		this.apiListenAddress = apiListenAddress;
-	}
-
-	public Integer getPoolConnectionRetryDelay() {
-		return poolConnectionRetryDelay;
-	}
-
-	public void setPoolConnectionRetryDelay(Integer poolConnectionRetryDelay) {
-		this.poolConnectionRetryDelay = poolConnectionRetryDelay;
-	}
-
-	public Integer getPoolReconnectStabilityPeriod() {
-		return poolReconnectStabilityPeriod;
-	}
-
-	public void setPoolReconnectStabilityPeriod(Integer poolReconnectStabilityPeriod) {
-		this.poolReconnectStabilityPeriod = poolReconnectStabilityPeriod;
-	}
-
-	public Integer getPoolNoNotifyTimeout() {
-		return poolNoNotifyTimeout;
-	}
-
-	public void setPoolNoNotifyTimeout(Integer poolNoNotifyTimeout) {
-		this.poolNoNotifyTimeout = poolNoNotifyTimeout;
-	}
-
-	public Boolean getRejectReconnectOnDifferentHost() {
-		return rejectReconnectOnDifferentHost;
-	}
-
-	public void setRejectReconnectOnDifferentHost(Boolean rejectReconnectOnDifferentHost) {
-		this.rejectReconnectOnDifferentHost = rejectReconnectOnDifferentHost;
-	}
-
-	public Integer getPoolHashrateSamplingPeriod() {
-		return poolHashrateSamplingPeriod;
-	}
-
-	public void setPoolHashrateSamplingPeriod(Integer poolHashrateSamplingPeriod) {
-		this.poolHashrateSamplingPeriod = poolHashrateSamplingPeriod;
-	}
-
-	public Integer getUserHashrateSamplingPeriod() {
-		return userHashrateSamplingPeriod;
-	}
-
-	public void setUserHashrateSamplingPeriod(Integer userHashrateSamplingPeriod) {
-		this.userHashrateSamplingPeriod = userHashrateSamplingPeriod;
-	}
-
-	public Integer getConnectionHashrateSamplingPeriod() {
-		return connectionHashrateSamplingPeriod;
-	}
-
-	public void setConnectionHashrateSamplingPeriod(Integer connectionHashrateSamplingPeriod) {
-		this.connectionHashrateSamplingPeriod = connectionHashrateSamplingPeriod;
-	}
-
-	public Boolean getIsScrypt() {
-		return isScrypt;
-	}
-
-	public void setIsScrypt(Boolean isScrypt) {
-		this.isScrypt = isScrypt;
-	}
-
-	public List<Pool> getPools() {
-		return pools;
-	}
-
-	public void setPools(List<Pool> pools) {
-		if (pools == null) {
-			pools = new ArrayList<>();
-		}
-		this.pools = pools;
-	}
-
-	public String getDatabaseDirectory() {
-		return databaseDirectory;
-	}
-
-	public void setDatabaseDirectory(String databaseDirectory) {
-		this.databaseDirectory = databaseDirectory;
-	}
-
-	public Integer getHashrateDatabaseSamplingPeriod() {
-		return hashrateDatabaseSamplingPeriod;
-	}
-
-	public void setHashrateDatabaseSamplingPeriod(Integer hashrateDatabaseSamplingPeriod) {
-		this.hashrateDatabaseSamplingPeriod = hashrateDatabaseSamplingPeriod;
-	}
-
-	public Integer getHashrateDatabaseHistoryDepth() {
-		return hashrateDatabaseHistoryDepth;
-	}
-
-	public void setHashrateDatabaseHistoryDepth(Integer hashrateDatabaseHistoryDepth) {
-		this.hashrateDatabaseHistoryDepth = hashrateDatabaseHistoryDepth;
-	}
-
-	public Boolean getNoMidstate() {
-		return noMidstate;
-	}
-
-	public void setNoMidstate(Boolean noMidstate) {
-		this.noMidstate = noMidstate;
-	}
-
-	public Boolean getValidateGetworkShares() {
-		return validateGetworkShares;
-	}
-
-	public void setValidateGetworkShares(Boolean validateGetworkShares) {
-		this.validateGetworkShares = validateGetworkShares;
-	}
-
-	public String getPoolSwitchingStrategy() {
-		return poolSwitchingStrategy;
-	}
-
-	public void setPoolSwitchingStrategy(String poolSwitchingStrategy) {
-		this.poolSwitchingStrategy = poolSwitchingStrategy;
-	}
-
-	public Integer getWeightedRoundRobinRoundDuration() {
-		return weightedRoundRobinRoundDuration;
-	}
-
-	public void setWeightedRoundRobinRoundDuration(Integer weightedRoundRobinRoundDuration) {
-		this.weightedRoundRobinRoundDuration = weightedRoundRobinRoundDuration;
-	}
-
-	public Boolean isDisableGetwork() {
-		return disableGetwork;
-	}
-
-	public void setDisableGetwork(Boolean disableGetwork) {
-		this.disableGetwork = disableGetwork;
-	}
-
-	public Boolean isDisableStratum() {
-		return disableStratum;
-	}
-
-	public void setDisableStratum(Boolean disableStratum) {
-		this.disableStratum = disableStratum;
-	}
-
-	public Boolean isDisableApi() {
-		return disableApi;
-	}
-
-	public void setDisableApi(Boolean disableApi) {
-		this.disableApi = disableApi;
-	}
-
-	public Boolean isDisableLogAppend() {
-		return disableLogAppend;
-	}
-
-	public void setDisableLogAppend(Boolean disableLogAppend) {
-		this.disableLogAppend = disableLogAppend;
-	}
-
-	public String getApiUser() {
-		return apiUser;
-	}
-
-	public void setApiUser(String apiUser) {
-		this.apiUser = apiUser;
-	}
-
-	public String getApiPassword() {
-		return apiPassword;
-	}
-
-	public void setApiPassword(String apiPassword) {
-		this.apiPassword = apiPassword;
-	}
-
-	public Integer getWorkerNumberLimit() {
-		return workerNumberLimit;
-	}
-
-	public void setWorkerNumberLimit(Integer workerNumberLimit) {
-		this.workerNumberLimit = workerNumberLimit;
-	}
-
-	public Boolean getDisableGetwork() {
-		return disableGetwork;
-	}
-
-	public Boolean getDisableStratum() {
-		return disableStratum;
-	}
-
-	public Boolean getDisableApi() {
-		return disableApi;
-	}
-
-	public Boolean getDisableLogAppend() {
-		return disableLogAppend;
-	}
-
-	public Boolean getApiEnableSsl() {
-		return apiEnableSsl;
-	}
-
-	public void setApiEnableSsl(Boolean apiEnableSsl) {
-		this.apiEnableSsl = apiEnableSsl;
-	}
-
-	public Boolean getLogRealShareDifficulty() {
-		return logRealShareDifficulty;
-	}
-
-	public void setLogRealShareDifficulty(Boolean logRealShareDifficulty) {
-		this.logRealShareDifficulty = logRealShareDifficulty;
-	}
+    public String getGetworkListenAddress() {
+        return getworkListenAddress;
+    }
+
+    public void setGetworkListenAddress(String getworkListenAddress) {
+        this.getworkListenAddress = getworkListenAddress;
+    }
+
+    public Integer getApiListenPort() {
+        return apiListenPort;
+    }
+
+    public void setApiListenPort(Integer apiListenPort) {
+        this.apiListenPort = apiListenPort;
+    }
+
+    public String getApiListenAddress() {
+        return apiListenAddress;
+    }
+
+    public void setApiListenAddress(String apiListenAddress) {
+        this.apiListenAddress = apiListenAddress;
+    }
+
+    public Integer getPoolConnectionRetryDelay() {
+        return poolConnectionRetryDelay;
+    }
+
+    public void setPoolConnectionRetryDelay(Integer poolConnectionRetryDelay) {
+        this.poolConnectionRetryDelay = poolConnectionRetryDelay;
+    }
+
+    public Integer getPoolReconnectStabilityPeriod() {
+        return poolReconnectStabilityPeriod;
+    }
+
+    public void setPoolReconnectStabilityPeriod(Integer poolReconnectStabilityPeriod) {
+        this.poolReconnectStabilityPeriod = poolReconnectStabilityPeriod;
+    }
+
+    public Integer getPoolNoNotifyTimeout() {
+        return poolNoNotifyTimeout;
+    }
+
+    public void setPoolNoNotifyTimeout(Integer poolNoNotifyTimeout) {
+        this.poolNoNotifyTimeout = poolNoNotifyTimeout;
+    }
+
+    public Boolean getRejectReconnectOnDifferentHost() {
+        return rejectReconnectOnDifferentHost;
+    }
+
+    public void setRejectReconnectOnDifferentHost(Boolean rejectReconnectOnDifferentHost) {
+        this.rejectReconnectOnDifferentHost = rejectReconnectOnDifferentHost;
+    }
+
+    public Integer getPoolHashrateSamplingPeriod() {
+        return poolHashrateSamplingPeriod;
+    }
+
+    public void setPoolHashrateSamplingPeriod(Integer poolHashrateSamplingPeriod) {
+        this.poolHashrateSamplingPeriod = poolHashrateSamplingPeriod;
+    }
+
+    public Integer getUserHashrateSamplingPeriod() {
+        return userHashrateSamplingPeriod;
+    }
+
+    public void setUserHashrateSamplingPeriod(Integer userHashrateSamplingPeriod) {
+        this.userHashrateSamplingPeriod = userHashrateSamplingPeriod;
+    }
+
+    public Integer getConnectionHashrateSamplingPeriod() {
+        return connectionHashrateSamplingPeriod;
+    }
+
+    public void setConnectionHashrateSamplingPeriod(Integer connectionHashrateSamplingPeriod) {
+        this.connectionHashrateSamplingPeriod = connectionHashrateSamplingPeriod;
+    }
+
+    public Boolean getIsScrypt() {
+        return isScrypt;
+    }
+
+    public void setIsScrypt(Boolean isScrypt) {
+        this.isScrypt = isScrypt;
+    }
+
+    public List<Pool> getPools() {
+        return pools;
+    }
+
+    public void setPools(List<Pool> pools) {
+        if (pools == null) {
+            pools = new ArrayList<>();
+        }
+        this.pools = pools;
+    }
+
+    public String getDatabaseDirectory() {
+        return databaseDirectory;
+    }
+
+    public void setDatabaseDirectory(String databaseDirectory) {
+        this.databaseDirectory = databaseDirectory;
+    }
+
+    public Integer getHashrateDatabaseSamplingPeriod() {
+        return hashrateDatabaseSamplingPeriod;
+    }
+
+    public void setHashrateDatabaseSamplingPeriod(Integer hashrateDatabaseSamplingPeriod) {
+        this.hashrateDatabaseSamplingPeriod = hashrateDatabaseSamplingPeriod;
+    }
+
+    public Integer getHashrateDatabaseHistoryDepth() {
+        return hashrateDatabaseHistoryDepth;
+    }
+
+    public void setHashrateDatabaseHistoryDepth(Integer hashrateDatabaseHistoryDepth) {
+        this.hashrateDatabaseHistoryDepth = hashrateDatabaseHistoryDepth;
+    }
+
+    public Boolean getNoMidstate() {
+        return noMidstate;
+    }
+
+    public void setNoMidstate(Boolean noMidstate) {
+        this.noMidstate = noMidstate;
+    }
+
+    public Boolean getValidateGetworkShares() {
+        return validateGetworkShares;
+    }
+
+    public void setValidateGetworkShares(Boolean validateGetworkShares) {
+        this.validateGetworkShares = validateGetworkShares;
+    }
+
+    public String getPoolSwitchingStrategy() {
+        return poolSwitchingStrategy;
+    }
+
+    public void setPoolSwitchingStrategy(String poolSwitchingStrategy) {
+        this.poolSwitchingStrategy = poolSwitchingStrategy;
+    }
+
+    public Integer getWeightedRoundRobinRoundDuration() {
+        return weightedRoundRobinRoundDuration;
+    }
+
+    public void setWeightedRoundRobinRoundDuration(Integer weightedRoundRobinRoundDuration) {
+        this.weightedRoundRobinRoundDuration = weightedRoundRobinRoundDuration;
+    }
+
+    public Boolean isDisableGetwork() {
+        return disableGetwork;
+    }
+
+    public void setDisableGetwork(Boolean disableGetwork) {
+        this.disableGetwork = disableGetwork;
+    }
+
+    public Boolean isDisableStratum() {
+        return disableStratum;
+    }
+
+    public void setDisableStratum(Boolean disableStratum) {
+        this.disableStratum = disableStratum;
+    }
+
+    public Boolean isDisableApi() {
+        return disableApi;
+    }
+
+    public void setDisableApi(Boolean disableApi) {
+        this.disableApi = disableApi;
+    }
+
+    public Boolean isDisableLogAppend() {
+        return disableLogAppend;
+    }
+
+    public void setDisableLogAppend(Boolean disableLogAppend) {
+        this.disableLogAppend = disableLogAppend;
+    }
+
+    public String getApiUser() {
+        return apiUser;
+    }
+
+    public void setApiUser(String apiUser) {
+        this.apiUser = apiUser;
+    }
+
+    public String getApiPassword() {
+        return apiPassword;
+    }
+
+    public void setApiPassword(String apiPassword) {
+        this.apiPassword = apiPassword;
+    }
+
+    public Integer getWorkerNumberLimit() {
+        return workerNumberLimit;
+    }
+
+    public void setWorkerNumberLimit(Integer workerNumberLimit) {
+        this.workerNumberLimit = workerNumberLimit;
+    }
+
+    public Boolean getDisableGetwork() {
+        return disableGetwork;
+    }
+
+    public Boolean getDisableStratum() {
+        return disableStratum;
+    }
+
+    public Boolean getDisableApi() {
+        return disableApi;
+    }
+
+    public Boolean getDisableLogAppend() {
+        return disableLogAppend;
+    }
+
+    public Boolean getApiEnableSsl() {
+        return apiEnableSsl;
+    }
+
+    public void setApiEnableSsl(Boolean apiEnableSsl) {
+        this.apiEnableSsl = apiEnableSsl;
+    }
+
+    public Boolean getLogRealShareDifficulty() {
+        return logRealShareDifficulty;
+    }
+
+    public void setLogRealShareDifficulty(Boolean logRealShareDifficulty) {
+        this.logRealShareDifficulty = logRealShareDifficulty;
+    }
+
+    public String getIpVersion() {
+        return ipVersion;
+    }
+
+    public void setIpVersion(String ipVersion) {
+        this.ipVersion = ipVersion;
+    }
 
 }

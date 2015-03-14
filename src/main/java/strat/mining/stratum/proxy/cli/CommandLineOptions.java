@@ -38,340 +38,347 @@ import org.kohsuke.args4j.spi.StringArrayOptionHandler;
  */
 public class CommandLineOptions {
 
-	private CmdLineParser parser;
+    private CmdLineParser parser;
 
-	@Option(name = "-f", aliases = { "--conf-file" }, usage = "Use the given configuration file. If set, all other command line options are discarded (except --version and --help)", handler = FileOptionHandler.class, metaVar = "filePath")
-	private File configurationFile;
+    @Option(name = "-f", aliases = { "--conf-file" }, usage = "Use the given configuration file. If set, all other command line options are discarded (except --version and --help)", handler = FileOptionHandler.class, metaVar = "filePath")
+    private File configurationFile;
 
-	@Option(name = "-n", aliases = { "--pool-names" }, usage = "Names of the pools. Space separated. (Default to host)", handler = StringArrayOptionHandler.class, metaVar = "name1 [name2] [name3]...")
-	private List<String> poolNames;
+    @Option(name = "-n", aliases = { "--pool-names" }, usage = "Names of the pools. Space separated. (Default to host)", handler = StringArrayOptionHandler.class, metaVar = "name1 [name2] [name3]...")
+    private List<String> poolNames;
 
-	@Option(name = "-h", aliases = { "--pool-hosts" }, usage = "Hosts of the stratum servers (only the host, not the protocol since only stratum+tcp is supported), space separated. If at least one pool is specified, -u and -p has to be specified too.", handler = StringArrayOptionHandler.class, metaVar = "host1 [host2] [host3]...")
-	private List<String> poolHosts;
+    @Option(name = "-h", aliases = { "--pool-hosts" }, usage = "Hosts of the stratum servers (only the host, not the protocol since only stratum+tcp is supported), space separated. If at least one pool is specified, -u and -p has to be specified too.", handler = StringArrayOptionHandler.class, metaVar = "host1 [host2] [host3]...")
+    private List<String> poolHosts;
 
-	@Option(name = "-u", aliases = { "--pool-users" }, usage = "User names used to connect to the servers, space separated. If there are more pools than users, the last user will be used for reamining pools.", handler = StringArrayOptionHandler.class, metaVar = "user1 [user2] [user3]...")
-	private List<String> poolUsers;
+    @Option(name = "-u", aliases = { "--pool-users" }, usage = "User names used to connect to the servers, space separated. If there are more pools than users, the last user will be used for reamining pools.", handler = StringArrayOptionHandler.class, metaVar = "user1 [user2] [user3]...")
+    private List<String> poolUsers;
 
-	@Option(name = "-p", aliases = { "--pool-passwords" }, usage = "Passwords used for the users, space separated. If there are more pools than passwords, the last password will be used for reamining pools.", handler = StringArrayOptionHandler.class, metaVar = "pass1 [pass2] [pass3]...")
-	private List<String> poolPasswords;
+    @Option(name = "-p", aliases = { "--pool-passwords" }, usage = "Passwords used for the users, space separated. If there are more pools than passwords, the last password will be used for reamining pools.", handler = StringArrayOptionHandler.class, metaVar = "pass1 [pass2] [pass3]...")
+    private List<String> poolPasswords;
 
-	@Option(name = "--set-extranonce-subscribe", usage = "Enable/Disable the extranonce subscribe request on pool (default to false), space separated.", handler = BooleanArrayOptionHandler.class, metaVar = "boolean1 [boolean2] [boolean3]...")
-	private List<Boolean> isExtranonceSubscribeEnabled;
+    @Option(name = "--set-extranonce-subscribe", usage = "Enable/Disable the extranonce subscribe request on pool (default to false), space separated.", handler = BooleanArrayOptionHandler.class, metaVar = "boolean1 [boolean2] [boolean3]...")
+    private List<Boolean> isExtranonceSubscribeEnabled;
 
-	@Option(name = "--log-directory", usage = "The directory where logs will be written", handler = FileOptionHandler.class, metaVar = "directory")
-	private File logDirectory;
+    @Option(name = "--log-directory", usage = "The directory where logs will be written", handler = FileOptionHandler.class, metaVar = "directory")
+    private File logDirectory;
 
-	@Option(name = "--log-level", usage = "The level of log: OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE. Default is INFO. DEBUG and TRACE levels may augment rejected shares.", handler = LogLevelOptionHandler.class, metaVar = "LEVEL")
-	private Level logLevel;
+    @Option(name = "--log-level", usage = "The level of log: OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE. Default is INFO. DEBUG and TRACE levels may augment rejected shares.", handler = LogLevelOptionHandler.class, metaVar = "LEVEL")
+    private Level logLevel;
 
-	@Option(name = "--api-log-level", usage = "Enable the API logging with the given level. Valid levels are OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE. May degrade performances.", handler = LogLevelOptionHandler.class, metaVar = "LEVEL")
-	private Level apiLogLevel;
+    @Option(name = "--api-log-level", usage = "Enable the API logging with the given level. Valid levels are OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE. May degrade performances.", handler = LogLevelOptionHandler.class, metaVar = "LEVEL")
+    private Level apiLogLevel;
 
-	@Option(name = "--stratum-listen-port", usage = "The port number to listen incoming connections. (3333 by default)", metaVar = "portNumber")
-	private Integer stratumListeningPort;
+    @Option(name = "--stratum-listen-port", usage = "The port number to listen incoming connections. (3333 by default)", metaVar = "portNumber")
+    private Integer stratumListeningPort;
 
-	@Option(name = "--stratum-listen-address", usage = "The address to bind to listen incoming connections. (0.0.0.0 by default)", metaVar = "ipAddress")
-	private String stratumBindAddress;
+    @Option(name = "--stratum-listen-address", usage = "The address to bind to listen incoming connections. (0.0.0.0 by default)", metaVar = "ipAddress")
+    private String stratumBindAddress;
 
-	@Option(name = "--number-of-submit", usage = "The number of submit for each share. (Only for debug use)", metaVar = "number")
-	private Integer numberOfSubmit;
+    @Option(name = "--number-of-submit", usage = "The number of submit for each share. (Only for debug use)", metaVar = "number")
+    private Integer numberOfSubmit;
 
-	@Option(name = "--rest-listen-port", aliases = { "--api-listen-port" }, usage = "The port number to listen REST requests. (8888 by default)", metaVar = "portNumber")
-	private Integer restListenPort;
+    @Option(name = "--rest-listen-port", aliases = { "--api-listen-port" }, usage = "The port number to listen REST requests. (8888 by default)", metaVar = "portNumber")
+    private Integer restListenPort;
 
-	@Option(name = "--rest-listen-address", aliases = { "--api-listen-address" }, usage = "The address to bind to listen REST requests. (0.0.0.0 by default)", metaVar = "ipAddress")
-	private String restBindAddress;
+    @Option(name = "--rest-listen-address", aliases = { "--api-listen-address" }, usage = "The address to bind to listen REST requests. (0.0.0.0 by default)", metaVar = "ipAddress")
+    private String restBindAddress;
 
-	@Option(name = "--getwork-listen-port", usage = "The port number to listen Getwork requests. (8332 by default)", metaVar = "portNumber")
-	private Integer getworkListenPort;
+    @Option(name = "--getwork-listen-port", usage = "The port number to listen Getwork requests. (8332 by default)", metaVar = "portNumber")
+    private Integer getworkListenPort;
 
-	@Option(name = "--getwork-listen-address", usage = "The address to bind to listen Getwork requests. (0.0.0.0 by default)", metaVar = "ipAddress")
-	private String getworkBindAddress;
+    @Option(name = "--getwork-listen-address", usage = "The address to bind to listen Getwork requests. (0.0.0.0 by default)", metaVar = "ipAddress")
+    private String getworkBindAddress;
 
-	@Option(name = "--version", usage = "Print the version.", handler = BooleanOptionHandler.class)
-	private boolean isVersionRequested;
+    @Option(name = "--version", usage = "Print the version.", handler = BooleanOptionHandler.class)
+    private boolean isVersionRequested;
 
-	@Option(name = "--help", usage = "Print this help.", handler = BooleanOptionHandler.class)
-	private boolean isHelpRequested;
+    @Option(name = "--help", usage = "Print this help.", handler = BooleanOptionHandler.class)
+    private boolean isHelpRequested;
 
-	@Option(name = "--pool-connection-retry-delay", usage = "Delay in seconds before retry to connect to an inactive pool. (5 seconds by default). 0 to disable retry.")
-	private Integer poolConnectionRetryDelay;
+    @Option(name = "--pool-connection-retry-delay", usage = "Delay in seconds before retry to connect to an inactive pool. (5 seconds by default). 0 to disable retry.")
+    private Integer poolConnectionRetryDelay;
 
-	@Option(name = "--pool-reconnect-stability-period", usage = "Delay in seconds before declaring the pool as stable and workers could be moved on this pool. (30 seconds by default). 0 to disable.")
-	private Integer poolReconnectStabilityPeriod;
+    @Option(name = "--pool-reconnect-stability-period", usage = "Delay in seconds before declaring the pool as stable and workers could be moved on this pool. (30 seconds by default). 0 to disable.")
+    private Integer poolReconnectStabilityPeriod;
 
-	@Option(name = "--pool-no-notify-timeout", usage = "Delay in seconds to declare a pool as inactive if no mining.notify request received since the last one. (240 seconds by default). 0 to disable.")
-	private Integer poolNoNotifyTimeout;
+    @Option(name = "--pool-no-notify-timeout", usage = "Delay in seconds to declare a pool as inactive if no mining.notify request received since the last one. (240 seconds by default). 0 to disable.")
+    private Integer poolNoNotifyTimeout;
 
-	@Option(name = "--pool-no-reconnect-different-host", usage = "Do not accept client.reconnect if connection on a different host is requested. Still accept reconnection on another port on the same host. If not set, accept all reconnection requests.", handler = BooleanOptionHandler.class)
-	private boolean isRejectReconnect;
+    @Option(name = "--pool-no-reconnect-different-host", usage = "Do not accept client.reconnect if connection on a different host is requested. Still accept reconnection on another port on the same host. If not set, accept all reconnection requests.", handler = BooleanOptionHandler.class)
+    private boolean isRejectReconnect;
 
-	@Option(name = "--pool-append-worker-names", usage = "Append the worker name to the username configured for the pool to sumbit shares. (false by default) Use --pool-worker-name-separator to specify the separator to use.", handler = BooleanArrayOptionHandler.class, metaVar = "boolean1 [boolean2] [boolean3]...")
-	private List<Boolean> poolsAppendWorkerNames;
+    @Option(name = "--pool-append-worker-names", usage = "Append the worker name to the username configured for the pool to sumbit shares. (false by default) Use --pool-worker-name-separator to specify the separator to use.", handler = BooleanArrayOptionHandler.class, metaVar = "boolean1 [boolean2] [boolean3]...")
+    private List<Boolean> poolsAppendWorkerNames;
 
-	@Option(name = "--pool-worker-name-separator", usage = "Specify the separator to use between the pool username and the worker name. (. by default)", handler = StringArrayOptionHandler.class, metaVar = "separator1 [separator2] [separator3]...")
-	private List<String> poolsWorkerNameSeparator;
+    @Option(name = "--pool-worker-name-separator", usage = "Specify the separator to use between the pool username and the worker name. (. by default)", handler = StringArrayOptionHandler.class, metaVar = "separator1 [separator2] [separator3]...")
+    private List<String> poolsWorkerNameSeparator;
 
-	@Option(name = "--pool-use-worker-password", usage = "Use the worker password instead of the pool password to authorize workers. (false by default)", handler = BooleanArrayOptionHandler.class, metaVar = "boolean1 [boolean2] [boolean3]...")
-	private List<Boolean> poolsUseWorkerPassword;
+    @Option(name = "--pool-use-worker-password", usage = "Use the worker password instead of the pool password to authorize workers. (false by default)", handler = BooleanArrayOptionHandler.class, metaVar = "boolean1 [boolean2] [boolean3]...")
+    private List<Boolean> poolsUseWorkerPassword;
 
-	@Option(name = "--pool-weight", usage = "Specify the weight of the pool compared to each other. Only used when the Pool Switching strategy is WeightedRoundRobin. (1 by default)", handler = IntegerArrayOptionHandler.class, metaVar = "pool1Weight [pool2Weight] [pool3Weight]...")
-	private List<Integer> poolsWeight;
+    @Option(name = "--pool-weight", usage = "Specify the weight of the pool compared to each other. Only used when the Pool Switching strategy is WeightedRoundRobin. (1 by default)", handler = IntegerArrayOptionHandler.class, metaVar = "pool1Weight [pool2Weight] [pool3Weight]...")
+    private List<Integer> poolsWeight;
 
-	@Option(name = "--pool-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate on pools. (600 seconds by default)")
-	private Integer poolHashrateSamplingPeriod;
+    @Option(name = "--pool-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate on pools. (600 seconds by default)")
+    private Integer poolHashrateSamplingPeriod;
 
-	@Option(name = "--user-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate for connected users. (600 seconds by default)")
-	private Integer userHashrateSamplingPeriod;
+    @Option(name = "--user-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate for connected users. (600 seconds by default)")
+    private Integer userHashrateSamplingPeriod;
 
-	@Option(name = "--connection-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate on workers conections. (600 seconds by default)")
-	private Integer connectionHashrateSamplingPeriod;
+    @Option(name = "--connection-hashrate-sampling-period", usage = "The sampling period in seconds used to calculate hashrate on workers conections. (600 seconds by default)")
+    private Integer connectionHashrateSamplingPeriod;
 
-	@Option(name = "--scrypt", usage = "Used to adjust target when mining scrypt coins. Used to estimate hashrate and for getwork workers.", handler = BooleanOptionHandler.class)
-	private boolean isScrypt;
+    @Option(name = "--scrypt", usage = "Used to adjust target when mining scrypt coins. Used to estimate hashrate and for getwork workers.", handler = BooleanOptionHandler.class)
+    private boolean isScrypt;
 
-	@Option(name = "--database-directory", usage = "Set the directory where the database is saved. (Default to the INSTALLATION_DIR/database)")
-	private File databaseDirectory;
+    @Option(name = "--database-directory", usage = "Set the directory where the database is saved. (Default to the INSTALLATION_DIR/database)")
+    private File databaseDirectory;
 
-	@Option(name = "--hashrate-database-sampling-period", usage = "The time (in seconds) beetwen two records of pools, users and connections hashrates in the database. (60 seconds by default)")
-	private Integer hashrateDatabaseSamplingPeriod;
+    @Option(name = "--hashrate-database-sampling-period", usage = "The time (in seconds) beetwen two records of pools, users and connections hashrates in the database. (60 seconds by default)")
+    private Integer hashrateDatabaseSamplingPeriod;
 
-	@Option(name = "--hashrate-database-history-depth", usage = "The number of days to keep data in the hashrate database. (Default to 7 days)")
-	private Integer hashrateDatabaseHistoryDepth;
+    @Option(name = "--hashrate-database-history-depth", usage = "The number of days to keep data in the hashrate database. (Default to 7 days)")
+    private Integer hashrateDatabaseHistoryDepth;
 
-	@Option(name = "--no-midstate", usage = "If set, the midstate for getwork requests will not be calculated. Midsate is only required by some old SHA256 miners. Descrease the CPU load of the proxy if set. (Default to false)")
-	private boolean noMidstate;
+    @Option(name = "--no-midstate", usage = "If set, the midstate for getwork requests will not be calculated. Midsate is only required by some old SHA256 miners. Descrease the CPU load of the proxy if set. (Default to false)")
+    private boolean noMidstate;
 
-	@Option(name = "--validate-getwork-shares", usage = "If set, the proxy will check that SHA256 or Scrypt shares submitted by getwork miners are valide (the share is below the target). If not valid, the share is discarded and not submitted to the pool. Increase the CPU load of the proxy if set. (Default to false).")
-	private boolean validateGetworkShares;
+    @Option(name = "--validate-getwork-shares", usage = "If set, the proxy will check that SHA256 or Scrypt shares submitted by getwork miners are valide (the share is below the target). If not valid, the share is discarded and not submitted to the pool. Increase the CPU load of the proxy if set. (Default to false).")
+    private boolean validateGetworkShares;
 
-	@Option(name = "--pool-switching-strategy", usage = "Set the pool switching strategy. The strategy defines on which pool workers will mine. It also define when a pool switch occurs. By default, the priorityFailover is used. Strategies available are: priorityFailover, weightedRoundRobin.")
-	private String poolSwitchingStrategy;
+    @Option(name = "--pool-switching-strategy", usage = "Set the pool switching strategy. The strategy defines on which pool workers will mine. It also define when a pool switch occurs. By default, the priorityFailover is used. Strategies available are: priorityFailover, weightedRoundRobin.")
+    private String poolSwitchingStrategy;
 
-	@Option(name = "--weighted-round-robin-round-duration", usage = "Set the duration (in minutes) of a round for the weightedRoundRobin pool switching strategy. (60 minutes by default)")
-	private Integer weightedRoundRobinRoundDuration;
+    @Option(name = "--weighted-round-robin-round-duration", usage = "Set the duration (in minutes) of a round for the weightedRoundRobin pool switching strategy. (60 minutes by default)")
+    private Integer weightedRoundRobinRoundDuration;
 
-	@Option(name = "--disable-getwork", usage = "Disable the Getwork listening port. (false by default)")
-	private boolean disableGetwork;
+    @Option(name = "--disable-getwork", usage = "Disable the Getwork listening port. (false by default)")
+    private boolean disableGetwork;
 
-	@Option(name = "--disable-stratum", usage = "Disable the Stratum listening port. (false by default)")
-	private boolean disableStratum;
+    @Option(name = "--disable-stratum", usage = "Disable the Stratum listening port. (false by default)")
+    private boolean disableStratum;
 
-	@Option(name = "--disable-api", usage = "Disable the API listening port. (false by default)")
-	private boolean disableApi;
+    @Option(name = "--disable-api", usage = "Disable the API listening port. (false by default)")
+    private boolean disableApi;
 
-	@Option(name = "--disable-log-append", usage = "If set, do not append log file on each run. The current log file will be cleared before writing logs.")
-	private boolean disableLogAppend;
+    @Option(name = "--disable-log-append", usage = "If set, do not append log file on each run. The current log file will be cleared before writing logs.")
+    private boolean disableLogAppend;
 
-	@Option(name = "--api-user", usage = "If set, the API (and GUI) will require an authentication with this user name. When a user is set, the --api-enable-ssl option is automatically activated. If you do not want to use SSL with this option (not recommanded at all), you may use --api-enable-ssl false")
-	private String apiUser;
+    @Option(name = "--api-user", usage = "If set, the API (and GUI) will require an authentication with this user name. When a user is set, the --api-enable-ssl option is automatically activated. If you do not want to use SSL with this option (not recommanded at all), you may use --api-enable-ssl false")
+    private String apiUser;
 
-	@Option(name = "--api-password", usage = "If set, define the password to provide with the --api-user name to access the API (and GUI)")
-	private String apiPassword;
+    @Option(name = "--api-password", usage = "If set, define the password to provide with the --api-user name to access the API (and GUI)")
+    private String apiPassword;
 
-	@Option(name = "--api-enable-ssl", usage = "Enable SSL (HTTPS) to secure the API.", handler = ExplicitBooleanOptionHandler.class)
-	private Boolean apiEnableSsl;
+    @Option(name = "--api-enable-ssl", usage = "Enable SSL (HTTPS) to secure the API.", handler = ExplicitBooleanOptionHandler.class)
+    private Boolean apiEnableSsl;
 
-	@Option(name = "--log-real-share-difficulty", usage = "For each share submitted by a worker, the real difficulty is written in the logs. WARN: Only works for SHA256 and Scrypt pools. Should be enabled only for debugging purposes since it is CPU intensive.", handler = BooleanOptionHandler.class)
-	private Boolean logRealShareDifficulty;
+    @Option(name = "--log-real-share-difficulty", usage = "For each share submitted by a worker, the real difficulty is written in the logs. WARN: Only works for SHA256 and Scrypt pools. Should be enabled only for debugging purposes since it is CPU intensive.", handler = BooleanOptionHandler.class)
+    private Boolean logRealShareDifficulty;
 
-	@Option(name = "--worker-number-limit", usage = "Represent the maximum number of workers allowed on the proxy. Only two values are accepted: 256 and 65536. Default to 256. 65536 may lead to some disconnections on some pools (should be rare).")
-	private Integer workerNumberLimit;
+    @Option(name = "--worker-number-limit", usage = "Represent the maximum number of workers allowed on the proxy. Only two values are accepted: 256 and 65536. Default to 256. 65536 may lead to some disconnections on some pools (should be rare).")
+    private Integer workerNumberLimit;
 
-	public CommandLineOptions() {
-		parser = new CmdLineParser(this);
-	}
+    @Option(name = "--ip-version", usage = "Force the version of IP protocol to use. Valid values are: v4, v6, auto. (auto by default)")
+    private String ipVersion;
 
-	public void parseArguments(String... args) throws CmdLineException {
-		parser.parseArgument(args);
-	}
+    public CommandLineOptions() {
+        parser = new CmdLineParser(this);
+    }
 
-	public File getLogDirectory() {
-		return logDirectory;
-	}
+    public void parseArguments(String... args) throws CmdLineException {
+        parser.parseArgument(args);
+    }
 
-	public void printUsage() {
-		parser.printUsage(System.out);
-	}
+    public File getLogDirectory() {
+        return logDirectory;
+    }
 
-	public Integer getStratumListeningPort() {
-		return stratumListeningPort;
-	}
+    public void printUsage() {
+        parser.printUsage(System.out);
+    }
 
-	public String getStratumBindAddress() {
-		return stratumBindAddress;
-	}
+    public Integer getStratumListeningPort() {
+        return stratumListeningPort;
+    }
 
-	public Integer getRestListenPort() {
-		return restListenPort;
-	}
+    public String getStratumBindAddress() {
+        return stratumBindAddress;
+    }
 
-	public String getRestBindAddress() {
-		return restBindAddress;
-	}
+    public Integer getRestListenPort() {
+        return restListenPort;
+    }
 
-	public Level getLogLevel() {
-		return logLevel;
-	}
+    public String getRestBindAddress() {
+        return restBindAddress;
+    }
 
-	public boolean isVersionRequested() {
-		return isVersionRequested;
-	}
+    public Level getLogLevel() {
+        return logLevel;
+    }
 
-	public boolean isHelpRequested() {
-		return isHelpRequested;
-	}
+    public boolean isVersionRequested() {
+        return isVersionRequested;
+    }
 
-	public Integer getPoolConnectionRetryDelay() {
-		return poolConnectionRetryDelay;
-	}
+    public boolean isHelpRequested() {
+        return isHelpRequested;
+    }
 
-	public Integer getPoolNoNotifyTimeout() {
-		return poolNoNotifyTimeout;
-	}
+    public Integer getPoolConnectionRetryDelay() {
+        return poolConnectionRetryDelay;
+    }
 
-	public Boolean isRejectReconnect() {
-		return isRejectReconnect;
-	}
+    public Integer getPoolNoNotifyTimeout() {
+        return poolNoNotifyTimeout;
+    }
 
-	public Integer getUserHashrateSamplingPeriod() {
-		return userHashrateSamplingPeriod;
-	}
+    public Boolean isRejectReconnect() {
+        return isRejectReconnect;
+    }
 
-	public Integer getConnectionHashrateSamplingPeriod() {
-		return connectionHashrateSamplingPeriod;
-	}
+    public Integer getUserHashrateSamplingPeriod() {
+        return userHashrateSamplingPeriod;
+    }
 
-	public Integer getGetworkListenPort() {
-		return getworkListenPort;
-	}
+    public Integer getConnectionHashrateSamplingPeriod() {
+        return connectionHashrateSamplingPeriod;
+    }
 
-	public String getGetworkBindAddress() {
-		return getworkBindAddress;
-	}
+    public Integer getGetworkListenPort() {
+        return getworkListenPort;
+    }
 
-	public Boolean isScrypt() {
-		return isScrypt;
-	}
+    public String getGetworkBindAddress() {
+        return getworkBindAddress;
+    }
 
-	public File getConfigurationFile() {
-		return configurationFile;
-	}
+    public Boolean isScrypt() {
+        return isScrypt;
+    }
 
-	public Integer getNumberOfSubmit() {
-		return numberOfSubmit;
-	}
+    public File getConfigurationFile() {
+        return configurationFile;
+    }
 
-	public Integer getPoolReconnectStabilityPeriod() {
-		return poolReconnectStabilityPeriod;
-	}
+    public Integer getNumberOfSubmit() {
+        return numberOfSubmit;
+    }
 
-	public Integer getPoolHashrateSamplingPeriod() {
-		return poolHashrateSamplingPeriod;
-	}
+    public Integer getPoolReconnectStabilityPeriod() {
+        return poolReconnectStabilityPeriod;
+    }
 
-	public List<String> getPoolNames() {
-		return poolNames;
-	}
+    public Integer getPoolHashrateSamplingPeriod() {
+        return poolHashrateSamplingPeriod;
+    }
 
-	public List<String> getPoolHosts() {
-		return poolHosts;
-	}
+    public List<String> getPoolNames() {
+        return poolNames;
+    }
 
-	public List<String> getPoolUsers() {
-		return poolUsers;
-	}
+    public List<String> getPoolHosts() {
+        return poolHosts;
+    }
 
-	public List<String> getPoolPasswords() {
-		return poolPasswords;
-	}
+    public List<String> getPoolUsers() {
+        return poolUsers;
+    }
 
-	public List<Boolean> getPoolsAppendWorkerNames() {
-		return poolsAppendWorkerNames;
-	}
+    public List<String> getPoolPasswords() {
+        return poolPasswords;
+    }
 
-	public List<String> getPoolsWorkerNameSeparator() {
-		return poolsWorkerNameSeparator;
-	}
+    public List<Boolean> getPoolsAppendWorkerNames() {
+        return poolsAppendWorkerNames;
+    }
 
-	public List<Boolean> getPoolsUseWorkerPassword() {
-		return poolsUseWorkerPassword;
-	}
+    public List<String> getPoolsWorkerNameSeparator() {
+        return poolsWorkerNameSeparator;
+    }
 
-	public List<Boolean> getIsExtranonceSubscribeEnabled() {
-		return isExtranonceSubscribeEnabled;
-	}
+    public List<Boolean> getPoolsUseWorkerPassword() {
+        return poolsUseWorkerPassword;
+    }
 
-	public File getDatabaseDirectory() {
-		return databaseDirectory;
-	}
+    public List<Boolean> getIsExtranonceSubscribeEnabled() {
+        return isExtranonceSubscribeEnabled;
+    }
 
-	public Integer getHashrateDatabaseSamplingPeriod() {
-		return hashrateDatabaseSamplingPeriod;
-	}
+    public File getDatabaseDirectory() {
+        return databaseDirectory;
+    }
 
-	public Integer getHashrateDatabaseHistoryDepth() {
-		return hashrateDatabaseHistoryDepth;
-	}
+    public Integer getHashrateDatabaseSamplingPeriod() {
+        return hashrateDatabaseSamplingPeriod;
+    }
 
-	public Boolean isNoMidstate() {
-		return noMidstate;
-	}
+    public Integer getHashrateDatabaseHistoryDepth() {
+        return hashrateDatabaseHistoryDepth;
+    }
 
-	public Level getApiLogLevel() {
-		return apiLogLevel;
-	}
+    public Boolean isNoMidstate() {
+        return noMidstate;
+    }
 
-	public Boolean isValidateGetworkShares() {
-		return validateGetworkShares;
-	}
+    public Level getApiLogLevel() {
+        return apiLogLevel;
+    }
 
-	public List<Integer> getPoolsWeight() {
-		return poolsWeight;
-	}
+    public Boolean isValidateGetworkShares() {
+        return validateGetworkShares;
+    }
 
-	public String getPoolSwitchingStrategy() {
-		return poolSwitchingStrategy;
-	}
+    public List<Integer> getPoolsWeight() {
+        return poolsWeight;
+    }
 
-	public Integer getWeightedRoundRobinRoundDuration() {
-		return weightedRoundRobinRoundDuration;
-	}
+    public String getPoolSwitchingStrategy() {
+        return poolSwitchingStrategy;
+    }
 
-	public Boolean isDisableGetwork() {
-		return disableGetwork;
-	}
+    public Integer getWeightedRoundRobinRoundDuration() {
+        return weightedRoundRobinRoundDuration;
+    }
 
-	public Boolean isDisableStratum() {
-		return disableStratum;
-	}
+    public Boolean isDisableGetwork() {
+        return disableGetwork;
+    }
 
-	public Boolean isDisableApi() {
-		return disableApi;
-	}
+    public Boolean isDisableStratum() {
+        return disableStratum;
+    }
 
-	public Boolean isDisableLogAppend() {
-		return disableLogAppend;
-	}
+    public Boolean isDisableApi() {
+        return disableApi;
+    }
 
-	public String getApiUser() {
-		return apiUser;
-	}
+    public Boolean isDisableLogAppend() {
+        return disableLogAppend;
+    }
 
-	public String getApiPassword() {
-		return apiPassword;
-	}
+    public String getApiUser() {
+        return apiUser;
+    }
 
-	public Boolean isApiEnableSsl() {
-		return apiEnableSsl;
-	}
+    public String getApiPassword() {
+        return apiPassword;
+    }
 
-	public Boolean getLogRealShareDifficulty() {
-		return logRealShareDifficulty;
-	}
+    public Boolean isApiEnableSsl() {
+        return apiEnableSsl;
+    }
 
-	public Integer getWorkerNumberLimit() {
-		return workerNumberLimit;
-	}
+    public Boolean getLogRealShareDifficulty() {
+        return logRealShareDifficulty;
+    }
+
+    public Integer getWorkerNumberLimit() {
+        return workerNumberLimit;
+    }
+
+    public String getIpVersion() {
+        return ipVersion;
+    }
 
 }
