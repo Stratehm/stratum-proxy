@@ -49,6 +49,24 @@ java -jar stratum-proxy.jar proxyOptions
 java -jar stratum-proxy.jar --help
 ```
 
+##Raspberry Pi Installation
+Once your OS is setup on the Raspberry Pi, perform the following
+1. Install JDK onto the Raspberry Pi
+`sudo apt-get update && sudo apt-get install oracle-java7-jdk`
+2. Download stratum-proxy (currently version 0.6.0) to the /opt folder
+`cd /opt`
+`sudo wget https://github.com/Stratehm/stratum-proxy/releases/download/0.6.0/stratum-proxy-0.6.0.zip`
+3. Unzip the stratum-proxy zip
+`sudo unzip stratum-proxy-0.6.0.zip`
+`sudo rm -rf stratum-proxy-0.6.0.zip`
+`sudo mv /opt/stratum-proxy-0.6.0 /opt/stratum-proxy`
+4. Test the stratum-proxy by running it
+`cd /opt/stratum-proxy`
+`sudo java -jar stratum-proxy.jar proxyOptions`
+5. Set it to automatically start-up by adding the following line to the `/etc/rc.local`
+`sudo vi /etc/rc.local`
+Add the line `java -jar /opt/stratum-proxy/stratum-proxy.jar proxyOptions`
+
 ##Configuration File
 
 In order to use a configuration file instead of the command line parameters, use the following command line options:
