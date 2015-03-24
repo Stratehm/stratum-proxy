@@ -111,6 +111,8 @@
 		"weightLabel": "Weight",
 		"lastStopCauseLabel": "Last stop cause",
 		"lastStopDateLabel": "Last stop date",
+		"numberOfDisconnectionsLabel": "Number of disconnections",
+		"uptimeLabel": "Uptime",
 		"isExtranonceSubscribeEnabledLabel": "Is extranonce subscribe enabled",
 		"isAppendWorkerNameLabel": "Append worker's name",
 		"workerNameSeparatorLabel": "Worker name separator",

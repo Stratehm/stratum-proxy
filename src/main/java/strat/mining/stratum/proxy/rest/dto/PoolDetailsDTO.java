@@ -23,256 +23,275 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PoolDetailsDTO {
 
-	private String name;
-	private String host;
-	private String username;
-	private String password;
-	private Boolean isReady;
-	private Boolean isEnabled;
-	private Boolean isStable;
-	private String isReadySince;
-	private Boolean isActive;
-	private String isActiveSince;
+    private String name;
+    private String host;
+    private String username;
+    private String password;
+    private Boolean isReady;
+    private Boolean isEnabled;
+    private Boolean isStable;
+    private String isReadySince;
+    private Boolean isActive;
+    private String isActiveSince;
 
-	private String difficulty;
-	private String extranonce1;
-	private Integer extranonce2Size;
-	private Integer workerExtranonce2Size;
+    private String difficulty;
+    private String extranonce1;
+    private Integer extranonce2Size;
+    private Integer workerExtranonce2Size;
 
-	private Integer numberOfWorkerConnections;
+    private Integer numberOfWorkerConnections;
 
-	private Integer priority;
-	private Integer weight;
+    private Integer priority;
+    private Integer weight;
 
-	private Double acceptedDifficulty;
-	private Double rejectedDifficulty;
+    private Double acceptedDifficulty;
+    private Double rejectedDifficulty;
 
-	private Boolean isExtranonceSubscribeEnabled;
+    private Boolean isExtranonceSubscribeEnabled;
 
-	private Long acceptedHashesPerSeconds;
-	private Long rejectedHashesPerSeconds;
+    private Long acceptedHashesPerSeconds;
+    private Long rejectedHashesPerSeconds;
 
-	private String lastStopCause;
-	private String lastStopDate;
+    private String lastStopCause;
+    private String lastStopDate;
 
-	private Boolean appendWorkerNames;
-	private String workerNamesSeparator;
-	private Boolean useWorkerPassword;
+    private Integer numberOfDisconnections;
+    private Long uptime;
 
-	public String getName() {
-		return name;
-	}
+    private Boolean appendWorkerNames;
+    private String workerNamesSeparator;
+    private Boolean useWorkerPassword;
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getHost() {
-		return host;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setHost(String host) {
-		this.host = host;
-	}
+    public String getHost() {
+        return host;
+    }
 
-	public String getUsername() {
-		return username;
-	}
+    public void setHost(String host) {
+        this.host = host;
+    }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+    public String getUsername() {
+        return username;
+    }
 
-	public String getPassword() {
-		return password;
-	}
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    public String getPassword() {
+        return password;
+    }
 
-	public Boolean getIsReady() {
-		return isReady;
-	}
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-	public void setIsReady(Boolean isReady) {
-		this.isReady = isReady;
-	}
+    public Boolean getIsReady() {
+        return isReady;
+    }
 
-	public Boolean getIsEnabled() {
-		return isEnabled;
-	}
+    public void setIsReady(Boolean isReady) {
+        this.isReady = isReady;
+    }
 
-	public void setIsEnabled(Boolean isEnabled) {
-		this.isEnabled = isEnabled;
-	}
+    public Boolean getIsEnabled() {
+        return isEnabled;
+    }
 
-	public Boolean getIsStable() {
-		return isStable;
-	}
+    public void setIsEnabled(Boolean isEnabled) {
+        this.isEnabled = isEnabled;
+    }
 
-	public void setIsStable(Boolean isStable) {
-		this.isStable = isStable;
-	}
+    public Boolean getIsStable() {
+        return isStable;
+    }
 
-	public String getDifficulty() {
-		return difficulty;
-	}
+    public void setIsStable(Boolean isStable) {
+        this.isStable = isStable;
+    }
 
-	public void setDifficulty(String difficulty) {
-		this.difficulty = difficulty;
-	}
+    public String getDifficulty() {
+        return difficulty;
+    }
 
-	public String getExtranonce1() {
-		return extranonce1;
-	}
+    public void setDifficulty(String difficulty) {
+        this.difficulty = difficulty;
+    }
 
-	public void setExtranonce1(String extranonce1) {
-		this.extranonce1 = extranonce1;
-	}
+    public String getExtranonce1() {
+        return extranonce1;
+    }
 
-	public Integer getExtranonce2Size() {
-		return extranonce2Size;
-	}
+    public void setExtranonce1(String extranonce1) {
+        this.extranonce1 = extranonce1;
+    }
 
-	public void setExtranonce2Size(Integer extranonce2Size) {
-		this.extranonce2Size = extranonce2Size;
-	}
+    public Integer getExtranonce2Size() {
+        return extranonce2Size;
+    }
 
-	public Integer getWorkerExtranonce2Size() {
-		return workerExtranonce2Size;
-	}
+    public void setExtranonce2Size(Integer extranonce2Size) {
+        this.extranonce2Size = extranonce2Size;
+    }
 
-	public void setWorkerExtranonce2Size(Integer workerExtranonce2Size) {
-		this.workerExtranonce2Size = workerExtranonce2Size;
-	}
+    public Integer getWorkerExtranonce2Size() {
+        return workerExtranonce2Size;
+    }
 
-	public Integer getNumberOfWorkerConnections() {
-		return numberOfWorkerConnections;
-	}
+    public void setWorkerExtranonce2Size(Integer workerExtranonce2Size) {
+        this.workerExtranonce2Size = workerExtranonce2Size;
+    }
 
-	public void setNumberOfWorkerConnections(Integer numberOfWorkerConnections) {
-		this.numberOfWorkerConnections = numberOfWorkerConnections;
-	}
+    public Integer getNumberOfWorkerConnections() {
+        return numberOfWorkerConnections;
+    }
 
-	public Integer getPriority() {
-		return priority;
-	}
+    public void setNumberOfWorkerConnections(Integer numberOfWorkerConnections) {
+        this.numberOfWorkerConnections = numberOfWorkerConnections;
+    }
 
-	public void setPriority(Integer priority) {
-		this.priority = priority;
-	}
+    public Integer getPriority() {
+        return priority;
+    }
 
-	public String getIsReadySince() {
-		return isReadySince;
-	}
+    public void setPriority(Integer priority) {
+        this.priority = priority;
+    }
 
-	public void setIsReadySince(String isReadySince) {
-		this.isReadySince = isReadySince;
-	}
+    public String getIsReadySince() {
+        return isReadySince;
+    }
 
-	public Double getAcceptedDifficulty() {
-		return acceptedDifficulty;
-	}
+    public void setIsReadySince(String isReadySince) {
+        this.isReadySince = isReadySince;
+    }
 
-	public void setAcceptedDifficulty(Double acceptedDifficulty) {
-		this.acceptedDifficulty = acceptedDifficulty;
-	}
+    public Double getAcceptedDifficulty() {
+        return acceptedDifficulty;
+    }
 
-	public Double getRejectedDifficulty() {
-		return rejectedDifficulty;
-	}
+    public void setAcceptedDifficulty(Double acceptedDifficulty) {
+        this.acceptedDifficulty = acceptedDifficulty;
+    }
 
-	public void setRejectedDifficulty(Double rejectedDifficulty) {
-		this.rejectedDifficulty = rejectedDifficulty;
-	}
+    public Double getRejectedDifficulty() {
+        return rejectedDifficulty;
+    }
 
-	public Boolean getIsExtranonceSubscribeEnabled() {
-		return isExtranonceSubscribeEnabled;
-	}
+    public void setRejectedDifficulty(Double rejectedDifficulty) {
+        this.rejectedDifficulty = rejectedDifficulty;
+    }
 
-	public void setIsExtranonceSubscribeEnabled(Boolean isExtranonceSubscribeEnabled) {
-		this.isExtranonceSubscribeEnabled = isExtranonceSubscribeEnabled;
-	}
+    public Boolean getIsExtranonceSubscribeEnabled() {
+        return isExtranonceSubscribeEnabled;
+    }
 
-	public Long getAcceptedHashesPerSeconds() {
-		return acceptedHashesPerSeconds;
-	}
+    public void setIsExtranonceSubscribeEnabled(Boolean isExtranonceSubscribeEnabled) {
+        this.isExtranonceSubscribeEnabled = isExtranonceSubscribeEnabled;
+    }
 
-	public void setAcceptedHashesPerSeconds(Long acceptedHashesPerSeconds) {
-		this.acceptedHashesPerSeconds = acceptedHashesPerSeconds;
-	}
+    public Long getAcceptedHashesPerSeconds() {
+        return acceptedHashesPerSeconds;
+    }
 
-	public Long getRejectedHashesPerSeconds() {
-		return rejectedHashesPerSeconds;
-	}
+    public void setAcceptedHashesPerSeconds(Long acceptedHashesPerSeconds) {
+        this.acceptedHashesPerSeconds = acceptedHashesPerSeconds;
+    }
 
-	public void setRejectedHashesPerSeconds(Long rejectedHashesPerSeconds) {
-		this.rejectedHashesPerSeconds = rejectedHashesPerSeconds;
-	}
+    public Long getRejectedHashesPerSeconds() {
+        return rejectedHashesPerSeconds;
+    }
 
-	public Boolean getIsActive() {
-		return isActive;
-	}
+    public void setRejectedHashesPerSeconds(Long rejectedHashesPerSeconds) {
+        this.rejectedHashesPerSeconds = rejectedHashesPerSeconds;
+    }
 
-	public void setIsActive(Boolean isActive) {
-		this.isActive = isActive;
-	}
+    public Boolean getIsActive() {
+        return isActive;
+    }
 
-	public String getIsActiveSince() {
-		return isActiveSince;
-	}
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
 
-	public void setIsActiveSince(String isActiveSince) {
-		this.isActiveSince = isActiveSince;
-	}
+    public String getIsActiveSince() {
+        return isActiveSince;
+    }
 
-	public Integer getWeight() {
-		return weight;
-	}
+    public void setIsActiveSince(String isActiveSince) {
+        this.isActiveSince = isActiveSince;
+    }
 
-	public void setWeight(Integer weight) {
-		this.weight = weight;
-	}
+    public Integer getWeight() {
+        return weight;
+    }
 
-	public String getLastStopCause() {
-		return lastStopCause;
-	}
+    public void setWeight(Integer weight) {
+        this.weight = weight;
+    }
 
-	public void setLastStopCause(String lastStopCause) {
-		this.lastStopCause = lastStopCause;
-	}
+    public String getLastStopCause() {
+        return lastStopCause;
+    }
 
-	public String getLastStopDate() {
-		return lastStopDate;
-	}
+    public void setLastStopCause(String lastStopCause) {
+        this.lastStopCause = lastStopCause;
+    }
 
-	public void setLastStopDate(String lastStopDate) {
-		this.lastStopDate = lastStopDate;
-	}
+    public String getLastStopDate() {
+        return lastStopDate;
+    }
 
-	public Boolean getAppendWorkerNames() {
-		return appendWorkerNames;
-	}
+    public void setLastStopDate(String lastStopDate) {
+        this.lastStopDate = lastStopDate;
+    }
 
-	public void setAppendWorkerNames(Boolean appendWorkerNames) {
-		this.appendWorkerNames = appendWorkerNames;
-	}
+    public Integer getNumberOfDisconnections() {
+        return numberOfDisconnections;
+    }
 
-	public String getWorkerNamesSeparator() {
-		return workerNamesSeparator;
-	}
+    public void setNumberOfDisconnections(Integer numberOfDisconnections) {
+        this.numberOfDisconnections = numberOfDisconnections;
+    }
 
-	public void setWorkerNamesSeparator(String workerNamesSeparator) {
-		this.workerNamesSeparator = workerNamesSeparator;
-	}
+    public Long getUptime() {
+        return uptime;
+    }
 
-	public Boolean getUseWorkerPassword() {
-		return useWorkerPassword;
-	}
+    public void setUptime(Long uptime) {
+        this.uptime = uptime;
+    }
 
-	public void setUseWorkerPassword(Boolean useWorkerPassword) {
-		this.useWorkerPassword = useWorkerPassword;
-	}
+    public Boolean getAppendWorkerNames() {
+        return appendWorkerNames;
+    }
+
+    public void setAppendWorkerNames(Boolean appendWorkerNames) {
+        this.appendWorkerNames = appendWorkerNames;
+    }
+
+    public String getWorkerNamesSeparator() {
+        return workerNamesSeparator;
+    }
+
+    public void setWorkerNamesSeparator(String workerNamesSeparator) {
+        this.workerNamesSeparator = workerNamesSeparator;
+    }
+
+    public Boolean getUseWorkerPassword() {
+        return useWorkerPassword;
+    }
+
+    public void setUseWorkerPassword(Boolean useWorkerPassword) {
+        this.useWorkerPassword = useWorkerPassword;
+    }
 
 }

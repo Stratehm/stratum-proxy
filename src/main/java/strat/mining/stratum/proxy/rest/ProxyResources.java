@@ -763,6 +763,8 @@ public class ProxyResources {
         result.setRejectedHashesPerSeconds(Double.valueOf(pool.getRejectedHashesPerSeconds()).longValue());
         result.setLastStopCause(pool.getLastStopCause());
         result.setLastStopDate(pool.getLastStopDate() != null ? simpleDateFormat.format(pool.getLastStopDate()) : null);
+        result.setNumberOfDisconnections(pool.getNumberOfDisconnections());
+        result.setUptime(pool.getUptime());
         result.setAppendWorkerNames(pool.isAppendWorkerNames());
         result.setWorkerNamesSeparator(pool.getWorkerSeparator() == null ? "" : pool.getWorkerSeparator());
         result.setUseWorkerPassword(pool.isUseWorkerPassword());

@@ -144,6 +144,8 @@ public class Pool {
     private String lastStopCause;
     private Date lastStopDate;
 
+    private Integer numberOfDisconnections;
+
     public Pool(String name, String host, String username, String password) {
         super();
         this.name = name == null || name.isEmpty() ? host : name;
@@ -154,6 +156,7 @@ public class Pool {
         this.isEnabled = true;
         this.isStable = false;
         this.isFirstRun = true;
+        this.numberOfDisconnections = 0;
 
         acceptedDifficulty = new AtomicDouble(0);
         rejectedDifficulty = new AtomicDouble(0);
@@ -599,7 +602,7 @@ public class Pool {
     }
 
     public void onDisconnectWithError(Throwable cause) {
-        LOGGER.error("Disconnect of pool {}.", this, cause);
+        LOGGER.error("Disconnection of pool {}.", this, cause);
 
         String causeMessage = null;
         // If it is an EOFException, do not log any messages since an error has
@@ -617,6 +620,8 @@ public class Pool {
                 causeMessage = cause.getMessage();
             }
         }
+
+        numberOfDisconnections++;
 
         stopPool(causeMessage);
 
@@ -1108,6 +1113,23 @@ public class Pool {
 
     public String getWorkerSeparator() {
         return workerSeparator;
+    }
+
+    public Integer getNumberOfDisconnections() {
+        return this.numberOfDisconnections;
+    }
+
+    /**
+     * Return the pool uptime in seconds
+     * 
+     * @return
+     */
+    public Long getUptime() {
+        Long uptime = 0L;
+        if (isReady && readySince != null) {
+            uptime = (System.currentTimeMillis() - readySince.getTime()) / 1000;
+        }
+        return uptime;
     }
 
 }

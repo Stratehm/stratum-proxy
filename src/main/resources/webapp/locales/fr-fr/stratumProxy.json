@@ -111,6 +111,8 @@
 		"weightLabel": "Poids",
 		"lastStopCauseLabel": "Cause du dernier arrêt",
 		"lastStopDateLabel": "Date du dernier arrêt",
+		"numberOfDisconnectionsLabel": "Nombre de déconnexions",
+        "uptimeLabel": "Temps de fonctionnement",
 		"isExtranonceSubscribeEnabledLabel": "Abonné au changement d'extranonce",
 		"isAppendWorkerNameLabel": "Concaténation du nom du mineur",
 		"workerNameSeparatorLabel": "Séparateur",
