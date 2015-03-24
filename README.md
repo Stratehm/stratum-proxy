@@ -50,10 +50,10 @@ java -jar stratum-proxy.jar --help
 ```
 
 ##Raspberry Pi Installation
-Once your OS is setup on the Raspberry Pi, perform the following
+Once your OS is setup on the Raspberry Pi, perform the following (replace the version number with the last available: https://github.com/Stratehm/stratum-proxy/releases):
 1. Install JDK onto the Raspberry Pi
 `sudo apt-get update && sudo apt-get install oracle-java7-jdk`
-2. Download stratum-proxy (currently version 0.6.0) to the /opt folder
+2. Download stratum-proxy to the /opt folder
 `cd /opt`
 `sudo wget https://github.com/Stratehm/stratum-proxy/releases/download/0.6.0/stratum-proxy-0.6.0.zip`
 3. Unzip the stratum-proxy zip
