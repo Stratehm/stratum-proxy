@@ -64,6 +64,7 @@ import strat.mining.stratum.proxy.rest.dto.PoolNameDTO;
 import strat.mining.stratum.proxy.rest.dto.ProxyVersionDTO;
 import strat.mining.stratum.proxy.rest.dto.RemovePoolDTO;
 import strat.mining.stratum.proxy.rest.dto.StatusDTO;
+import strat.mining.stratum.proxy.rest.dto.SummaryDTO;
 import strat.mining.stratum.proxy.rest.dto.TimestampDTO;
 import strat.mining.stratum.proxy.rest.dto.UpdatePoolDTO;
 import strat.mining.stratum.proxy.rest.dto.UserDetailsDTO;
@@ -386,7 +387,6 @@ public class ProxyResources {
         Response response = Response.status(Response.Status.OK).entity(result).build();
 
         return response;
-
     }
 
     /**
@@ -701,6 +701,35 @@ public class ProxyResources {
         dto.setProxyVersion(ConfigurationManager.getVersion());
         dto.setFullName(Constants.VERSION);
         response = Response.status(Response.Status.OK).entity(dto).build();
+
+        return response;
+    }
+
+    /**
+     * Return a summary of the current state of the proxy
+     * 
+     * @return
+     */
+    @GET
+    @Path("summary")
+    @ApiOperation(value = "Return a summary of the current state of the proxy.", response = SummaryDTO.class)
+    public Response getSummary() {
+
+        SummaryDTO summary = new SummaryDTO();
+        // Look for the active pool.
+        for (Pool pool : stratumProxyManager.getPools()) {
+            if (pool.isActive()) {
+                summary.setCurrentPoolName(pool.getName());
+                summary.setHashrate(Double.valueOf(pool.getAcceptedHashesPerSeconds() + pool.getRejectedHashesPerSeconds()).longValue());
+                summary.setAcceptedHashrate(Double.valueOf(pool.getAcceptedHashesPerSeconds()).longValue());
+                summary.setRejectedHashrate(Double.valueOf(pool.getRejectedHashesPerSeconds()).longValue());
+                summary.setTotalErrors(pool.getNumberOfDisconnections());
+                summary.setPoolUptime(pool.getUptime());
+                break;
+            }
+        }
+
+        Response response = Response.status(Response.Status.OK).entity(summary).build();
 
         return response;
     }
