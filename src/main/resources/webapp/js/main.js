@@ -4,6 +4,7 @@ require.config({
 	'json': 'libs/json2',
 	'bootstrap': 'libs/bootstrap',
 	'highstock': 'libs/highstock.src',
+	'moment': 'libs/moment-with-locales',
 
 	// bootstrap plugin to format ComboBox
 	'bootstrap-select': 'libs/bootstrap-select',

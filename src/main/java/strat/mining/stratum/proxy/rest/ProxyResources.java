@@ -20,7 +20,6 @@ package strat.mining.stratum.proxy.rest;
 
 import java.net.SocketException;
 import java.net.URISyntaxException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -83,8 +82,6 @@ import com.wordnik.swagger.annotations.ApiResponses;
 @Consumes("application/json")
 @Api(value = "/", description = "API to manage the proxy")
 public class ProxyResources {
-
-    private static final String API_DATE_FORMAT = "dd-MM-yy HH:mm:ss Z";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProxyResources.class);
 
@@ -765,7 +762,6 @@ public class ProxyResources {
     }
 
     private PoolDetailsDTO convertPoolToDTO(Pool pool) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(API_DATE_FORMAT);
         PoolDetailsDTO result = new PoolDetailsDTO();
 
         result.setDifficulty(pool.getDifficulty() != null ? pool.getDifficulty().toString() : null);
@@ -784,14 +780,14 @@ public class ProxyResources {
         result.setPriority(pool.getPriority());
         result.setWeight(pool.getWeight());
         result.setAcceptedDifficulty(pool.getAcceptedDifficulty());
-        result.setIsReadySince(pool.getReadySince() != null ? simpleDateFormat.format(pool.getReadySince()) : null);
-        result.setIsActiveSince(pool.getActiveSince() != null ? simpleDateFormat.format(pool.getActiveSince()) : null);
+        result.setIsReadySince(pool.getReadySince() != null ? pool.getReadySince().getTime() : null);
+        result.setIsActiveSince(pool.getActiveSince() != null ? pool.getActiveSince().getTime() : null);
         result.setRejectedDifficulty(pool.getRejectedDifficulty());
         result.setIsExtranonceSubscribeEnabled(pool.isExtranonceSubscribeEnabled());
         result.setAcceptedHashesPerSeconds(Double.valueOf(pool.getAcceptedHashesPerSeconds()).longValue());
         result.setRejectedHashesPerSeconds(Double.valueOf(pool.getRejectedHashesPerSeconds()).longValue());
         result.setLastStopCause(pool.getLastStopCause());
-        result.setLastStopDate(pool.getLastStopDate() != null ? simpleDateFormat.format(pool.getLastStopDate()) : null);
+        result.setLastStopDate(pool.getLastStopDate() != null ? pool.getLastStopDate().getTime() : null);
         result.setNumberOfDisconnections(pool.getNumberOfDisconnections());
         result.setUptime(pool.getUptime());
         result.setAppendWorkerNames(pool.isAppendWorkerNames());
@@ -802,14 +798,13 @@ public class ProxyResources {
     }
 
     private WorkerConnectionDTO convertWorkerConnectionToDTO(WorkerConnection connection) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(API_DATE_FORMAT);
         WorkerConnectionDTO result = new WorkerConnectionDTO();
         result.setRemoteHost(connection.getRemoteAddress().toString());
         result.setAcceptedHashesPerSeconds(Double.valueOf(connection.getAcceptedHashrate()).longValue());
         result.setRejectedHashesPerSeconds(Double.valueOf(connection.getRejectedHashrate()).longValue());
         result.setPoolName(connection.getPool().getName());
         result.setAuthorizedUsers(new ArrayList<>(connection.getAuthorizedWorkers().keySet()));
-        result.setIsActiveSince(simpleDateFormat.format(connection.getActiveSince()));
+        result.setIsActiveSince(connection.getActiveSince().getTime());
 
         if (connection instanceof StratumWorkerConnection) {
             StratumWorkerConnection stratumConnection = (StratumWorkerConnection) connection;
@@ -823,11 +818,10 @@ public class ProxyResources {
     }
 
     private UserDetailsDTO convertUserToDTO(User user) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(API_DATE_FORMAT);
         UserDetailsDTO result = new UserDetailsDTO();
         result.setName(user.getName());
-        result.setFirstConnectionDate(simpleDateFormat.format(user.getCreationTime()));
-        result.setLastShareSubmitted(user.getLastShareSubmitted() != null ? simpleDateFormat.format(user.getLastShareSubmitted()) : null);
+        result.setFirstConnectionDate(user.getCreationTime().getTime());
+        result.setLastShareSubmitted(user.getLastShareSubmitted() != null ? user.getLastShareSubmitted().getTime() : null);
         result.setAcceptedHashesPerSeconds(Double.valueOf(user.getAcceptedHashrate()).longValue());
         result.setRejectedHashesPerSeconds(Double.valueOf(user.getRejectedHashrate()).longValue());
         result.setAcceptedDifficulty(user.getAcceptedDifficulty());

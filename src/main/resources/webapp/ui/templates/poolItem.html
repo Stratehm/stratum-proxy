@@ -38,7 +38,7 @@
 			<label class="col-sm-3 control-label"
 				data-i18n="poolItem.isReadySinceLabel">Is ready since</label>
 			<div class="col-sm-3">
-				{{#isReadySince}} {{isReadySince}} {{/isReadySince}}
+				{{#isReadySince}} {{ formatDateTime(isReadySince) }} {{/isReadySince}}
 				{{^isReadySince}} <span data-i18n="poolItem.noIsReadySince">Never</span>
 				{{/isReadySince}}
 			</div>
@@ -50,7 +50,7 @@
 			<label class="col-sm-3 control-label"
 				data-i18n="poolItem.isActiveSinceLabel">Is active since</label>
 			<div class="col-sm-3">
-				{{#isActiveSince}} {{isActiveSince}} {{/isActiveSince}}
+				{{#isActiveSince}} {{formatDateTime(isActiveSince)}} {{/isActiveSince}}
 				{{^isActiveSince}} <span data-i18n="poolItem.noIsActiveSince">Never</span>
 				{{/isActiveSince}}
 			</div>
@@ -103,7 +103,7 @@
 			<label class="col-sm-3 control-label"
 				data-i18n="poolItem.lastStopDateLabel">Last stop date</label>
 			<div class="col-sm-3">
-				{{#lastStopDate}} {{lastStopDate}} {{/lastStopDate}}
+				{{#lastStopDate}} {{formatDateTime(lastStopDate)}} {{/lastStopDate}}
 				{{^lastStopDate}} <span data-i18n="poolItem.noLastStopDate">Never
 					stopped</span> {{/lastStopDate}}
 			</div>
@@ -114,7 +114,7 @@
             <div class="col-sm-3">{{numberOfDisconnections}}</div>
             <label class="col-sm-3 control-label"
                 data-i18n="poolItem.uptimeLabel">Uptime</label>
-            <div class="col-sm-3">{{uptime}}</div>
+            <div class="col-sm-3">{{ formatDuration(uptime) }}</div>
         </div>
 		<div class="row">
 			<label class="col-sm-3 control-label"

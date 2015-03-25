@@ -1127,7 +1127,7 @@ public class Pool {
     public Long getUptime() {
         Long uptime = 0L;
         if (isReady && readySince != null) {
-            uptime = (System.currentTimeMillis() - readySince.getTime()) / 1000;
+            uptime = (System.currentTimeMillis() - readySince.getTime());
         }
         return uptime;
     }

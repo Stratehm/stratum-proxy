@@ -30,9 +30,9 @@ public class PoolDetailsDTO {
     private Boolean isReady;
     private Boolean isEnabled;
     private Boolean isStable;
-    private String isReadySince;
+    private Long isReadySince;
     private Boolean isActive;
-    private String isActiveSince;
+    private Long isActiveSince;
 
     private String difficulty;
     private String extranonce1;
@@ -53,7 +53,7 @@ public class PoolDetailsDTO {
     private Long rejectedHashesPerSeconds;
 
     private String lastStopCause;
-    private String lastStopDate;
+    private Long lastStopDate;
 
     private Integer numberOfDisconnections;
     private Long uptime;
@@ -166,11 +166,11 @@ public class PoolDetailsDTO {
         this.priority = priority;
     }
 
-    public String getIsReadySince() {
+    public Long getIsReadySince() {
         return isReadySince;
     }
 
-    public void setIsReadySince(String isReadySince) {
+    public void setIsReadySince(Long isReadySince) {
         this.isReadySince = isReadySince;
     }
 
@@ -222,11 +222,11 @@ public class PoolDetailsDTO {
         this.isActive = isActive;
     }
 
-    public String getIsActiveSince() {
+    public Long getIsActiveSince() {
         return isActiveSince;
     }
 
-    public void setIsActiveSince(String isActiveSince) {
+    public void setIsActiveSince(Long isActiveSince) {
         this.isActiveSince = isActiveSince;
     }
 
@@ -246,11 +246,11 @@ public class PoolDetailsDTO {
         this.lastStopCause = lastStopCause;
     }
 
-    public String getLastStopDate() {
+    public Long getLastStopDate() {
         return lastStopDate;
     }
 
-    public void setLastStopDate(String lastStopDate) {
+    public void setLastStopDate(Long lastStopDate) {
         this.lastStopDate = lastStopDate;
     }
 

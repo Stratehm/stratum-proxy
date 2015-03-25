@@ -14,11 +14,6 @@ define(['jquery', 'ractivejs', 'rv!templates/userItem', 'i18n!locales', 'config'
 	    }, this)
 	});
 	this.connectionItemJquery = $('#connectionItem-' + connectionItemId);
-
-	var self = this;
-	document.addEventListener('localeChanged', function() {
-	    self.reloadChartData(false, true);
-	}, false);
     };
 
     ConnectionItem.nextConnectionItemId = 0;

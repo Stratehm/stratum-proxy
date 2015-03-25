@@ -1,6 +1,6 @@
-define(['jquery', 'ractivejs', 'rv!templates/mainContainer', 'i18n!locales', 'locales/localesConfig',
+define(['jquery', 'ractivejs', 'rv!templates/mainContainer', 'i18n!locales', 'locales/localesConfig', 'moment',
 	'bootstrap', 'bootstrap-select', 'totop', 'highstock'], function($, Ractive, template, i18next,
-	localesConfig) {
+	localesConfig, moment) {
 
     // Store the current controller
     var currentController = null;
@@ -93,13 +93,17 @@ define(['jquery', 'ractivejs', 'rv!templates/mainContainer', 'i18n!locales', 'lo
 	    fixLng: true
 	}, function(lng) {
 	    $('body').i18n();
-	    fireLocaleChangedEvent();
+	    moment.locale(newLocale);
+	    fireLocaleChangedEvent(newLocale);
 	});
     }
 
-    function fireLocaleChangedEvent() {
-	var event = document.createEvent('Event');
-	event.initEvent('localeChanged', false, false);
+    function fireLocaleChangedEvent(newLocale) {
+	var event = new CustomEvent('localeChanged', {
+	    'detail': {
+		newLocale: newLocale
+	    }
+	});
 	document.dispatchEvent(event);
     }
 

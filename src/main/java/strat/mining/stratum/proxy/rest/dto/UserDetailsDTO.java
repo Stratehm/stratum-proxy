@@ -25,77 +25,77 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserDetailsDTO {
 
-	private String name;
-	private String firstConnectionDate;
-	private String lastShareSubmitted;
-	private Long acceptedHashesPerSeconds;
-	private Long rejectedHashesPerSeconds;
-	private Double acceptedDifficulty;
-	private Double rejectedDifficulty;
-	private List<WorkerConnectionDTO> connections;
+    private String name;
+    private Long firstConnectionDate;
+    private Long lastShareSubmitted;
+    private Long acceptedHashesPerSeconds;
+    private Long rejectedHashesPerSeconds;
+    private Double acceptedDifficulty;
+    private Double rejectedDifficulty;
+    private List<WorkerConnectionDTO> connections;
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getFirstConnectionDate() {
-		return firstConnectionDate;
-	}
+    public Long getFirstConnectionDate() {
+        return firstConnectionDate;
+    }
 
-	public void setFirstConnectionDate(String firstConnectionDate) {
-		this.firstConnectionDate = firstConnectionDate;
-	}
+    public void setFirstConnectionDate(Long firstConnectionDate) {
+        this.firstConnectionDate = firstConnectionDate;
+    }
 
-	public Long getAcceptedHashesPerSeconds() {
-		return acceptedHashesPerSeconds;
-	}
+    public Long getAcceptedHashesPerSeconds() {
+        return acceptedHashesPerSeconds;
+    }
 
-	public void setAcceptedHashesPerSeconds(Long acceptedHashesPerSeconds) {
-		this.acceptedHashesPerSeconds = acceptedHashesPerSeconds;
-	}
+    public void setAcceptedHashesPerSeconds(Long acceptedHashesPerSeconds) {
+        this.acceptedHashesPerSeconds = acceptedHashesPerSeconds;
+    }
 
-	public Long getRejectedHashesPerSeconds() {
-		return rejectedHashesPerSeconds;
-	}
+    public Long getRejectedHashesPerSeconds() {
+        return rejectedHashesPerSeconds;
+    }
 
-	public void setRejectedHashesPerSeconds(Long rejectedHashesPerSeconds) {
-		this.rejectedHashesPerSeconds = rejectedHashesPerSeconds;
-	}
+    public void setRejectedHashesPerSeconds(Long rejectedHashesPerSeconds) {
+        this.rejectedHashesPerSeconds = rejectedHashesPerSeconds;
+    }
 
-	public List<WorkerConnectionDTO> getConnections() {
-		return connections;
-	}
+    public List<WorkerConnectionDTO> getConnections() {
+        return connections;
+    }
 
-	public void setConnections(List<WorkerConnectionDTO> connections) {
-		this.connections = connections;
-	}
+    public void setConnections(List<WorkerConnectionDTO> connections) {
+        this.connections = connections;
+    }
 
-	public String getLastShareSubmitted() {
-		return lastShareSubmitted;
-	}
+    public Long getLastShareSubmitted() {
+        return lastShareSubmitted;
+    }
 
-	public void setLastShareSubmitted(String lastShareSubmitted) {
-		this.lastShareSubmitted = lastShareSubmitted;
-	}
+    public void setLastShareSubmitted(Long lastShareSubmitted) {
+        this.lastShareSubmitted = lastShareSubmitted;
+    }
 
-	public Double getAcceptedDifficulty() {
-		return acceptedDifficulty;
-	}
+    public Double getAcceptedDifficulty() {
+        return acceptedDifficulty;
+    }
 
-	public void setAcceptedDifficulty(Double acceptedDifficulty) {
-		this.acceptedDifficulty = acceptedDifficulty;
-	}
+    public void setAcceptedDifficulty(Double acceptedDifficulty) {
+        this.acceptedDifficulty = acceptedDifficulty;
+    }
 
-	public Double getRejectedDifficulty() {
-		return rejectedDifficulty;
-	}
+    public Double getRejectedDifficulty() {
+        return rejectedDifficulty;
+    }
 
-	public void setRejectedDifficulty(Double rejectedDifficulty) {
-		this.rejectedDifficulty = rejectedDifficulty;
-	}
+    public void setRejectedDifficulty(Double rejectedDifficulty) {
+        this.rejectedDifficulty = rejectedDifficulty;
+    }
 
 }

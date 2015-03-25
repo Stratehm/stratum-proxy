@@ -27,78 +27,78 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WorkerConnectionDTO {
 
-	private String remoteHost;
-	private List<String> authorizedUsers;
-	private Long acceptedHashesPerSeconds;
-	private Long rejectedHashesPerSeconds;
-	private String isActiveSince;
-	private String poolName;
-	@JsonInclude(Include.NON_NULL)
-	private Boolean isExtranonceNotificationSupported;
-	private String connectionType;
+    private String remoteHost;
+    private List<String> authorizedUsers;
+    private Long acceptedHashesPerSeconds;
+    private Long rejectedHashesPerSeconds;
+    private Long isActiveSince;
+    private String poolName;
+    @JsonInclude(Include.NON_NULL)
+    private Boolean isExtranonceNotificationSupported;
+    private String connectionType;
 
-	public String getRemoteHost() {
-		return remoteHost;
-	}
+    public String getRemoteHost() {
+        return remoteHost;
+    }
 
-	public void setRemoteHost(String remoteHost) {
-		this.remoteHost = remoteHost;
-	}
+    public void setRemoteHost(String remoteHost) {
+        this.remoteHost = remoteHost;
+    }
 
-	public List<String> getAuthorizedUsers() {
-		return authorizedUsers;
-	}
+    public List<String> getAuthorizedUsers() {
+        return authorizedUsers;
+    }
 
-	public void setAuthorizedUsers(List<String> authorizedUsers) {
-		this.authorizedUsers = authorizedUsers;
-	}
+    public void setAuthorizedUsers(List<String> authorizedUsers) {
+        this.authorizedUsers = authorizedUsers;
+    }
 
-	public Long getAcceptedHashesPerSeconds() {
-		return acceptedHashesPerSeconds;
-	}
+    public Long getAcceptedHashesPerSeconds() {
+        return acceptedHashesPerSeconds;
+    }
 
-	public void setAcceptedHashesPerSeconds(Long acceptedHashesPerSeconds) {
-		this.acceptedHashesPerSeconds = acceptedHashesPerSeconds;
-	}
+    public void setAcceptedHashesPerSeconds(Long acceptedHashesPerSeconds) {
+        this.acceptedHashesPerSeconds = acceptedHashesPerSeconds;
+    }
 
-	public Long getRejectedHashesPerSeconds() {
-		return rejectedHashesPerSeconds;
-	}
+    public Long getRejectedHashesPerSeconds() {
+        return rejectedHashesPerSeconds;
+    }
 
-	public void setRejectedHashesPerSeconds(Long rejectedHashesPerSeconds) {
-		this.rejectedHashesPerSeconds = rejectedHashesPerSeconds;
-	}
+    public void setRejectedHashesPerSeconds(Long rejectedHashesPerSeconds) {
+        this.rejectedHashesPerSeconds = rejectedHashesPerSeconds;
+    }
 
-	public String getIsActiveSince() {
-		return isActiveSince;
-	}
+    public Long getIsActiveSince() {
+        return isActiveSince;
+    }
 
-	public void setIsActiveSince(String isActiveSince) {
-		this.isActiveSince = isActiveSince;
-	}
+    public void setIsActiveSince(Long isActiveSince) {
+        this.isActiveSince = isActiveSince;
+    }
 
-	public String getPoolName() {
-		return poolName;
-	}
+    public String getPoolName() {
+        return poolName;
+    }
 
-	public void setPoolName(String poolName) {
-		this.poolName = poolName;
-	}
+    public void setPoolName(String poolName) {
+        this.poolName = poolName;
+    }
 
-	public Boolean getIsExtranonceNotificationSupported() {
-		return isExtranonceNotificationSupported;
-	}
+    public Boolean getIsExtranonceNotificationSupported() {
+        return isExtranonceNotificationSupported;
+    }
 
-	public void setIsExtranonceNotificationSupported(Boolean isExtranonceNotificationSupported) {
-		this.isExtranonceNotificationSupported = isExtranonceNotificationSupported;
-	}
+    public void setIsExtranonceNotificationSupported(Boolean isExtranonceNotificationSupported) {
+        this.isExtranonceNotificationSupported = isExtranonceNotificationSupported;
+    }
 
-	public String getConnectionType() {
-		return connectionType;
-	}
+    public String getConnectionType() {
+        return connectionType;
+    }
 
-	public void setConnectionType(String connectionType) {
-		this.connectionType = connectionType;
-	}
+    public void setConnectionType(String connectionType) {
+        this.connectionType = connectionType;
+    }
 
 }
