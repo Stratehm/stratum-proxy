@@ -28,7 +28,7 @@ define(['ractivejsWithoutDefaults', 'i18next', 'moment', 'jquery'], function(Rac
     }
 
     var I18nRactive = Ractive.extend({
-	init: function(event, newLocale) {
+	onrender: function(event, newLocale) {
 	    // Add a listener to update the locale for all I18nRactive instance
 	    document.addEventListener('localeChanged', $.proxy(function(event) {
 		this.set('locale', event.detail.newLocale);

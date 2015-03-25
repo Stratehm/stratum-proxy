@@ -283,6 +283,12 @@
 		"autoScrollLabel": "Enable auto scroll"
 	},
 	
+	"connectionsPage": {
+	   "autoRefresh": "Auto refresh in __count__ second.",
+       "autoRefresh_plural": "Auto refresh in __count__ seconds.",
+       "autoRefresh_undefinite": "Auto refresh in -- second."
+	},
+	
 	"connectionItem": {
 	   "remoteHostLabel": "Remote host",
 	   "authorizedUsersLabel": "Authorized users",

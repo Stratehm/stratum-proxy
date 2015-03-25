@@ -282,6 +282,12 @@
 		"offLevel": "OFF",
 		"autoScrollLabel": "Activer le scroll automatique"
 	},
+    
+    "connectionsPage": {
+       "autoRefresh": "Auto refresh in __count__ second.",
+       "autoRefresh_plural": "Auto refresh in __count__ seconds.",
+       "autoRefresh_undefinite": "Auto refresh in -- second."
+    },
 	
 	"connectionItem": {
        "remoteHostLabel": "Adresse distante",

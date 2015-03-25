@@ -1,4 +1,4 @@
-define(['jquery', 'ractivejs', 'rv!templates/userItem', 'i18n!locales', 'config'], function($, Ractive,
+define(['jquery', 'ractivejs', 'rv!templates/connectionItem', 'i18n!locales', 'config'], function($, Ractive,
 	template, i18next, config) {
 
     var ConnectionItem = function(renderToElement) {
@@ -26,6 +26,13 @@ define(['jquery', 'ractivejs', 'rv!templates/userItem', 'i18n!locales', 'config'
 	this.connection = connection;
 
 	this.ractive.set(connection);
+	
+	this.connectionItemJquery.data('connection', connection);
     }
+    
+    ConnectionItem.prototype.remove = function() {
+	this.connectionItemJquery.remove();
+    };
 
+    return ConnectionItem;
 });
