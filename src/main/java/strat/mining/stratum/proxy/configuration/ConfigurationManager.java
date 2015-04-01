@@ -150,9 +150,11 @@ public class ConfigurationManager {
 
         if (cliParser.isHelpRequested()) {
             cliParser.printUsage();
+            System.exit(0);
         } else if (cliParser.isVersionRequested()) {
             String version = "stratum-proxy by Stratehm. GPLv3 Licence. Version " + Constants.VERSION;
             System.out.println(version);
+            System.exit(0);
         } else {
 
             // If -f is specified, use the configuration file

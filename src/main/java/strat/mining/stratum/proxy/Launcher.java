@@ -108,12 +108,13 @@ public class Launcher {
 
     public static void main(String[] args) {
 
-        initShutdownHook();
-
         try {
             ConfigurationManager configurationManager = ConfigurationManager.getInstance();
             configurationManager.loadConfiguration(args);
             LOGGER = LoggerFactory.getLogger(Launcher.class);
+
+            // Initialize the shutdown hook
+            initShutdownHook();
 
             // Start initialization of the database manager
             initDatabaseManager();
