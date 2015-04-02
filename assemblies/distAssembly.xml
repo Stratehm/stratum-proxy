@@ -34,7 +34,7 @@
 			<outputDirectory>/</outputDirectory>
 		</file>
 		<file>
-			<source>${project.build.directory}/stratum-proxy-webapp.jar</source>
+			<source>${project.build.directory}/lib/stratum-proxy-webapp.jar</source>
 			<outputDirectory>/lib</outputDirectory>
 		</file>
 	</files>

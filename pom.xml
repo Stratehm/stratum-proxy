@@ -220,6 +220,7 @@
 							</descriptors>
 							<finalName>stratum-proxy</finalName>
 							<appendAssemblyId>true</appendAssemblyId>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
 						</configuration>
 					</execution>
 					<execution>
