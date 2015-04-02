@@ -664,20 +664,27 @@ public class Pool {
 
     private Deque<String> buildTails() {
         Deque<String> result = new ConcurrentLinkedDeque<String>();
-        int nbTails = (int) Math.pow(2, extranonce1TailSize * 8);
-        int tailNbChars = extranonce1TailSize * 2;
-        for (int i = 0; i < nbTails; i++) {
-            String tail = Integer.toHexString(i);
 
-            if (tail.length() > extranonce1TailSize * 2) {
-                tail = tail.substring(0, tailNbChars);
-            } else {
-                while (tail.length() < extranonce1TailSize * 2) {
-                    tail = "0" + tail;
+        // For nb worker limit of 1
+        if (extranonce1TailSize == 0) {
+            result.add("");
+        } else {
+            // For nb worker limit of 256 and 65536
+            int nbTails = (int) Math.pow(2, extranonce1TailSize * 8);
+            int tailNbChars = extranonce1TailSize * 2;
+            for (int i = 0; i < nbTails; i++) {
+                String tail = Integer.toHexString(i);
+
+                if (tail.length() > extranonce1TailSize * 2) {
+                    tail = tail.substring(0, tailNbChars);
+                } else {
+                    while (tail.length() < extranonce1TailSize * 2) {
+                        tail = "0" + tail;
+                    }
                 }
-            }
 
-            result.add(tail);
+                result.add(tail);
+            }
         }
         return result;
     }

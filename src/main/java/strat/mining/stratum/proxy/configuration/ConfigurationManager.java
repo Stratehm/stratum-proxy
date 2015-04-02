@@ -458,8 +458,12 @@ public class ConfigurationManager {
         // If the limit is 65536, the extranonce1 tail size is 2 bytes => 65536
         // Else, if not set or with another value, use the default size: 1 byte
         // => 256
-        if (workerNumberLimit != null && workerNumberLimit == 65536) {
-            extranonce1TailSize = 2;
+        if (workerNumberLimit != null) {
+            if (workerNumberLimit == 1) {
+                extranonce1TailSize = 0;
+            } else if (workerNumberLimit == 65536) {
+                extranonce1TailSize = 2;
+            }
         }
     }
 
