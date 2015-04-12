@@ -102,6 +102,76 @@ Api Version: 1.0
 #### Overview
 API to manage the proxy
 
+#### **POST** `/hashrate/pool`
+##### getPoolHashrateHistory 
+
+Return the hashrate history of a pool.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#PoolNameDTO">PoolNameDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[List[HashrateModel]](#HashrateModel)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+| 500    | Error during pool hashrate history response build. | - |
+| 404    | Pool not found. | - |
+
+
+- - -
+#### **POST** `/hashrate/user`
+##### getUserHashrateHistory 
+
+Return the hashrate history of a user.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#UserNameDTO">UserNameDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[List[HashrateModel]](#HashrateModel)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
 #### **POST** `/address/ban/list`
 ##### listBannedAddress 
 
@@ -154,110 +224,6 @@ Return the list of all worker connections.
 
 
 - - -
-#### **POST** `/hashrate/user`
-##### getUserHashrateHistory 
-
-Return the hashrate history of a user.
-
-
-###### Parameters
-- body
-
-<table border="1">
-    <tr>
-        <th>Parameter</th>
-        <th>Required</th>
-        <th>Description</th>
-        <th>Data Type</th>
-    </tr>
-    <tr>
-        <th>body</th>
-        <td>false</td>
-        <td></td>
-        <td><a href="#UserNameDTO">UserNameDTO</a></td>
-    </tr>
-</table>
-
-###### Response
-[List[HashrateModel]](#HashrateModel)
-
-
-###### Errors
-| Status Code | Reason      | Response Model |
-|-------------|-------------|----------------|
-
-
-- - -
-#### **POST** `/hashrate/pool`
-##### getPoolHashrateHistory 
-
-Return the hashrate history of a pool.
-
-
-###### Parameters
-- body
-
-<table border="1">
-    <tr>
-        <th>Parameter</th>
-        <th>Required</th>
-        <th>Description</th>
-        <th>Data Type</th>
-    </tr>
-    <tr>
-        <th>body</th>
-        <td>false</td>
-        <td></td>
-        <td><a href="#PoolNameDTO">PoolNameDTO</a></td>
-    </tr>
-</table>
-
-###### Response
-[List[HashrateModel]](#HashrateModel)
-
-
-###### Errors
-| Status Code | Reason      | Response Model |
-|-------------|-------------|----------------|
-| 500    | Error during pool hashrate history response build. | - |
-| 404    | Pool not found. | - |
-
-
-- - -
-#### **POST** `/user/ban`
-##### banUser 
-
-Ban the given username until the proxy restart. The user will not be authorized to reconnect.
-
-
-###### Parameters
-- body
-
-<table border="1">
-    <tr>
-        <th>Parameter</th>
-        <th>Required</th>
-        <th>Description</th>
-        <th>Data Type</th>
-    </tr>
-    <tr>
-        <th>body</th>
-        <td>false</td>
-        <td></td>
-        <td><a href="#UserNameDTO">UserNameDTO</a></td>
-    </tr>
-</table>
-
-###### Response
-[StatusDTO](#StatusDTO)
-
-
-###### Errors
-| Status Code | Reason      | Response Model |
-|-------------|-------------|----------------|
-
-
-- - -
 #### **POST** `/address/ban`
 ##### banIp 
 
@@ -279,76 +245,6 @@ Ban the given ip address.
         <td>false</td>
         <td></td>
         <td><a href="#AddressDTO">AddressDTO</a></td>
-    </tr>
-</table>
-
-###### Response
-[StatusDTO](#StatusDTO)
-
-
-###### Errors
-| Status Code | Reason      | Response Model |
-|-------------|-------------|----------------|
-
-
-- - -
-#### **POST** `/pool/add`
-##### addPool 
-
-Add a pool.
-
-
-###### Parameters
-- body
-
-<table border="1">
-    <tr>
-        <th>Parameter</th>
-        <th>Required</th>
-        <th>Description</th>
-        <th>Data Type</th>
-    </tr>
-    <tr>
-        <th>body</th>
-        <td>false</td>
-        <td></td>
-        <td><a href="#AddPoolDTO">AddPoolDTO</a></td>
-    </tr>
-</table>
-
-###### Response
-[StatusDTO](#StatusDTO)
-
-
-###### Errors
-| Status Code | Reason      | Response Model |
-|-------------|-------------|----------------|
-| 500    | Failed to add the pool. | [StatusDTO](#StatusDTO) |
-| 500    | Pool added but not started. | [StatusDTO](#StatusDTO) |
-
-
-- - -
-#### **POST** `/user/kick`
-##### kickUser 
-
-Kick the given username. Kill all connections where the user has been seen (WARN: this may kill connections supporting other users)
-
-
-###### Parameters
-- body
-
-<table border="1">
-    <tr>
-        <th>Parameter</th>
-        <th>Required</th>
-        <th>Description</th>
-        <th>Data Type</th>
-    </tr>
-    <tr>
-        <th>body</th>
-        <td>false</td>
-        <td></td>
-        <td><a href="#UserNameDTO">UserNameDTO</a></td>
     </tr>
 </table>
 
@@ -388,6 +284,24 @@ Kick all connections with the given address.
 
 ###### Response
 [StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **GET** `/user/ban/list`
+##### listBannedUsers 
+
+List all banned users.
+
+
+###### Parameters
+
+###### Response
+[List[string]](#)
 
 
 ###### Errors
@@ -464,16 +378,16 @@ Kill the connection with the given address and port.
 
 
 - - -
-#### **GET** `/user/ban/list`
-##### listBannedUsers 
+#### **GET** `/pool/list`
+##### getPoolsList 
 
-List all banned users.
+Return the list of all pools.
 
 
 ###### Parameters
 
 ###### Response
-[List[string]](#)
+[List[PoolDetailsDTO]](#PoolDetailsDTO)
 
 
 ###### Errors
@@ -482,10 +396,10 @@ List all banned users.
 
 
 - - -
-#### **POST** `/user/unban`
-##### unbanUser 
+#### **POST** `/pool/add`
+##### addPool 
 
-Unban a user.
+Add a pool.
 
 
 ###### Parameters
@@ -502,7 +416,7 @@ Unban a user.
         <th>body</th>
         <td>false</td>
         <td></td>
-        <td><a href="#UserNameDTO">UserNameDTO</a></td>
+        <td><a href="#AddPoolDTO">AddPoolDTO</a></td>
     </tr>
 </table>
 
@@ -513,42 +427,8 @@ Unban a user.
 ###### Errors
 | Status Code | Reason      | Response Model |
 |-------------|-------------|----------------|
-
-
-- - -
-#### **GET** `/user/list`
-##### getUsersList 
-
-Get the list of users that has been connected at least once since the proxy is started.
-
-
-###### Parameters
-
-###### Response
-[List[UserDetailsDTO]](#UserDetailsDTO)
-
-
-###### Errors
-| Status Code | Reason      | Response Model |
-|-------------|-------------|----------------|
-
-
-- - -
-#### **GET** `/pool/list`
-##### getPoolsList 
-
-Return the list of all pools.
-
-
-###### Parameters
-
-###### Response
-[List[PoolDetailsDTO]](#PoolDetailsDTO)
-
-
-###### Errors
-| Status Code | Reason      | Response Model |
-|-------------|-------------|----------------|
+| 500    | Failed to add the pool. | [StatusDTO](#StatusDTO) |
+| 500    | Pool added but not started. | [StatusDTO](#StatusDTO) |
 
 
 - - -
@@ -856,6 +736,126 @@ Return a summary of the current state of the proxy.
 
 
 - - -
+#### **POST** `/user/unban`
+##### unbanUser 
+
+Unban a user.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#UserNameDTO">UserNameDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/user/ban`
+##### banUser 
+
+Ban the given username until the proxy restart. The user will not be authorized to reconnect.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#UserNameDTO">UserNameDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/user/kick`
+##### kickUser 
+
+Kick the given username. Kill all connections where the user has been seen (WARN: this may kill connections supporting other users)
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#UserNameDTO">UserNameDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **GET** `/user/list`
+##### getUsersList 
+
+Get the list of users that has been connected at least once since the proxy is started.
+
+
+###### Parameters
+
+###### Response
+[List[UserDetailsDTO]](#UserDetailsDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
 
 ## Data Types
 
@@ -864,87 +864,63 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>username</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>poolHost</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>poolName</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>workerNameSeparator</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>appendWorkerNames</td>
         <td>boolean</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>isEnabled</td>
         <td>boolean</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>weight</td>
         <td>int</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>useWorkerPassword</td>
         <td>boolean</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>enableExtranonceSubscribe</td>
         <td>boolean</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>priority</td>
         <td>int</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>password</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
@@ -955,17 +931,13 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>address</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
@@ -976,24 +948,18 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>poolName</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>priority</td>
         <td>int</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
@@ -1004,24 +970,18 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>address</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>port</td>
         <td>int</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
@@ -1032,38 +992,28 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>acceptedHashrate</td>
         <td>long</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>rejectedHashrate</td>
         <td>long</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>name</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>captureTime</td>
         <td>long</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
@@ -1074,24 +1024,18 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>message</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>timestamp</td>
         <td>long</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
@@ -1102,17 +1046,13 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>logLevel</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
@@ -1123,213 +1063,153 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>lastStopCause</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>extranonce2Size</td>
         <td>int</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>username</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>numberOfWorkerConnections</td>
         <td>int</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
-        <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-    </tr>
-    <tr>
-        <td>boolean</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-    </tr>
-    <tr>
+        <td>isActiveSince</td>
         <td>long</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
-        <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-    </tr>
-    <tr>
+        <td>appendWorkerNames</td>
         <td>boolean</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
-        <td>boolean</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-    </tr>
-    <tr>
+        <td>rejectedHashesPerSeconds</td>
         <td>long</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>isReadySince</td>
+        <td>long</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>isReady</td>
+        <td>boolean</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>isEnabled</td>
+        <td>boolean</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>acceptedHashesPerSeconds</td>
+        <td>long</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>weight</td>
         <td>int</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>rejectedDifficulty</td>
         <td>double</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>difficulty</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>isActive</td>
         <td>boolean</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>isExtranonceSubscribeEnabled</td>
         <td>boolean</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>useWorkerPassword</td>
         <td>boolean</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>workerNamesSeparator</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>workerExtranonce2Size</td>
         <td>int</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>host</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>name</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>extranonce1</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>password</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>priority</td>
         <td>int</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
-        <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-    </tr>
-    <tr>
-        <td>boolean</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-    </tr>
-    <tr>
-        <td>int</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-    </tr>
-    <tr>
-        <td>double</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-    </tr>
-    <tr>
+        <td>lastStopDate</td>
         <td>long</td>
-        <td>optional</td>
         <td>-</td>
+    </tr>
+    <tr>
+        <td>isStable</td>
+        <td>boolean</td>
         <td>-</td>
+    </tr>
+    <tr>
+        <td>numberOfDisconnections</td>
+        <td>int</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>acceptedDifficulty</td>
+        <td>double</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>uptime</td>
+        <td>long</td>
         <td>-</td>
     </tr>
 </table>
@@ -1340,17 +1220,13 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>poolName</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
@@ -1361,24 +1237,18 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>fullName</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>proxyVersion</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
@@ -1389,24 +1259,18 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>poolName</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>keepHistory</td>
         <td>boolean</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
@@ -1417,24 +1281,18 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>message</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>status</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
@@ -1445,52 +1303,38 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>poolUptime</td>
         <td>long</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>acceptedHashrate</td>
         <td>long</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>hashrate</td>
         <td>long</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>rejectedHashrate</td>
         <td>long</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>currentPoolName</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>totalErrors</td>
         <td>int</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
@@ -1501,17 +1345,13 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>timestamp</td>
         <td>long</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
@@ -1522,80 +1362,58 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>username</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>appendWorkerNames</td>
         <td>boolean</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>weight</td>
         <td>int</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>useWorkerPassword</td>
         <td>boolean</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>workerNamesSeparator</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>isExtranonceSubscribeEnabled</td>
         <td>boolean</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>host</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>name</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>priority</td>
         <td>int</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>password</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
@@ -1606,66 +1424,48 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>rejectedHashesPerSeconds</td>
         <td>long</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
-        <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-    </tr>
-    <tr>
+        <td>firstConnectionDate</td>
         <td>long</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>acceptedHashesPerSeconds</td>
+        <td>long</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>rejectedDifficulty</td>
         <td>double</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>lastShareSubmitted</td>
+        <td>long</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>name</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
-        <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-    </tr>
-    <tr>
+        <td>connections</td>
         <td><a href="#WorkerConnectionDTO">Array[WorkerConnectionDTO]</a></td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>acceptedDifficulty</td>
         <td>double</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
@@ -1676,17 +1476,13 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>username</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
@@ -1697,70 +1493,51 @@ Return a summary of the current state of the proxy.
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     <tr>
+        <td>poolName</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
-        <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-    </tr>
-    <tr>
+        <td>isActiveSince</td>
         <td>long</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>rejectedHashesPerSeconds</td>
         <td>long</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>acceptedHashesPerSeconds</td>
+        <td>long</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>connectionType</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>isExtranonceNotificationSupported</td>
         <td>boolean</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>authorizedUsers</td>
         <td>Array[string]</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
     <tr>
+        <td>remoteHost</td>
         <td>string</td>
-        <td>optional</td>
-        <td>-</td>
-        <td>-</td>
         <td>-</td>
     </tr>
 </table>
-
 
 
 

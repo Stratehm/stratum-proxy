@@ -96,20 +96,16 @@ Api Version: {{apiVersion}}
 
 <table border="1">
     <tr>
+        <th>name</th>
         <th>type</th>
-        <th>required</th>
-        <th>access</th>
         <th>description</th>
-        <th>notes</th>
     </tr>
     {{#items}}
     <tr>
+        <td>{{#name}}{{{name}}}{{/name}}{{^name}}-{{/name}}</td>
         <td>{{#linkType}}<a href="#{{linkType}}">{{type}}</a>{{/linkType}}{{^linkType}}{{type}}{{/linkType}}</td>
-        <td>{{#required}}required{{/required}}{{^required}}optional{{/required}}</td>
-        <td>{{#access}}{{{access}}}{{/access}}{{^access}}-{{/access}}</td>
         <td>{{#description}}{{{description}}}{{/description}}{{^description}}-{{/description}}{{#allowableValue}} Allowable
         values:{{.}}{{/allowableValue}}</td>
-        <td>{{#notes}}{{{notes}}}{{/notes}}{{^notes}}-{{/notes}}</td>
     </tr>
     {{/items}}
 </table>
