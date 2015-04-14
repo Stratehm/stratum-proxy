@@ -252,6 +252,8 @@
 		"rejectedHashrateLabel": "Rejected hashrate",
 		"acceptedDifficultyLabel": "Accepted difficulty",
 		"rejectedDifficultyLabel": "Rejected difficulty",
+		"acceptedShareNumberLabel": "Accepted shares",
+		"rejectedShareNumberLabel": "Rejected shares",
 		"numberOfConnectionsLabel": "Number of connections",
 		"kickButtonLabel": "Kick",
 		"banButtonLabel": "Ban",

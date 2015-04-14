@@ -32,6 +32,8 @@ public class UserDetailsDTO {
     private Long rejectedHashesPerSeconds;
     private Double acceptedDifficulty;
     private Double rejectedDifficulty;
+    private Long acceptedShareNumber;
+    private Long rejectedShareNumber;
     private List<WorkerConnectionDTO> connections;
 
     public String getName() {
@@ -96,6 +98,22 @@ public class UserDetailsDTO {
 
     public void setRejectedDifficulty(Double rejectedDifficulty) {
         this.rejectedDifficulty = rejectedDifficulty;
+    }
+
+    public Long getAcceptedShareNumber() {
+        return acceptedShareNumber;
+    }
+
+    public void setAcceptedShareNumber(Long acceptedShareNumber) {
+        this.acceptedShareNumber = acceptedShareNumber;
+    }
+
+    public Long getRejectedShareNumber() {
+        return rejectedShareNumber;
+    }
+
+    public void setRejectedShareNumber(Long rejectedShareNumber) {
+        this.rejectedShareNumber = rejectedShareNumber;
     }
 
 }

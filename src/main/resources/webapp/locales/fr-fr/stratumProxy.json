@@ -252,6 +252,8 @@
 		"rejectedHashrateLabel": "Puissance de calcul rejetée",
 		"acceptedDifficultyLabel": "Difficulté acceptée",
         "rejectedDifficultyLabel": "Difficulté rejetée",
+        "acceptedShareNumberLabel": "Shares acceptés",
+        "rejectedShareNumberLabel": "Shares rejetés",
 		"numberOfConnectionsLabel": "Nombre de connections",
 		"kickButtonLabel": "Déconnecter",
 		"banButtonLabel": "Bannir",

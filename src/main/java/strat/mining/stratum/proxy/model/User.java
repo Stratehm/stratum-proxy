@@ -42,139 +42,152 @@ import strat.mining.stratum.proxy.worker.WorkerConnection;
  */
 public class User {
 
-	private String name;
+    private String name;
 
-	private volatile Set<WeakReference<WorkerConnection>> seenOnConnections;
+    private volatile Set<WeakReference<WorkerConnection>> seenOnConnections;
 
-	private Deque<Share> lastAcceptedShares;
-	private Deque<Share> lastRejectedShares;
+    private Deque<Share> lastAcceptedShares;
+    private Deque<Share> lastRejectedShares;
 
-	private double acceptedDifficulty;
-	private double rejectedDifficulty;
+    private double acceptedDifficulty;
+    private double rejectedDifficulty;
 
-	private Date creationTime;
-	private Date lastShareSubmitted;
+    private long acceptedShareNumber;
+    private long rejectedShareNumber;
 
-	private Integer samplingHashesPeriod = Constants.DEFAULT_USER_HASHRATE_SAMPLING_PERIOD * 1000;
+    private Date creationTime;
+    private Date lastShareSubmitted;
 
-	public User(String name) {
-		this.name = name;
-		creationTime = new Date();
-		lastAcceptedShares = new ConcurrentLinkedDeque<Share>();
-		lastRejectedShares = new ConcurrentLinkedDeque<Share>();
-		seenOnConnections = Collections.synchronizedSet(new HashSet<WeakReference<WorkerConnection>>());
-	}
+    private Integer samplingHashesPeriod = Constants.DEFAULT_USER_HASHRATE_SAMPLING_PERIOD * 1000;
 
-	/**
-	 * Add a connection where this user has been authorized. If the connection
-	 * is already present, do nothing.
-	 * 
-	 * @param workerConnection
-	 */
-	public void addConnection(WorkerConnection workerConnection) {
-		seenOnConnections.add(new EquatableWeakReference<WorkerConnection>(workerConnection));
-		purgeAndGetConnectionList();
-	}
+    public User(String name) {
+        this.name = name;
+        creationTime = new Date();
+        lastAcceptedShares = new ConcurrentLinkedDeque<Share>();
+        lastRejectedShares = new ConcurrentLinkedDeque<Share>();
+        seenOnConnections = Collections.synchronizedSet(new HashSet<WeakReference<WorkerConnection>>());
+    }
 
-	/**
-	 * Return a list of connections were this user has been authorized.
-	 * 
-	 * @return
-	 */
-	public List<WorkerConnection> getWorkerConnections() {
-		return purgeAndGetConnectionList();
-	}
+    /**
+     * Add a connection where this user has been authorized. If the connection
+     * is already present, do nothing.
+     * 
+     * @param workerConnection
+     */
+    public void addConnection(WorkerConnection workerConnection) {
+        seenOnConnections.add(new EquatableWeakReference<WorkerConnection>(workerConnection));
+        purgeAndGetConnectionList();
+    }
 
-	/**
-	 * Return the of accepted hashes per seconds of the user.
-	 * 
-	 * @return
-	 */
-	public double getAcceptedHashrate() {
-		HashrateUtils.purgeShareList(lastAcceptedShares, samplingHashesPeriod);
-		return HashrateUtils.getHashrateFromShareList(lastAcceptedShares, samplingHashesPeriod);
-	}
+    /**
+     * Return a list of connections were this user has been authorized.
+     * 
+     * @return
+     */
+    public List<WorkerConnection> getWorkerConnections() {
+        return purgeAndGetConnectionList();
+    }
 
-	/**
-	 * Return the number of rejected hashes per seconds of the user.
-	 * 
-	 * @return
-	 */
-	public double getRejectedHashrate() {
-		HashrateUtils.purgeShareList(lastRejectedShares, samplingHashesPeriod);
-		return HashrateUtils.getHashrateFromShareList(lastRejectedShares, samplingHashesPeriod);
-	}
+    /**
+     * Return the of accepted hashes per seconds of the user.
+     * 
+     * @return
+     */
+    public double getAcceptedHashrate() {
+        HashrateUtils.purgeShareList(lastAcceptedShares, samplingHashesPeriod);
+        return HashrateUtils.getHashrateFromShareList(lastAcceptedShares, samplingHashesPeriod);
+    }
 
-	/**
-	 * Update the shares lists with the given share to compute hashrate
-	 * 
-	 * @param share
-	 * @param isAccepted
-	 */
-	public void updateShareLists(Share share, boolean isAccepted) {
-		if (isAccepted) {
-			acceptedDifficulty += share.getDifficulty();
-			lastAcceptedShares.addLast(share);
-			HashrateUtils.purgeShareList(lastAcceptedShares, samplingHashesPeriod);
-		} else {
-			rejectedDifficulty += share.getDifficulty();
-			lastRejectedShares.addLast(share);
-			HashrateUtils.purgeShareList(lastRejectedShares, samplingHashesPeriod);
-		}
-		lastShareSubmitted = new Date();
-	}
+    /**
+     * Return the number of rejected hashes per seconds of the user.
+     * 
+     * @return
+     */
+    public double getRejectedHashrate() {
+        HashrateUtils.purgeShareList(lastRejectedShares, samplingHashesPeriod);
+        return HashrateUtils.getHashrateFromShareList(lastRejectedShares, samplingHashesPeriod);
+    }
 
-	/**
-	 * Get the date of creation of the user. The user is created at the first
-	 * authorize request.
-	 * 
-	 * @return
-	 */
-	public Date getCreationTime() {
-		return creationTime;
-	}
+    /**
+     * Update the shares lists with the given share to compute hashrate
+     * 
+     * @param share
+     * @param isAccepted
+     */
+    public void updateShareLists(Share share, boolean isAccepted) {
+        if (isAccepted) {
+            acceptedDifficulty += share.getDifficulty();
+            lastAcceptedShares.addLast(share);
+            acceptedShareNumber++;
+            HashrateUtils.purgeShareList(lastAcceptedShares, samplingHashesPeriod);
+        } else {
+            rejectedDifficulty += share.getDifficulty();
+            lastRejectedShares.addLast(share);
+            rejectedShareNumber++;
+            HashrateUtils.purgeShareList(lastRejectedShares, samplingHashesPeriod);
+        }
+        lastShareSubmitted = new Date();
+    }
 
-	public void setSamplingHashesPeriod(Integer samplingHashesPeriod) {
-		this.samplingHashesPeriod = samplingHashesPeriod * 1000;
-	}
+    /**
+     * Get the date of creation of the user. The user is created at the first
+     * authorize request.
+     * 
+     * @return
+     */
+    public Date getCreationTime() {
+        return creationTime;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public void setSamplingHashesPeriod(Integer samplingHashesPeriod) {
+        this.samplingHashesPeriod = samplingHashesPeriod * 1000;
+    }
 
-	public Date getLastShareSubmitted() {
-		return lastShareSubmitted;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public double getAcceptedDifficulty() {
-		return acceptedDifficulty;
-	}
+    public Date getLastShareSubmitted() {
+        return lastShareSubmitted;
+    }
 
-	public double getRejectedDifficulty() {
-		return rejectedDifficulty;
-	}
+    public double getAcceptedDifficulty() {
+        return acceptedDifficulty;
+    }
 
-	/**
-	 * Return a list of active connections and remove no more existing ones.
-	 * 
-	 * @return
-	 */
-	private List<WorkerConnection> purgeAndGetConnectionList() {
-		List<WorkerConnection> newConnectionList = new ArrayList<WorkerConnection>();
-		synchronized (seenOnConnections) {
-			Iterator<WeakReference<WorkerConnection>> iterator = seenOnConnections.iterator();
-			WeakReference<WorkerConnection> weakReference = null;
-			while (iterator.hasNext()) {
-				weakReference = iterator.next();
-				if (weakReference.get() != null && weakReference.get().isConnected()) {
-					newConnectionList.add(weakReference.get());
-				} else {
-					iterator.remove();
-				}
-			}
-		}
+    public double getRejectedDifficulty() {
+        return rejectedDifficulty;
+    }
 
-		return newConnectionList;
-	}
+    public long getAcceptedShareNumber() {
+        return acceptedShareNumber;
+    }
+
+    public long getRejectedShareNumber() {
+        return rejectedShareNumber;
+    }
+
+    /**
+     * Return a list of active connections and remove no more existing ones.
+     * 
+     * @return
+     */
+    private List<WorkerConnection> purgeAndGetConnectionList() {
+        List<WorkerConnection> newConnectionList = new ArrayList<WorkerConnection>();
+        synchronized (seenOnConnections) {
+            Iterator<WeakReference<WorkerConnection>> iterator = seenOnConnections.iterator();
+            WeakReference<WorkerConnection> weakReference = null;
+            while (iterator.hasNext()) {
+                weakReference = iterator.next();
+                if (weakReference.get() != null && weakReference.get().isConnected()) {
+                    newConnectionList.add(weakReference.get());
+                } else {
+                    iterator.remove();
+                }
+            }
+        }
+
+        return newConnectionList;
+    }
 
 }

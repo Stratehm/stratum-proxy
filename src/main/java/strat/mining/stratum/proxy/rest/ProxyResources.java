@@ -826,6 +826,8 @@ public class ProxyResources {
         result.setRejectedHashesPerSeconds(Double.valueOf(user.getRejectedHashrate()).longValue());
         result.setAcceptedDifficulty(user.getAcceptedDifficulty());
         result.setRejectedDifficulty(user.getRejectedDifficulty());
+        result.setAcceptedShareNumber(user.getAcceptedShareNumber());
+        result.setRejectedShareNumber(user.getRejectedShareNumber());
 
         List<WorkerConnectionDTO> connections = new ArrayList<>(user.getWorkerConnections().size());
         for (WorkerConnection connection : user.getWorkerConnections()) {

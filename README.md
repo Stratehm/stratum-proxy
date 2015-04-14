@@ -224,10 +224,62 @@ Return the list of all worker connections.
 
 
 - - -
-#### **POST** `/address/ban`
-##### banIp 
+#### **GET** `/user/list`
+##### getUsersList 
 
-Ban the given ip address.
+Get the list of users that has been connected at least once since the proxy is started.
+
+
+###### Parameters
+
+###### Response
+[List[UserDetailsDTO]](#UserDetailsDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/connection/kick`
+##### kickConnection 
+
+Kill the connection with the given address and port.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#ConnectionIdentifierDTO">ConnectionIdentifierDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/address/kick`
+##### kickAddress 
+
+Kick all connections with the given address.
 
 
 ###### Parameters
@@ -258,10 +310,10 @@ Ban the given ip address.
 
 
 - - -
-#### **POST** `/address/kick`
-##### kickAddress 
+#### **POST** `/address/ban`
+##### banIp 
 
-Kick all connections with the given address.
+Ban the given ip address.
 
 
 ###### Parameters
@@ -331,40 +383,6 @@ Unban the given ip address.
         <td>false</td>
         <td></td>
         <td><a href="#AddressDTO">AddressDTO</a></td>
-    </tr>
-</table>
-
-###### Response
-[StatusDTO](#StatusDTO)
-
-
-###### Errors
-| Status Code | Reason      | Response Model |
-|-------------|-------------|----------------|
-
-
-- - -
-#### **POST** `/connection/kick`
-##### kickConnection 
-
-Kill the connection with the given address and port.
-
-
-###### Parameters
-- body
-
-<table border="1">
-    <tr>
-        <th>Parameter</th>
-        <th>Required</th>
-        <th>Description</th>
-        <th>Data Type</th>
-    </tr>
-    <tr>
-        <th>body</th>
-        <td>false</td>
-        <td></td>
-        <td><a href="#ConnectionIdentifierDTO">ConnectionIdentifierDTO</a></td>
     </tr>
 </table>
 
@@ -830,24 +848,6 @@ Kick the given username. Kill all connections where the user has been seen (WARN
 
 ###### Response
 [StatusDTO](#StatusDTO)
-
-
-###### Errors
-| Status Code | Reason      | Response Model |
-|-------------|-------------|----------------|
-
-
-- - -
-#### **GET** `/user/list`
-##### getUsersList 
-
-Get the list of users that has been connected at least once since the proxy is started.
-
-
-###### Parameters
-
-###### Response
-[List[UserDetailsDTO]](#UserDetailsDTO)
 
 
 ###### Errors
@@ -1459,8 +1459,18 @@ Get the list of users that has been connected at least once since the proxy is s
         <td>-</td>
     </tr>
     <tr>
+        <td>acceptedShareNumber</td>
+        <td>long</td>
+        <td>-</td>
+    </tr>
+    <tr>
         <td>connections</td>
         <td><a href="#WorkerConnectionDTO">Array[WorkerConnectionDTO]</a></td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>rejectedShareNumber</td>
+        <td>long</td>
         <td>-</td>
     </tr>
     <tr>
@@ -1538,7 +1548,6 @@ Get the list of users that has been connected at least once since the proxy is s
         <td>-</td>
     </tr>
 </table>
-
 
 
 #License
