@@ -57,6 +57,8 @@ import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.utils.Timer.Task;
 import strat.mining.stratum.proxy.utils.mining.DifficultyUtils;
+import strat.mining.stratum.proxy.utils.mining.SHA256HashingUtils;
+import strat.mining.stratum.proxy.utils.mining.ScryptHashingUtils;
 import strat.mining.stratum.proxy.utils.mining.WorkerConnectionHashrateDelegator;
 
 public class StratumWorkerConnection extends StratumConnection implements WorkerConnection {
@@ -84,6 +86,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
     private WorkerConnectionHashrateDelegator workerHashrateDelegator;
 
     private Boolean logRealShareDifficulty = ConfigurationManager.getInstance().getLogRealShareDifficulty();
+    private Boolean validateShare = ConfigurationManager.getInstance().isValidateGetworkShares();
     private GetworkJobTemplate currentHeader;
 
     public StratumWorkerConnection(Socket socket, ProxyManager manager) {
@@ -216,11 +219,28 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
         MiningSubmitResponse response = new MiningSubmitResponse();
         response.setId(request.getId());
         JsonRpcError error = null;
+
         if (authorizedWorkers.get(request.getWorkerName()) != null) {
             // Modify the request to add the tail of extranonce1 to the
             // submitted extranonce2
             request.setExtranonce2(extranonce1Tail + request.getExtranonce2());
-            manager.onSubmitRequest(this, request);
+
+            boolean isShareValid = true;
+            if (validateShare) {
+                isShareValid = checkTarget(request);
+            }
+
+            if (isShareValid) {
+                manager.onSubmitRequest(this, request);
+            } else {
+                error = new JsonRpcError();
+                error.setCode(JsonRpcError.ErrorCode.LOW_DIFFICULTY_SHARE.getCode());
+                error.setMessage("Share is above the target (proxy check)");
+                response.setErrorRpc(error);
+                LOGGER.debug("Share submitted by {}@{} is above the target. The share is not submitted to the pool.",
+                        (String) request.getWorkerName(), getConnectionName());
+                sendResponse(response);
+            }
         } else {
             error = new JsonRpcError();
             error.setCode(JsonRpcError.ErrorCode.UNAUTHORIZED_WORKER.getCode());
@@ -461,7 +481,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 
     @Override
     public void onPoolDifficultyChanged(MiningSetDifficultyNotification notification) {
-        if (logRealShareDifficulty) {
+        if (logRealShareDifficulty || validateShare) {
             updateBlockDifficulty();
         }
         sendNotification(notification);
@@ -469,7 +489,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 
     @Override
     public void onPoolNotify(MiningNotifyNotification notification) {
-        if (logRealShareDifficulty) {
+        if (logRealShareDifficulty || validateShare) {
             updateBlockHeader(notification);
         }
         sendNotification(notification);
@@ -508,5 +528,27 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
         if (currentHeader != null) {
             currentHeader.setExtranonce1(getPool().getExtranonce1() + extranonce1Tail);
         }
+    }
+
+    /**
+     * Check if the submitted share matches the target.
+     * 
+     * @param request
+     * 
+     * @return
+     */
+    private boolean checkTarget(MiningSubmitRequest request) {
+        boolean isShareValid = false;
+        if (currentHeader != null) {
+            GetworkJobTemplate jobTemplate = new GetworkJobTemplate(currentHeader);
+            if (ConfigurationManager.getInstance().isScrypt()) {
+                isShareValid = !ScryptHashingUtils.isBlockHeaderScryptHashBelowTarget(jobTemplate.getData(request.getExtranonce2()).getData(),
+                        currentHeader.getTargetInteger());
+            } else {
+                isShareValid = !SHA256HashingUtils.isBlockHeaderSHA256HashBelowTarget(jobTemplate.getData(request.getExtranonce2()).getData(),
+                        currentHeader.getTargetInteger());
+            }
+        }
+        return isShareValid;
     }
 }
