@@ -402,7 +402,7 @@ public class Launcher {
             keyStore.load(null, null);
 
             LOGGER.info("Generating new SSL certificate.");
-            AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA1withRSA");
+            AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA");
             AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
 
             RSAKeyPairGenerator keyGenerator = new RSAKeyPairGenerator();
