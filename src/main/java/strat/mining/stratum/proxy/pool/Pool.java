@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.core.UriBuilder;
@@ -103,6 +105,8 @@ public class Pool {
 
     private MiningNotifyNotification currentJob;
 
+    private Executor connectionExecutor;
+
     private Task reconnectTask;
     private Task notifyTimeoutTask;
     private Task stabilityTestTask;
@@ -157,6 +161,7 @@ public class Pool {
         this.isStable = false;
         this.isFirstRun = true;
         this.numberOfDisconnections = 0;
+        this.connectionExecutor = Executors.newSingleThreadExecutor();
 
         acceptedDifficulty = new AtomicDouble(0);
         rejectedDifficulty = new AtomicDouble(0);
@@ -173,6 +178,10 @@ public class Pool {
     }
 
     public synchronized void startPool(ProxyManager manager) throws PoolStartException, URISyntaxException, SocketException {
+        startPool(manager, true);
+    }
+
+    public void startPool(ProxyManager manager, boolean asynchronously) throws PoolStartException, URISyntaxException, SocketException {
         if (manager != null) {
             if (!isEnabled) {
                 throw new PoolStartException("Do not start the pool " + getName() + " since it is disabled.");
@@ -185,21 +194,39 @@ public class Pool {
                 if (uri.getPort() < 0) {
                     UriBuilder.fromUri(uri).port(Constants.DEFAULT_POOL_PORT);
                 }
-                Socket socket = new Socket();
+                final Socket socket = new Socket();
                 socket.setKeepAlive(true);
                 socket.setTcpNoDelay(true);
 
-                try {
-                    socket.connect(new InetSocketAddress(uri.getHost(), uri.getPort() > -1 ? uri.getPort() : Constants.DEFAULT_POOL_PORT));
-                    connection = new PoolConnection(this, socket);
-                    connection.startReading();
+                // The runnable to start the connection
+                Runnable connectionRunnable = new Runnable() {
 
-                    sendSubscribeRequest();
-                } catch (IOException e) {
-                    LOGGER.error("Failed to connect the pool {}.", getName(), e);
-                    stopPool("Connection failed: " + e.getMessage());
-                    retryConnect(true);
+                    @Override
+                    public void run() {
+                        try {
+                            socket.connect(new InetSocketAddress(uri.getHost(), uri.getPort() > -1 ? uri.getPort() : Constants.DEFAULT_POOL_PORT));
+                            connection = new PoolConnection(Pool.this, socket);
+                            connection.startReading();
+
+                            sendSubscribeRequest();
+                        } catch (IOException e) {
+                            LOGGER.error("Failed to connect the pool {}.", getName(), e);
+                            stopPool("Connection failed: " + e.getMessage());
+                            retryConnect(true);
+                        }
+                    }
+                };
+
+                // If asynchronously, ask the executor to run the
+                // conenctionRunnable in a separate thread.
+                if (asynchronously) {
+                    connectionExecutor.execute(connectionRunnable);
+                } else {
+                    // If synchronously, start the connection in the calling
+                    // thread.
+                    connectionRunnable.run();
                 }
+
             }
         } else {
             throw new PoolStartException("Do not start pool " + getName() + " since manager is null.");
@@ -362,7 +389,7 @@ public class Pool {
             LOGGER.info("Received client.reconnect from pool {}.", getName());
             stopPool("Pool asked reconnection.");
             try {
-                startPool(manager);
+                startPool(manager, false);
             } catch (Exception e) {
                 LOGGER.error("Failed to restart the pool {} after a client.reconnect notification.", getName(), e);
                 retryConnect(true);
@@ -709,7 +736,7 @@ public class Pool {
                 public void run() {
                     try {
                         LOGGER.info("Trying reconnect of pool {}...", getName());
-                        startPool(manager);
+                        startPool(manager, false);
                     } catch (Exception e) {
                         LOGGER.error("Failed to restart the pool {}.", getName(), e);
                     }
