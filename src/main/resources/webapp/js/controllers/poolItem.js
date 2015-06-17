@@ -1,5 +1,5 @@
-define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config', 'highstock'], function($,
-	Ractive, template, i18next, config) {
+define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config', 'managers/authenticationManager', 'highstock'], function($,
+	Ractive, template, i18next, config, authenticationManager) {
 
     var PoolItem = function(renderToElement) {
 	var poolItemId = PoolItem.nextPoolItemId++;
@@ -20,6 +20,12 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config'
 	document.addEventListener('localeChanged', function() {
 	    self.reloadChartData(false, true);
 	}, false);
+
+	this.updateAccessibleItems();
+	document.addEventListener('loginSuccess', function() {
+	    self.updateAccessibleItems();
+	}, false);
+	
     };
 
     PoolItem.nextPoolItemId = 0;
@@ -280,6 +286,17 @@ define(['jquery', 'ractivejs', 'rv!templates/poolItem', 'i18n!locales', 'config'
 	    } else {
 		break;
 	    }
+	}
+    };
+    
+    /**
+     * Update the displayed items based on the authorization.
+     */
+    PoolItem.prototype.updateAccessibleItems = function() {
+	if(!authenticationManager.isAuthenticated) {
+	    this.poolItemJquery.find('.setHighestPriority, .enableDisable, .remove, .edit').hide();
+	} else {
+	    this.poolItemJquery.find('.setHighestPriority, .enableDisable, .remove, .edit').show();
 	}
     };
 

@@ -169,6 +169,9 @@ public class CommandLineOptions {
     @Option(name = "--api-password", usage = "If set, define the password to provide with the --api-user name to access the API (and GUI)")
     private String apiPassword;
 
+    @Option(name = "--api-read-only-access-enabled", usage = "If an apiUser is set and this option is present, the read-only API methods are publicly accessible. The displayed GUI will be read-only and login will be required to access to admin features (modify/create/delete pools, ban users...)")
+    private boolean apiReadOnlyAccessEnabled;
+
     @Option(name = "--api-enable-ssl", usage = "Enable SSL (HTTPS) to secure the API.", handler = ExplicitBooleanOptionHandler.class)
     private Boolean apiEnableSsl;
 
@@ -366,6 +369,10 @@ public class CommandLineOptions {
 
     public String getApiPassword() {
         return apiPassword;
+    }
+
+    public boolean isApiReadOnlyAccessEnabled() {
+        return apiReadOnlyAccessEnabled;
     }
 
     public Boolean isApiEnableSsl() {

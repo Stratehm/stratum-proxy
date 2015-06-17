@@ -64,7 +64,8 @@
 		"usersItem": "Utilisateurs",
 		"connectionsItem": "Connexions",
 		"settingsItem": "Configuration",
-		"logsItem": "Logs"
+		"logsItem": "Logs",
+		"loginItem": "Connexion"
 	},
 
 	"footer": 

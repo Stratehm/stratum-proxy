@@ -64,7 +64,8 @@
 		"usersItem": "Users",
 		"connectionsItem": "Connections",
 		"settingsItem": "Settings",
-		"logsItem": "Logs"
+		"logsItem": "Logs",
+		"loginItem": "Login"
 	},
 
 	"footer": 

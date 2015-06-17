@@ -63,6 +63,7 @@ public class Configuration {
 
     private String apiUser;
     private String apiPassword;
+    private Boolean apiReadOnlyAccessEnabled;
 
     private Boolean apiEnableSsl;
 
@@ -326,6 +327,14 @@ public class Configuration {
 
     public void setApiPassword(String apiPassword) {
         this.apiPassword = apiPassword;
+    }
+
+    public Boolean getApiReadOnlyAccessEnabled() {
+        return apiReadOnlyAccessEnabled;
+    }
+
+    public void setApiReadOnlyAccessEnabled(Boolean apiReadOnlyAccessEnabled) {
+        this.apiReadOnlyAccessEnabled = apiReadOnlyAccessEnabled;
     }
 
     public Integer getWorkerNumberLimit() {

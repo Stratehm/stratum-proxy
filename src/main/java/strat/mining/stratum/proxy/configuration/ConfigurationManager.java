@@ -109,6 +109,7 @@ public class ConfigurationManager {
 
     private String apiUser;
     private String apiPassword;
+    private Boolean apiReadOnlyAccessEnabled = false;
     private Boolean apiEnableSsl;
 
     private String ipVersion = Constants.IP_VERSION_AUTO;
@@ -245,6 +246,7 @@ public class ConfigurationManager {
 
         apiUser = configuration.getApiUser() != null ? configuration.getApiUser() : apiUser;
         if (apiUser != null) {
+            apiReadOnlyAccessEnabled = configuration.getApiReadOnlyAccessEnabled() != null ? configuration.getApiReadOnlyAccessEnabled() : apiReadOnlyAccessEnabled;
             // If the apiUser is empty, set it to null.
             if (apiUser.trim().isEmpty()) {
                 apiUser = null;
@@ -425,6 +427,7 @@ public class ConfigurationManager {
 
         apiUser = cliParser.getApiUser() != null ? cliParser.getApiUser() : apiUser;
         if (apiUser != null) {
+            apiReadOnlyAccessEnabled = cliParser.isApiReadOnlyAccessEnabled();
             // If the apiUser is empty, set it to null.
             if (apiUser.trim().isEmpty()) {
                 apiUser = null;
@@ -892,6 +895,10 @@ public class ConfigurationManager {
 
     public String getApiPassword() {
         return apiPassword;
+    }
+
+    public Boolean getApiReadOnlyAccessEnabled() {
+        return apiReadOnlyAccessEnabled;
     }
 
     public Boolean getApiEnableSsl() {

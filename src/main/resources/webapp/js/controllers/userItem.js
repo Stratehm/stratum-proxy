@@ -1,5 +1,5 @@
-define(['jquery', 'ractivejs', 'rv!templates/userItem', 'i18n!locales', 'config', 'highstock'], function($,
-	Ractive, template, i18next, config) {
+define(['jquery', 'ractivejs', 'rv!templates/userItem', 'i18n!locales', 'config', 'managers/authenticationManager','highstock'], function($,
+	Ractive, template, i18next, config, authenticationManager) {
 
     var UserItem = function(renderToElement) {
 	var userItemId = UserItem.nextUserItemId++;
@@ -18,6 +18,11 @@ define(['jquery', 'ractivejs', 'rv!templates/userItem', 'i18n!locales', 'config'
 	var self = this;
 	document.addEventListener('localeChanged', function() {
 	    self.reloadChartData(false, true);
+	}, false);
+	
+	this.updateAccessibleItems();
+	document.addEventListener('loginSuccess', function() {
+	    self.updateAccessibleItems();
 	}, false);
     };
 
@@ -260,6 +265,17 @@ define(['jquery', 'ractivejs', 'rv!templates/userItem', 'i18n!locales', 'config'
 	    } else {
 		break;
 	    }
+	}
+    };
+    
+    /**
+     * Update the displayed items based on the authorization.
+     */
+    UserItem.prototype.updateAccessibleItems = function() {
+	if(!authenticationManager.isAuthenticated) {
+	    this.userItemJquery.find('.kickUser, .banUser').hide();
+	} else {
+	    this.userItemJquery.find('.kickUser, .banUser').show();
 	}
     };
 

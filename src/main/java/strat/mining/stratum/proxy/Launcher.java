@@ -255,7 +255,7 @@ public class Launcher {
             }
 
             // Initialize the HTTP Basic Authentication
-            apiHttpServer.getListener("grizzly").registerAddOn(new AuthenticationAddOn());
+            apiHttpServer.getListener("grizzly").registerAddOn(new AuthenticationAddOn("/proxy"));
 
             apiHttpServer.start();
         } else {

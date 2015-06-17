@@ -28,6 +28,10 @@
 		<level value="info" />
 	</logger>
 
+	<logger name="org.reflections">
+		<level value="info" />
+	</logger>
+
 	<root>
 		<priority value="info" />
 		<appender-ref ref="console" />

@@ -4,7 +4,14 @@ define(['jquery'], function($) {
      * Define the page controller class
      */
     var PageController = function(pageName) {
+	var controller = this;
 	this.pageName = pageName;
+
+	document.addEventListener('loginSuccess', function() {
+	    if (controller.updateAccessibleItems) {
+		controller.updateAccessibleItems();
+	    }
+	}, false);
     };
 
     PageController.prototype.hide = function() {
@@ -18,6 +25,10 @@ define(['jquery'], function($) {
     PageController.prototype.load = function(mainContainer) {
 	if (this.onLoad != undefined) {
 	    this.onLoad(mainContainer);
+	    // Update the displayed items based the authentication result.
+	    if (this.updateAccessibleItems) {
+		this.updateAccessibleItems();
+	    }
 	}
     };
 

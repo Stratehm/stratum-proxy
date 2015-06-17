@@ -1,5 +1,5 @@
-define(['jquery', 'ractivejs', 'rv!templates/connectionItem', 'i18n!locales', 'config'], function($, Ractive,
-	template, i18next, config) {
+define(['jquery', 'ractivejs', 'rv!templates/connectionItem', 'i18n!locales', 'config','managers/authenticationManager'], function($, Ractive,
+	template, i18next, config, authenticationManager) {
 
     var ConnectionItem = function(renderToElement) {
 	var connectionItemId = ConnectionItem.nextConnectionItemId++;
@@ -14,6 +14,11 @@ define(['jquery', 'ractivejs', 'rv!templates/connectionItem', 'i18n!locales', 'c
 	    }, this)
 	});
 	this.connectionItemJquery = $('#connectionItem-' + connectionItemId);
+	
+	this.updateAccessibleItems();
+	document.addEventListener('loginSuccess', function() {
+	    self.updateAccessibleItems();
+	}, false);
     };
 
     ConnectionItem.nextConnectionItemId = 0;
@@ -28,10 +33,16 @@ define(['jquery', 'ractivejs', 'rv!templates/connectionItem', 'i18n!locales', 'c
 	this.ractive.set(connection);
 	
 	this.connectionItemJquery.data('connection', connection);
-    }
+    };
     
     ConnectionItem.prototype.remove = function() {
 	this.connectionItemJquery.remove();
+    };
+    
+    /**
+     * Update the displayed items based on the authorization.
+     */
+    ConnectionItem.prototype.updateAccessibleItems = function() {
     };
 
     return ConnectionItem;

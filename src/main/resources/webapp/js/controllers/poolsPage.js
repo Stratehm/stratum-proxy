@@ -1,8 +1,8 @@
 define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templates/poolsPage',
 	'i18n!locales', 'config', 'controllers/poolItem', 'controllers/addPoolPopup',
-	'controllers/confirmationPopup', 'controllers/editPoolPopup', 'json', 'sort'], function($, Ractive,
+	'controllers/confirmationPopup', 'controllers/editPoolPopup', 'managers/authenticationManager', 'json', 'sort'], function($, Ractive,
 	AbstractPageController, template, i18next, config, PoolItem, AddPoolPopup, ConfirmationPopup,
-	EditPoolPopup) {
+	EditPoolPopup, authenticationManager) {
 
     var PoolsPageController = function(pageName) {
 	AbstractPageController.call(this, pageName);
@@ -58,6 +58,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 	this.getContainer().find('.addPoolButton').off('click').click(function() {
 	    controller.openAddPool();
 	});
+	
     };
 
     PoolsPageController.prototype.onUnload = function() {
@@ -373,6 +374,17 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
      */
     PoolsPageController.prototype.openAddPool = function() {
 	new AddPoolPopup(this);
+    };
+    
+    /**
+     * Update the displayed items based on the authorization.
+     */
+    PoolsPageController.prototype.updateAccessibleItems = function() {
+	if(!authenticationManager.isAuthenticated) {
+	    this.getContainer().find('.addPoolButton').hide();
+	} else {
+	    this.getContainer().find('.addPoolButton').show();
+	}
     };
 
     return PoolsPageController;

@@ -122,6 +122,13 @@
 			<version>1.51</version>
 		</dependency>
 
+		<!-- Reflection helper lib -->
+		<dependency>
+			<groupId>org.reflections</groupId>
+			<artifactId>reflections</artifactId>
+			<version>0.9.10</version>
+		</dependency>
+
 		<!-- To generate the API docs -->
 		<dependency>
 			<groupId>com.wordnik</groupId>

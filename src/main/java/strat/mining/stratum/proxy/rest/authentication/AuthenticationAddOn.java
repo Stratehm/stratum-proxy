@@ -25,16 +25,22 @@ import org.glassfish.grizzly.http.server.NetworkListener;
 
 public class AuthenticationAddOn implements AddOn {
 
-	@Override
-	public void setup(NetworkListener networkListener, FilterChainBuilder builder) {
-		// Get the index of HttpServerFilter in the HttpServerFilter filter
-		// chain
-		final int httpServerFilterIdx = builder.indexOfType(HttpServerFilter.class);
+    private String basePath;
 
-		if (httpServerFilterIdx >= 0) {
-			// Insert the AuthenticationFilter right after HttpServerFilter
-			builder.add(httpServerFilterIdx + 1, new AuthenticationFilter());
-		}
-	}
+    public AuthenticationAddOn(String basePath) {
+        this.basePath = basePath;
+    }
+
+    @Override
+    public void setup(NetworkListener networkListener, FilterChainBuilder builder) {
+        // Get the index of HttpServerFilter in the HttpServerFilter filter
+        // chain
+        final int httpServerFilterIdx = builder.indexOfType(HttpServerFilter.class);
+
+        if (httpServerFilterIdx >= 0) {
+            // Insert the AuthenticationFilter right after HttpServerFilter
+            builder.add(httpServerFilterIdx + 1, new AuthenticationFilter(basePath));
+        }
+    }
 
 }

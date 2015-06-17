@@ -33,6 +33,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.slf4j.Logger;
@@ -50,8 +51,10 @@ import strat.mining.stratum.proxy.exception.PoolStartException;
 import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.model.User;
 import strat.mining.stratum.proxy.pool.Pool;
+import strat.mining.stratum.proxy.rest.authentication.PubliclyAvailable;
 import strat.mining.stratum.proxy.rest.dto.AddPoolDTO;
 import strat.mining.stratum.proxy.rest.dto.AddressDTO;
+import strat.mining.stratum.proxy.rest.dto.AuthenticationDetails;
 import strat.mining.stratum.proxy.rest.dto.ChangePriorityDTO;
 import strat.mining.stratum.proxy.rest.dto.ConnectionIdentifierDTO;
 import strat.mining.stratum.proxy.rest.dto.HashrateDTO;
@@ -92,6 +95,22 @@ public class ProxyResources {
     private strat.mining.stratum.proxy.manager.LogManager logManager = strat.mining.stratum.proxy.manager.LogManager.getInstance();
 
     /**
+     * Return the details concerning authentication. rights.
+     * 
+     * @return
+     */
+    @GET
+    @Path("misc/authentication/details")
+    @PubliclyAvailable
+    public Response getAuthenticationDetails() {
+        AuthenticationDetails result = new AuthenticationDetails();
+        result.setAuthenticationNeededForWriteAccess(StringUtils.isNotBlank(ConfigurationManager.getInstance().getApiUser())
+                && ConfigurationManager.getInstance().getApiReadOnlyAccessEnabled());
+
+        return Response.status(Response.Status.OK).entity(result).build();
+    }
+
+    /**
      * Get the list of connected users
      * 
      * @return
@@ -100,6 +119,7 @@ public class ProxyResources {
     @GET
     @Path("user/list")
     @ApiOperation(value = "Get the list of users that has been connected at least once since the proxy is started.", response = UserDetailsDTO.class, responseContainer = "List")
+    @PubliclyAvailable
     public Response getUsersList() {
 
         List<User> users = stratumProxyManager.getUsers();
@@ -222,6 +242,7 @@ public class ProxyResources {
     @GET
     @Path("connection/list")
     @ApiOperation(value = "Return the list of all worker connections.", response = WorkerConnectionDTO.class, responseContainer = "List")
+    @PubliclyAvailable
     public Response getConnectionsList() {
 
         List<WorkerConnection> workerConnections = stratumProxyManager.getWorkerConnections();
@@ -363,6 +384,7 @@ public class ProxyResources {
     @GET
     @Path("pool/list")
     @ApiOperation(value = "Return the list of all pools.", response = PoolDetailsDTO.class, responseContainer = "List")
+    @PubliclyAvailable
     public Response getPoolsList() {
 
         List<Pool> pools = stratumProxyManager.getPools();
@@ -625,6 +647,7 @@ public class ProxyResources {
     @POST
     @Path("hashrate/user")
     @ApiOperation(value = "Return the hashrate history of a user.", response = HashrateModel.class, responseContainer = "List")
+    @PubliclyAvailable
     public Response getUserHashrateHistory(UserNameDTO username) {
         HashrateHistoryDTO result = new HashrateHistoryDTO();
         List<HashrateModel> userHashrates = databaseManager.getUserHashrate(username.getUsername());
@@ -641,6 +664,7 @@ public class ProxyResources {
     @ApiOperation(value = "Return the hashrate history of a pool.", response = HashrateModel.class, responseContainer = "List")
     @ApiResponses({ @ApiResponse(code = 500, message = "Error during pool hashrate history response build."),
             @ApiResponse(code = 404, message = "Pool not found.") })
+    @PubliclyAvailable
     public Response getPoolHashrateHistory(PoolNameDTO poolName) {
         HashrateHistoryDTO result = new HashrateHistoryDTO();
         Response response = null;
@@ -691,6 +715,7 @@ public class ProxyResources {
     @GET
     @Path("misc/version")
     @ApiOperation(value = "Return the version of the proxy.", response = ProxyVersionDTO.class)
+    @PubliclyAvailable
     public Response getProxyVersion() {
         Response response = null;
 
@@ -710,6 +735,7 @@ public class ProxyResources {
     @GET
     @Path("summary")
     @ApiOperation(value = "Return a summary of the current state of the proxy.", response = SummaryDTO.class)
+    @PubliclyAvailable
     public Response getSummary() {
 
         SummaryDTO summary = new SummaryDTO();
