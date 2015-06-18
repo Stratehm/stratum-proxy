@@ -36,6 +36,7 @@ public class WorkerConnectionDTO {
     @JsonInclude(Include.NON_NULL)
     private Boolean isExtranonceNotificationSupported;
     private String connectionType;
+    private String workerVersion;
 
     public String getRemoteHost() {
         return remoteHost;
@@ -99,6 +100,14 @@ public class WorkerConnectionDTO {
 
     public void setConnectionType(String connectionType) {
         this.connectionType = connectionType;
+    }
+
+    public String getWorkerVersion() {
+        return workerVersion;
+    }
+
+    public void setWorkerVersion(String workerVersion) {
+        this.workerVersion = workerVersion;
     }
 
 }

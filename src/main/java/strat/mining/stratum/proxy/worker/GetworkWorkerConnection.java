@@ -41,6 +41,7 @@ import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
+import strat.mining.stratum.proxy.json.ClientShowMessageNotification;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
 import strat.mining.stratum.proxy.json.MiningSetDifficultyNotification;
 import strat.mining.stratum.proxy.json.MiningSubmitRequest;
@@ -458,5 +459,17 @@ public class GetworkWorkerConnection implements WorkerConnection {
     @Override
     public Date getActiveSince() {
         return isActiveSince;
+    }
+
+    @Override
+    public String getWorkerVersion() {
+        // The worker version cannot be known with Getwork.
+        return null;
+    }
+
+    @Override
+    public void onPoolShowMessage(ClientShowMessageNotification showMessage) {
+        // Not supported with Getwork.
+
     }
 }

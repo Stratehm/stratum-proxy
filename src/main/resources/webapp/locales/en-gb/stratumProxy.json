@@ -122,6 +122,7 @@
 		"rejectedDifficultyLabel": "Rejected difficulty",
 		"acceptedHashrateLabel": "Accepted hashrate",
 		"rejectedHashrateLabel": "Rejected hashrate",
+		"lastPoolMessageLabel": "Last pool message",
 		"setHighestPriorityButton": "Set highest priority",
 		"disableButton": "Disable",
 		"enableButton": "Enable",
@@ -135,6 +136,7 @@
 		"noWorkerExtranonce2Size": "Not set",
 		"noLastStopCause": "Never stopped",
 		"noLastStopDate": "Never stopped",
+		"noLastPoolMessage": "None",
 		"chart": 
 		{
 			"title": "Hashrate",
@@ -300,7 +302,9 @@
 	   "isActiveSinceLabel": "Is active since",
 	   "workingOnPoolLabel": "Working on pool",
 	   "extranonceNotificationSupportedLabel": "Is extranonce notification supported",
-	   "connectionTypeLabel": "Connection type"
+	   "connectionTypeLabel": "Connection type",
+	   "workerVersionLabel": "Worker version",
+	   "workerVersionUnknown": "Unknown"
 	},
 	
 	"misc": {

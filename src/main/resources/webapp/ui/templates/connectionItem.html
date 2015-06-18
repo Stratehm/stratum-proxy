@@ -38,6 +38,16 @@
 				data-i18n="connectionItem.connectionTypeLabel">Connection type</label>
 			<div class="col-sm-3 tooltipOnOverflow">{{connectionType}}</div>
 		</div>
+	    <div class="row">
+            <label class="col-sm-3 control-label"
+                data-i18n="connectionItem.workerVersionLabel">Worker version</label>
+            <div class="col-sm-3 tooltipOnOverflow">{{#workerVersion}} {{ workerVersion }} {{/workerVersion}}
+                {{^workerVersion}} <span data-i18n="connectionItem.workerVersionUnknown">Unknown</span>
+                {{/workerVersion}}</div>
+<!--             <label class="col-sm-3 control-label" -->
+<!--                 data-i18n="connectionItem.connectionTypeLabel">Connection type</label> -->
+<!--             <div class="col-sm-3 tooltipOnOverflow">{{connectionType}}</div> -->
+        </div>
 
 <!-- 		<div class="row top20 bottom20"> -->
 <!-- 			<div class="text-center"> -->

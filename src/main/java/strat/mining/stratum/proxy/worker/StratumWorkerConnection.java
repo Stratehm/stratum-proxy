@@ -38,6 +38,7 @@ import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.ClientGetVersionRequest;
 import strat.mining.stratum.proxy.json.ClientGetVersionResponse;
 import strat.mining.stratum.proxy.json.ClientReconnectNotification;
+import strat.mining.stratum.proxy.json.ClientShowMessageNotification;
 import strat.mining.stratum.proxy.json.JsonRpcError;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
@@ -89,6 +90,8 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
     private Boolean validateShare = ConfigurationManager.getInstance().isValidateGetworkShares();
     private GetworkJobTemplate currentHeader;
 
+    private String workerVersion;
+
     public StratumWorkerConnection(Socket socket, ProxyManager manager) {
         super(socket);
         this.manager = manager;
@@ -123,6 +126,11 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 
     @Override
     protected void onNotify(MiningNotifyNotification notify) {
+        // Do nothing, should never happen
+    }
+
+    @Override
+    protected void onShowMessage(ClientShowMessageNotification showMessage) {
         // Do nothing, should never happen
     }
 
@@ -211,6 +219,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
         // and notify).
         if (error == null) {
             sendInitialNotifications();
+            sendGetVersion();
         }
     }
 
@@ -341,7 +350,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 
     @Override
     protected void onGetVersionResponse(ClientGetVersionRequest request, ClientGetVersionResponse response) {
-        // Nothing to do...yet.
+        workerVersion = response.getVersion();
     }
 
     /**
@@ -402,6 +411,14 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
             LOGGER.debug("Initial job sent to {}.", getConnectionName());
         }
 
+    }
+
+    /**
+     * Send a GetVersion request to the worker.
+     */
+    private void sendGetVersion() {
+        ClientGetVersionRequest request = new ClientGetVersionRequest();
+        sendRequest(request);
     }
 
     /**
@@ -495,6 +512,13 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
         sendNotification(notification);
     }
 
+    @Override
+    public void onPoolShowMessage(ClientShowMessageNotification showMessage) {
+        ClientShowMessageNotification notification = new ClientShowMessageNotification();
+        notification.setMessage(showMessage.getMessage());
+        sendNotification(notification);
+    }
+
     /**
      * Update the block header based on the notification
      * 
@@ -551,4 +575,10 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
         }
         return isShareValid;
     }
+
+    @Override
+    public String getWorkerVersion() {
+        return workerVersion;
+    }
+
 }

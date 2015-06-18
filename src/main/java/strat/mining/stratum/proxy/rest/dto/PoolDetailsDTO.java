@@ -62,6 +62,8 @@ public class PoolDetailsDTO {
     private String workerNamesSeparator;
     private Boolean useWorkerPassword;
 
+    private String lastPoolMessage;
+
     public String getName() {
         return name;
     }
@@ -292,6 +294,14 @@ public class PoolDetailsDTO {
 
     public void setUseWorkerPassword(Boolean useWorkerPassword) {
         this.useWorkerPassword = useWorkerPassword;
+    }
+
+    public String getLastPoolMessage() {
+        return lastPoolMessage;
+    }
+
+    public void setLastPoolMessage(String lastPoolMessage) {
+        this.lastPoolMessage = lastPoolMessage;
     }
 
 }

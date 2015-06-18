@@ -50,6 +50,7 @@ import strat.mining.stratum.proxy.exception.AuthorizationException;
 import strat.mining.stratum.proxy.exception.PoolStartException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.ClientReconnectNotification;
+import strat.mining.stratum.proxy.json.ClientShowMessageNotification;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
 import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeRequest;
@@ -149,6 +150,8 @@ public class Pool {
     private Date lastStopDate;
 
     private Integer numberOfDisconnections;
+
+    private String lastPoolMessage;
 
     public Pool(String name, String host, String username, String password) {
         super();
@@ -572,6 +575,11 @@ public class Pool {
     public void processSubmitResponse(MiningSubmitRequest request, MiningSubmitResponse response) {
         ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse> callback = submitCallbacks.remove(response.getId());
         callback.onResponseReceived(request, response);
+    }
+
+    public void processShowMessage(ClientShowMessageNotification showMessage) {
+        lastPoolMessage = showMessage.getMessage();
+        manager.onPoolShowMessage(this, showMessage);
     }
 
     /**
@@ -1164,6 +1172,10 @@ public class Pool {
             uptime = (System.currentTimeMillis() - readySince.getTime());
         }
         return uptime;
+    }
+
+    public String getLastPoolMessage() {
+        return this.lastPoolMessage;
     }
 
 }

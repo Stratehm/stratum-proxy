@@ -819,6 +819,7 @@ public class ProxyResources {
         result.setAppendWorkerNames(pool.isAppendWorkerNames());
         result.setWorkerNamesSeparator(pool.getWorkerSeparator() == null ? "" : pool.getWorkerSeparator());
         result.setUseWorkerPassword(pool.isUseWorkerPassword());
+        result.setLastPoolMessage(pool.getLastPoolMessage());
 
         return result;
     }
@@ -831,6 +832,7 @@ public class ProxyResources {
         result.setPoolName(connection.getPool().getName());
         result.setAuthorizedUsers(new ArrayList<>(connection.getAuthorizedWorkers().keySet()));
         result.setIsActiveSince(connection.getActiveSince().getTime());
+        result.setWorkerVersion(connection.getWorkerVersion());
 
         if (connection instanceof StratumWorkerConnection) {
             StratumWorkerConnection stratumConnection = (StratumWorkerConnection) connection;

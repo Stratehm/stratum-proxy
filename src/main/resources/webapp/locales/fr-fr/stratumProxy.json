@@ -120,6 +120,7 @@
 		"isUseWorkerPasswordLabel": "Utilisation du mot de passe du mineur",
 		"acceptedDifficultyLabel": "Difficulté acceptée",
 		"rejectedDifficultyLabel": "Difficulté refusée",
+		"lastPoolMessageLabel": "Dernier message du pool",
 		"acceptedHashrateLabel": "Puissance de calcul acceptée",
 		"rejectedHashrateLabel": "Puissance de calcul rejetée",
 		"setHighestPriorityButton": "Priorité maximum",
@@ -135,6 +136,7 @@
 		"noWorkerExtranonce2Size": "Non défini",
 		"noLastStopCause": "Jamais arrêté",
 		"noLastStopDate": "Jamais arrêté",
+		"noLastPoolMessage": "Aucun",
 		"chart": 
 		{
 			"title": "Puissance de calcul",
@@ -300,7 +302,9 @@
        "isActiveSinceLabel": "Actif depuis",
        "workingOnPoolLabel": "Attribué au pool",
        "extranonceNotificationSupportedLabel": "Support du changement d'extranonce",
-       "connectionTypeLabel": "Type de connection"
+       "connectionTypeLabel": "Type de connection",
+       "workerVersionLabel": "Version du mineur",
+       "workerVersionUnknown": "Inconnue"
     },
 	
 	"misc": {

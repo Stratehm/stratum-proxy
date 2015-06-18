@@ -154,6 +154,15 @@
 				data-i18n="poolItem.rejectedHashrateLabel">Rejected hashrate</label>
 			<div class="col-sm-3">{{rejectedHashesPerSeconds}}</div>
 		</div>
+		<div class="row">
+            <label class="col-sm-3 control-label"
+                data-i18n="poolItem.lastPoolMessageLabel">Last pool message</label>
+            <div class="col-sm-3">{{#lastPoolMessage}} {{lastPoolMessage}} {{/lastPoolMessage}}
+                {{^lastPoolMessage}} <span data-i18n="poolItem.noLastPoolMessage">None</span> {{/lastPoolMessage}}</div>
+<!--             <label class="col-sm-3 control-label" -->
+<!--                 data-i18n="poolItem.rejectedHashrateLabel">Rejected hashrate</label> -->
+<!--             <div class="col-sm-3">{{rejectedHashesPerSeconds}}</div> -->
+        </div>
 		<div class="row top20 bottom20">
 			<div class="text-center">
 				<div class="btn-group">

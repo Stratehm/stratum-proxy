@@ -27,6 +27,7 @@ import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.json.ClientGetVersionRequest;
 import strat.mining.stratum.proxy.json.ClientGetVersionResponse;
 import strat.mining.stratum.proxy.json.ClientReconnectNotification;
+import strat.mining.stratum.proxy.json.ClientShowMessageNotification;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
 import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeRequest;
@@ -42,101 +43,107 @@ import strat.mining.stratum.proxy.network.StratumConnection;
 
 public class PoolConnection extends StratumConnection {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(PoolConnection.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PoolConnection.class);
 
-	private Pool pool;
+    private Pool pool;
 
-	public PoolConnection(Pool pool, Socket socket) {
-		super(socket);
-		this.pool = pool;
-	}
+    public PoolConnection(Pool pool, Socket socket) {
+        super(socket);
+        this.pool = pool;
+    }
 
-	@Override
-	protected void onParsingError(String line, Throwable throwable) {
-		LOGGER.error("{}. JSON-RPC parsing error with line: {}.", getConnectionName(), line, throwable);
-	}
+    @Override
+    protected void onParsingError(String line, Throwable throwable) {
+        LOGGER.error("{}. JSON-RPC parsing error with line: {}.", getConnectionName(), line, throwable);
+    }
 
-	@Override
-	protected void onDisconnectWithError(Throwable cause) {
-		pool.onDisconnectWithError(cause);
-	}
+    @Override
+    protected void onDisconnectWithError(Throwable cause) {
+        pool.onDisconnectWithError(cause);
+    }
 
-	@Override
-	public String getConnectionName() {
-		return "Pool-" + pool.getName();
-	}
+    @Override
+    public String getConnectionName() {
+        return "Pool-" + pool.getName();
+    }
 
-	@Override
-	protected void onNotify(MiningNotifyNotification notify) {
-		pool.processNotify(notify);
-	}
+    @Override
+    protected void onNotify(MiningNotifyNotification notify) {
+        pool.processNotify(notify);
+    }
 
-	@Override
-	protected void onSetDifficulty(MiningSetDifficultyNotification setDifficulty) {
-		pool.processSetDifficulty(setDifficulty);
-	}
+    @Override
+    protected void onShowMessage(ClientShowMessageNotification showMessage) {
+        pool.processShowMessage(showMessage);
+    }
 
-	@Override
-	protected void onSetExtranonce(MiningSetExtranonceNotification setExtranonce) {
-		pool.processSetExtranonce(setExtranonce);
-	}
+    @Override
+    protected void onSetDifficulty(MiningSetDifficultyNotification setDifficulty) {
+        pool.processSetDifficulty(setDifficulty);
+    }
 
-	@Override
-	protected void onClientReconnect(ClientReconnectNotification clientReconnect) {
-		pool.processClientReconnect(clientReconnect);
-	}
+    @Override
+    protected void onSetExtranonce(MiningSetExtranonceNotification setExtranonce) {
+        pool.processSetExtranonce(setExtranonce);
+    }
 
-	@Override
-	protected void onAuthorizeRequest(MiningAuthorizeRequest request) {
-		LOGGER.warn("Pool {} received an Authorize request. This should not happen.", pool.getName());
-	}
+    @Override
+    protected void onClientReconnect(ClientReconnectNotification clientReconnect) {
+        pool.processClientReconnect(clientReconnect);
+    }
 
-	@Override
-	protected void onSubscribeRequest(MiningSubscribeRequest request) {
-		LOGGER.warn("Pool {} received a Subscribe request. This should not happen.", pool.getName());
-	}
+    @Override
+    protected void onAuthorizeRequest(MiningAuthorizeRequest request) {
+        LOGGER.warn("Pool {} received an Authorize request. This should not happen.", pool.getName());
+    }
 
-	@Override
-	protected void onSubmitRequest(MiningSubmitRequest request) {
-		LOGGER.warn("Pool {} received an Submit request. This should not happen.", pool.getName());
-	}
+    @Override
+    protected void onSubscribeRequest(MiningSubscribeRequest request) {
+        LOGGER.warn("Pool {} received a Subscribe request. This should not happen.", pool.getName());
+    }
 
-	@Override
-	protected void onExtranonceSubscribeRequest(MiningExtranonceSubscribeRequest request) {
-		LOGGER.warn("Pool {} received an Extranonce Subscribe request. This should not happen.", pool.getName());
-	}
+    @Override
+    protected void onSubmitRequest(MiningSubmitRequest request) {
+        LOGGER.warn("Pool {} received an Submit request. This should not happen.", pool.getName());
+    }
 
-	@Override
-	protected void onGetVersionRequest(ClientGetVersionRequest request) {
-		LOGGER.debug("Pool {} reply to GetVersion request.", pool.getName());
-		ClientGetVersionResponse response = new ClientGetVersionResponse();
-		response.setId(request.getId());
-		response.setVersion(Constants.VERSION);
-		sendResponse(response);
-	}
+    @Override
+    protected void onExtranonceSubscribeRequest(MiningExtranonceSubscribeRequest request) {
+        LOGGER.warn("Pool {} received an Extranonce Subscribe request. This should not happen.", pool.getName());
+    }
 
-	@Override
-	protected void onAuthorizeResponse(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
-		pool.processAuthorizeResponse(request, response);
-	}
+    @Override
+    protected void onGetVersionRequest(ClientGetVersionRequest request) {
+        LOGGER.debug("Pool {} reply to GetVersion request.", pool.getName());
+        ClientGetVersionResponse response = new ClientGetVersionResponse();
+        response.setId(request.getId());
+        response.setVersion(Constants.VERSION);
+        sendResponse(response);
+    }
 
-	@Override
-	protected void onSubscribeResponse(MiningSubscribeRequest request, MiningSubscribeResponse response) {
-		pool.processSubscribeResponse(request, response);
-	}
+    @Override
+    protected void onAuthorizeResponse(MiningAuthorizeRequest request, MiningAuthorizeResponse response) {
+        pool.processAuthorizeResponse(request, response);
+    }
 
-	@Override
-	protected void onExtranonceSubscribeResponse(MiningExtranonceSubscribeRequest request, MiningExtranonceSubscribeResponse response) {
-		pool.processSubscribeExtranonceResponse(request, response);
-	}
+    @Override
+    protected void onSubscribeResponse(MiningSubscribeRequest request, MiningSubscribeResponse response) {
+        pool.processSubscribeResponse(request, response);
+    }
 
-	@Override
-	protected void onSubmitResponse(MiningSubmitRequest request, MiningSubmitResponse response) {
-		pool.processSubmitResponse(request, response);
-	}
+    @Override
+    protected void onExtranonceSubscribeResponse(MiningExtranonceSubscribeRequest request, MiningExtranonceSubscribeResponse response) {
+        pool.processSubscribeExtranonceResponse(request, response);
+    }
 
-	@Override
-	protected void onGetVersionResponse(ClientGetVersionRequest request, ClientGetVersionResponse response) {
-		LOGGER.warn("Pool {} received a GetVersion response. This should not happen.", pool.getName());
-	}
+    @Override
+    protected void onSubmitResponse(MiningSubmitRequest request, MiningSubmitResponse response) {
+        pool.processSubmitResponse(request, response);
+    }
+
+    @Override
+    protected void onGetVersionResponse(ClientGetVersionRequest request, ClientGetVersionResponse response) {
+        LOGGER.warn("Pool {} received a GetVersion response. This should not happen.", pool.getName());
+    }
+
 }
