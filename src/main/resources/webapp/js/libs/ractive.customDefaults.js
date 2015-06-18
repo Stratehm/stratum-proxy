@@ -16,7 +16,7 @@ define(['ractivejsWithoutDefaults', 'i18next', 'moment', 'jquery'], function(Rac
 	// since Ractivejs reevaluates functions that depends on a reference that has
 	// changed.
 	var locale = this.get('locale');
-	return moment.duration(duration).humanize();
+	return duration != 0 ? moment.duration(duration).humanize() : 0;
     }
 
     helpers.formatDateTime = function(timestamp) {
