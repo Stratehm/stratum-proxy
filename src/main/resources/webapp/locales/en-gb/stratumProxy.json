@@ -291,11 +291,28 @@
 	"connectionsPage": {
 	   "autoRefresh": "Auto refresh in __count__ second.",
        "autoRefresh_plural": "Auto refresh in __count__ seconds.",
-       "autoRefresh_undefinite": "Auto refresh in -- second."
+       "autoRefresh_undefinite": "Auto refresh in -- second.",
+       "banIp": 
+       {
+            "confirmationPopup": 
+            {
+                "title": "Ban IP confirmation",
+                "message": "Do you really want to ban __ip__ ? The IP will be banned until the next proxy start."
+            }
+       },
+        "kickIp": 
+       {
+            "confirmationPopup": 
+            {
+                "title": "Kick IP confirmation",
+                "message": "Do you really want to kick __ip__ ? All the connections with this IP will be kicked."
+            }
+        }
 	},
 	
 	"connectionItem": {
 	   "remoteHostLabel": "Remote host",
+	   "remotePortLabel": "Remote port",
 	   "authorizedUsersLabel": "Authorized users",
 	   "acceptedHashrateLabel": "Accepted hashrate",
 	   "rejectedHashrateLabel": "Rejected hashrate",
@@ -304,6 +321,9 @@
 	   "extranonceNotificationSupportedLabel": "Is extranonce notification supported",
 	   "connectionTypeLabel": "Connection type",
 	   "workerVersionLabel": "Worker version",
+	   "kickConnectionButtonLabel": "Kick Connection",
+	   "kickIpButtonLabel": "Kick Connection",
+	   "banIpButtonLabel": "Ban IP",
 	   "workerVersionUnknown": "Unknown"
 	},
 	

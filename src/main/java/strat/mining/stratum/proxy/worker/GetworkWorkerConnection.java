@@ -157,7 +157,7 @@ public class GetworkWorkerConnection implements WorkerConnection {
 
     @Override
     public String getConnectionName() {
-        return "Getwork-" + getRemoteAddress().toString();
+        return "Getwork-" + getRemoteAddress().getHostAddress();
     }
 
     @Override

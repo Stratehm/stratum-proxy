@@ -289,21 +289,41 @@
 	},
     
     "connectionsPage": {
-       "autoRefresh": "Auto refresh in __count__ second.",
-       "autoRefresh_plural": "Auto refresh in __count__ seconds.",
-       "autoRefresh_undefinite": "Auto refresh in -- second."
+       "autoRefresh": "Rafraichissement dans __count__ seconde.",
+       "autoRefresh_plural": "Rafraichissement dans __count__ secondes.",
+       "autoRefresh_undefinite": "Rafraichissement dans -- secondes.",
+       "banIp": 
+       {
+            "confirmationPopup": 
+            {
+                "title": "Confirmer le bannissement de l'IP",
+                "message": "Etes-vous sûr de vouloir bannir l'IP __ip__ ? L'IP sera alors bannie jusqu'au prochain redémarrage du proxy."
+            }
+       },
+       "kickIp": 
+       {
+            "confirmationPopup": 
+            {
+                "title": "Confirmer la déconnexion de l'IP",
+                "message": "Etes-vous sûr de vouloir déconnecter l'IP __ip__ ? Toutes les connexions avec cette IP seront déconnectées."
+            }
+        }
     },
 	
 	"connectionItem": {
        "remoteHostLabel": "Adresse distante",
+       "remotePortLabel": "Port distant",
        "authorizedUsersLabel": "Utilisateurs autorisés",
-       "acceptedHashrateLabel": "Puissance de calcul accepté",
-       "rejectedHashrateLabel": "Puissance de calcul rejeté",
+       "acceptedHashrateLabel": "Puissance de calcul acceptée",
+       "rejectedHashrateLabel": "Puissance de calcul rejetée",
        "isActiveSinceLabel": "Actif depuis",
-       "workingOnPoolLabel": "Attribué au pool",
+       "workingOnPoolLabel": "Attribuée au pool",
        "extranonceNotificationSupportedLabel": "Support du changement d'extranonce",
        "connectionTypeLabel": "Type de connection",
        "workerVersionLabel": "Version du mineur",
+       "kickConnectionButtonLabel": "Déconnecter la Connexion",
+       "kickIpButtonLabel": "Déconnecter l'IP",
+       "banIpButtonLabel": "Bannir l'IP",
        "workerVersionUnknown": "Inconnue"
     },
 	

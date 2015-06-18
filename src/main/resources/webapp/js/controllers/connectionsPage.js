@@ -69,8 +69,122 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 		var item = new ConnectionItem(this.getContainer().find('.connectionsItemContainer')), controller = this;
 		item.setConnection(connection);
 		this.items.push(item);
+		
+		// Initialize all buttons handlers
+		item.getKickButton().click(function() {
+		    controller.kickConnection(connection);
+		});
+
+		item.getBanIpButton().click(function() {
+		    controller.banIp(connection);
+		});
+		
+		item.getKickIpButton().click(function() {
+		    controller.kickIp(connection);
+		});
 
 	    };
+	    
+	    ConnectionsPageController.prototype.kickConnection = function(connection) {
+		var controller = this;
+
+		$.ajax({
+		    url: 'proxy/connection/kick',
+		    dataType: "json",
+		    type: "POST",
+		    data: JSON.stringify({
+			address: connection.remoteHost,
+			port: connection.remotePort
+		    }),
+		    contentType: "application/json",
+		    success: function(data) {
+			if (data.status != 'Done') {
+			    window.alert('Failed to kick the connection. Message: ' + data.message);
+			} else {
+			    controller.refresh();
+			}
+		    },
+		    error: function(request, textStatus, errorThrown) {
+			var jsonObject = JSON.parse(request.responseText);
+			window.alert('Failed to kick the connection. Status: ' + textStatus + ', error: ' + errorThrown
+				+ ', message: ' + jsonObject.message);
+		    }
+		});
+	    }
+	    
+	    ConnectionsPageController.prototype.banIp = function(connection) {
+		var controller = this;
+
+		var banIpFunction = function() {
+		    $.ajax({
+			url: 'proxy/address/ban',
+			dataType: "json",
+			type: "POST",
+			data: JSON.stringify({
+			    address: connection.remoteHost
+			}),
+			contentType: "application/json",
+			success: function(data) {
+			    if (data.status != 'Done') {
+				window.alert('Failed to ban the IP. Message: ' + data.message);
+			    } else {
+				controller.refresh();
+			    }
+			},
+			error: function(request, textStatus, errorThrown) {
+			    var jsonObject = JSON.parse(request.responseText);
+			    window.alert('Failed to ban the IP. Status: ' + textStatus + ', error: ' + errorThrown
+				    + ', message: ' + jsonObject.message);
+			}
+		    });
+		};
+
+		var modal = new ConfirmationPopup({
+		    title: i18next.t('connectionsPage.banIp.confirmationPopup.title'),
+		    message: i18next.t('connectionsPage.banIp.confirmationPopup.message', {
+			ip: connection.remoteHost
+		    }),
+		    yesCallback: banIpFunction,
+		    displayCancelButton: false
+		});
+	    }
+	    
+	    ConnectionsPageController.prototype.kickIp = function(connection) {
+		var controller = this;
+
+		var kickIpFunction = function() {
+		    $.ajax({
+			url: 'proxy/address/kick',
+			dataType: "json",
+			type: "POST",
+			data: JSON.stringify({
+			    address: connection.remoteHost
+			}),
+			contentType: "application/json",
+			success: function(data) {
+			    if (data.status != 'Done') {
+				window.alert('Failed to kick the IP. Message: ' + data.message);
+			    } else {
+				controller.refresh();
+			    }
+			},
+			error: function(request, textStatus, errorThrown) {
+			    var jsonObject = JSON.parse(request.responseText);
+			    window.alert('Failed to kick the IP. Status: ' + textStatus + ', error: ' + errorThrown
+				    + ', message: ' + jsonObject.message);
+			}
+		    });
+		};
+
+		var modal = new ConfirmationPopup({
+		    title: i18next.t('connectionsPage.kickIp.confirmationPopup.title'),
+		    message: i18next.t('connectionsPage.kickIp.confirmationPopup.message', {
+			ip: connection.remoteHost
+		    }),
+		    yesCallback: kickIpFunction,
+		    displayCancelButton: false
+		});
+	    }
 
 	    ConnectionsPageController.prototype.refresh = function(onSuccess) {
 		var controller = this;
@@ -89,7 +203,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 			data.forEach(function(connection) {
 			    // Look for the connectionItem with the given name
 			    var connectionItem = controller.items.find(function(item) {
-				return item.connection.remoteHost == connection.remoteHost;
+				return item.connection.remoteHost == connection.remoteHost && item.connection.remotePort == connection.remotePort;
 			    });
 
 			    // If the connection item does not exist, create it.
@@ -107,7 +221,7 @@ define(['jquery', 'ractivejs', 'controllers/abstractPageController', 'rv!templat
 			    // Look for the connection of the connectionItem in
 			    // the received connections.
 			    var connection = data.find(function(connection) {
-				return connection.remoteHost == connectionItem.connection.remoteHost;
+				return connection.remoteHost == connectionItem.connection.remoteHost && connection.remotePort == connectionItem.connection.remotePort;
 			    });
 			    // If the connection is not in the received
 			    // connections, then delete it.

@@ -39,10 +39,27 @@ define(['jquery', 'ractivejs', 'rv!templates/connectionItem', 'i18n!locales', 'c
 	this.connectionItemJquery.remove();
     };
     
+    ConnectionItem.prototype.getKickButton = function() {
+	return this.connectionItemJquery.find(".kickConnection");
+    };
+
+    ConnectionItem.prototype.getBanIpButton = function() {
+	return this.connectionItemJquery.find(".banIp");
+    };
+    
+    ConnectionItem.prototype.getKickIpButton = function() {
+	return this.connectionItemJquery.find(".kickIp");
+    };
+    
     /**
      * Update the displayed items based on the authorization.
      */
     ConnectionItem.prototype.updateAccessibleItems = function() {
+	if(!authenticationManager.isAuthenticated) {
+	    this.connectionItemJquery.find('.kickConnection, .kickIp, .banIp').hide();
+	} else {
+	    this.connectionItemJquery.find('.kickConnection, .kickIp, .banIp').show();
+	}
     };
 
     return ConnectionItem;

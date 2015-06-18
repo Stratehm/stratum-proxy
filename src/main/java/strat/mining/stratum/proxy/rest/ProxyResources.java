@@ -826,7 +826,8 @@ public class ProxyResources {
 
     private WorkerConnectionDTO convertWorkerConnectionToDTO(WorkerConnection connection) {
         WorkerConnectionDTO result = new WorkerConnectionDTO();
-        result.setRemoteHost(connection.getRemoteAddress().toString());
+        result.setRemoteHost(connection.getRemoteAddress().getHostAddress());
+        result.setRemotePort(Integer.toString(connection.getRemotePort()));
         result.setAcceptedHashesPerSeconds(Double.valueOf(connection.getAcceptedHashrate()).longValue());
         result.setRejectedHashesPerSeconds(Double.valueOf(connection.getRejectedHashrate()).longValue());
         result.setPoolName(connection.getPool().getName());

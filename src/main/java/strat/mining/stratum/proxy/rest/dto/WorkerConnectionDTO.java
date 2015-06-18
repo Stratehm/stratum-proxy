@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 public class WorkerConnectionDTO {
 
     private String remoteHost;
+    private String remotePort;
     private List<String> authorizedUsers;
     private Long acceptedHashesPerSeconds;
     private Long rejectedHashesPerSeconds;
@@ -44,6 +45,14 @@ public class WorkerConnectionDTO {
 
     public void setRemoteHost(String remoteHost) {
         this.remoteHost = remoteHost;
+    }
+
+    public String getRemotePort() {
+        return remotePort;
+    }
+
+    public void setRemotePort(String remotePort) {
+        this.remotePort = remotePort;
     }
 
     public List<String> getAuthorizedUsers() {

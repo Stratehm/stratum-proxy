@@ -9,8 +9,8 @@
 				data-i18n="connectionItem.remoteHostLabel">Remote host</label>
 			<div class="col-sm-3 tooltipOnOverflow">{{remoteHost}}</div>
 			<label class="col-sm-3 control-label"
-				data-i18n="connectionItem.authorizedUsersLabel">Authorized users</label>
-			<div class="col-sm-3 tooltipOnOverflow">{{authorizedUsers}}</div>
+				data-i18n="connectionItem.remotePortLabel">Remote port</label>
+			<div class="col-sm-3 tooltipOnOverflow">{{remotePort}}</div>
 		</div>
 		<div class="row">
 			<label class="col-sm-3 control-label"
@@ -44,24 +44,22 @@
             <div class="col-sm-3 tooltipOnOverflow">{{#workerVersion}} {{ workerVersion }} {{/workerVersion}}
                 {{^workerVersion}} <span data-i18n="connectionItem.workerVersionUnknown">Unknown</span>
                 {{/workerVersion}}</div>
-<!--             <label class="col-sm-3 control-label" -->
-<!--                 data-i18n="connectionItem.connectionTypeLabel">Connection type</label> -->
-<!--             <div class="col-sm-3 tooltipOnOverflow">{{connectionType}}</div> -->
+            <label class="col-sm-3 control-label"
+                data-i18n="connectionItem.authorizedUsersLabel">Authorized users</label>
+            <div class="col-sm-3 tooltipOnOverflow">{{authorizedUsers}}</div>
         </div>
 
-<!-- 		<div class="row top20 bottom20"> -->
-<!-- 			<div class="text-center"> -->
-<!-- 				<div class="btn-group"> -->
-<!-- 					<a class="btn btn-warning kickUser" -->
-<!-- 						data-i18n="connectionItem.kickButtonLabel" -->
-<!-- 						{{^user.isActive}} -->
-<!-- 						disabled="disabled"{{/user.isActive}}>Kick</a><a -->
-<!-- 						class="btn btn-danger banUser" -->
-<!-- 						data-i18n="connectionItem.banButtonLabel" -->
-<!-- 						{{^user.isActive}} -->
-<!-- 						disabled="disabled"{{/user.isActive}}>Ban</a> -->
-<!-- 				</div> -->
-<!-- 			</div> -->
-<!-- 		</div> -->
+		<div class="row top20 bottom20">
+			<div class="text-center">
+				<div class="btn-group">
+					<a class="btn btn-warning kickConnection"
+						data-i18n="connectionItem.kickConnectionButtonLabel">Kick Connection</a><a
+                        class="btn btn-danger kickIp"
+                        data-i18n="connectionItem.kickIpButtonLabel">Kick IP</a><a
+						class="btn btn-danger banIp"
+						data-i18n="connectionItem.banIpButtonLabel">Ban IP</a>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>

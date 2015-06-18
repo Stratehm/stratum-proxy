@@ -24,6 +24,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.HashMap;
@@ -495,7 +496,15 @@ public abstract class StratumConnection implements Connection {
      * @return
      */
     public String getConnectionName() {
-        return socket != null ? socket.getRemoteSocketAddress().toString() : "Undefined";
+        String name = "Undefined";
+        if (socket != null) {
+            if (socket.getRemoteSocketAddress() instanceof InetSocketAddress) {
+                name = ((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress().getHostAddress();
+            } else {
+                name = socket.getRemoteSocketAddress().toString();
+            }
+        }
+        return name;
     }
 
     /**
