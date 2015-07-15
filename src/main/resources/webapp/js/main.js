@@ -36,6 +36,9 @@ require.config({
 	// return the Ractive module with the custom default options (to use in
 	// modules)
 	'ractivejs': 'libs/ractive.customDefaults',
+	
+	// Used for number formatting with SI prefixes
+	'd3': 'libs/d3',
 
 	'ui': '../ui',
 	'templates': '../ui/templates',
