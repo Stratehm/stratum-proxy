@@ -40,10 +40,12 @@ import strat.mining.stratum.proxy.json.ClientGetVersionResponse;
 import strat.mining.stratum.proxy.json.ClientReconnectNotification;
 import strat.mining.stratum.proxy.json.ClientShowMessageNotification;
 import strat.mining.stratum.proxy.json.JsonRpcError;
+import strat.mining.stratum.proxy.json.JsonRpcResponse;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
 import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeRequest;
 import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeResponse;
+import strat.mining.stratum.proxy.json.MiningGetTransactionsRequest;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
 import strat.mining.stratum.proxy.json.MiningSetDifficultyNotification;
 import strat.mining.stratum.proxy.json.MiningSetExtranonceNotification;
@@ -61,6 +63,8 @@ import strat.mining.stratum.proxy.utils.mining.DifficultyUtils;
 import strat.mining.stratum.proxy.utils.mining.SHA256HashingUtils;
 import strat.mining.stratum.proxy.utils.mining.ScryptHashingUtils;
 import strat.mining.stratum.proxy.utils.mining.WorkerConnectionHashrateDelegator;
+
+import com.google.common.collect.Lists;
 
 public class StratumWorkerConnection extends StratumConnection implements WorkerConnection {
 
@@ -272,6 +276,18 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
     @Override
     protected void onGetVersionRequest(ClientGetVersionRequest request) {
         LOGGER.warn("Worker {} send a GetVersion request. This should not happen.", getConnectionName());
+    }
+
+    @Override
+    protected void onGetTransactionsRequest(MiningGetTransactionsRequest request) {
+        JsonRpcResponse response = new JsonRpcResponse();
+        request.setId(request.getId());
+        response.setResult(Lists.newArrayList());
+        JsonRpcError errorObject = new JsonRpcError();
+        errorObject.setCode(20);
+        errorObject.setMessage("mining.get_transactions is not supported by proxy.");
+        response.setErrorRpc(errorObject);
+        sendResponse(response);
     }
 
     /**

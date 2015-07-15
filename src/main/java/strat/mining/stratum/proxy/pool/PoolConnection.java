@@ -32,6 +32,7 @@ import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
 import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeRequest;
 import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeResponse;
+import strat.mining.stratum.proxy.json.MiningGetTransactionsRequest;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
 import strat.mining.stratum.proxy.json.MiningSetDifficultyNotification;
 import strat.mining.stratum.proxy.json.MiningSetExtranonceNotification;
@@ -119,6 +120,11 @@ public class PoolConnection extends StratumConnection {
         response.setId(request.getId());
         response.setVersion(Constants.VERSION);
         sendResponse(response);
+    }
+
+    @Override
+    protected void onGetTransactionsRequest(MiningGetTransactionsRequest request) {
+        LOGGER.warn("Pool {} received a GetTransactions request. This should not happen.", pool.getName());
     }
 
     @Override

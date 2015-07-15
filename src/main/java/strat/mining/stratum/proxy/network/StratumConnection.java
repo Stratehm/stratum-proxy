@@ -44,6 +44,7 @@ import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
 import strat.mining.stratum.proxy.json.MiningAuthorizeResponse;
 import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeRequest;
 import strat.mining.stratum.proxy.json.MiningExtranonceSubscribeResponse;
+import strat.mining.stratum.proxy.json.MiningGetTransactionsRequest;
 import strat.mining.stratum.proxy.json.MiningNotifyNotification;
 import strat.mining.stratum.proxy.json.MiningSetDifficultyNotification;
 import strat.mining.stratum.proxy.json.MiningSetExtranonceNotification;
@@ -364,6 +365,11 @@ public abstract class StratumConnection implements Connection {
             onGetVersionRequest(getVersionRequest);
             break;
 
+        case MiningGetTransactionsRequest.METHOD_NAME:
+            MiningGetTransactionsRequest getTransactionsRequest = new MiningGetTransactionsRequest(request);
+            onGetTransactionsRequest(getTransactionsRequest);
+            break;
+
         // Following requests are notifications, but some pools does not respect
         // the stratum protocol and send notifications as requests.
         case ClientReconnectNotification.METHOD_NAME:
@@ -452,6 +458,11 @@ public abstract class StratumConnection implements Connection {
      * Called when a client getVersion request is received
      */
     protected abstract void onGetVersionRequest(ClientGetVersionRequest request);
+
+    /**
+     * Called when a client getTransactions request is received
+     */
+    protected abstract void onGetTransactionsRequest(MiningGetTransactionsRequest request);
 
     /**
      * Called when a extranonce subscribe response is received
