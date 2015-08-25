@@ -62,7 +62,7 @@ public class MiningGetTransactionsRequest extends JsonRpcRequest {
     public void setParams(List<Object> params) {
         super.setParams(params);
         if (params != null) {
-            jobId = (String) params.get(1);
+            jobId = (String) params.get(0);
         }
     }
 
