@@ -52,8 +52,8 @@ java -jar stratum-proxy.jar --help
 ##Raspberry Pi Installation
 Once your OS is setup on the Raspberry Pi, perform the following (replace the version number with the last available: https://github.com/Stratehm/stratum-proxy/releases):
 
-1. Install JDK onto the Raspberry Pi
-<br/>`sudo apt-get update && sudo apt-get install oracle-java7-jdk`
+1. Install JDK and Screen onto the Raspberry Pi
+<br/>`sudo apt-get update && sudo apt-get install oracle-java7-jdk screen`
 
 2. Download stratum-proxy to the /opt folder
 <br/>`cd /opt`
@@ -63,13 +63,15 @@ Once your OS is setup on the Raspberry Pi, perform the following (replace the ve
 <br/>`sudo unzip stratum-proxy-x.x.x.zip`
 <br/>`sudo rm -rf stratum-proxy-x.x.x.zip`
 <br/>`sudo mv /opt/stratum-proxy-x.x.x /opt/stratum-proxy`
-
-4. Test the stratum-proxy by running it
 <br/>`cd /opt/stratum-proxy`
+
+4. Configure the proxy by creating/editing the file `stratum-proxy.conf`
+
+5. Test the stratum-proxy by running it
 <br/>`sudo java -jar stratum-proxy.jar`
 
-5. Set it to automatically start-up by adding the following line to the file `/etc/rc.local`
-<br/>`java -jar /opt/stratum-proxy/stratum-proxy.jar proxyOptions`
+6. Set it to automatically start-up, in a seperate screen, by adding the following line to the file `/etc/rc.local`
+<br/>`sudo /usr/bin/screen -dmS proxy /usr/bin/java -jar /opt/stratum-proxy/stratum-proxy.jar -f /opt/stratum-proxy/stratum-proxy.conf`
 
 ##Configuration File
 
