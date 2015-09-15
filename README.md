@@ -49,8 +49,8 @@ java -jar stratum-proxy.jar proxyOptions
 java -jar stratum-proxy.jar --help
 ```
 
-##Raspberry Pi Installation
-Once your OS is setup on the Raspberry Pi, perform the following (replace the version number with the last available: https://github.com/Stratehm/stratum-proxy/releases):
+##Raspberry Pi Installation (Raspbian)
+Once your OS is setup on the Raspberry Pi (Raspbian), perform the following (replace the version number with the last available: https://github.com/Stratehm/stratum-proxy/releases):
 
 1. Install JDK and Screen onto the Raspberry Pi
 <br/>`sudo apt-get update && sudo apt-get install oracle-java7-jdk screen`
