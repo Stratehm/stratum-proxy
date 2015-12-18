@@ -50,6 +50,7 @@ public class Configuration {
     private Integer hashrateDatabaseHistoryDepth;
 
     private Boolean isScrypt;
+    private Integer hashesPerShareDiff1Divider;
     private Boolean noMidstate;
     private Boolean validateGetworkShares;
 
@@ -212,6 +213,21 @@ public class Configuration {
 
     public void setIsScrypt(Boolean isScrypt) {
         this.isScrypt = isScrypt;
+    }
+
+    /**
+     * @return the hashesPerShareDiff1Divider
+     */
+    public Integer getHashesPerShareDiff1Divider() {
+        return hashesPerShareDiff1Divider;
+    }
+
+    /**
+     * @param hashesPerShareDiff1Divider
+     *            the hashesPerShareDiff1Divider to set
+     */
+    public void setHashesPerShareDiff1Divider(Integer shareParSecondsDivider) {
+        this.hashesPerShareDiff1Divider = shareParSecondsDivider;
     }
 
     public List<Pool> getPools() {

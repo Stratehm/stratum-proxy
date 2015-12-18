@@ -130,6 +130,9 @@ public class CommandLineOptions {
     @Option(name = "--scrypt", usage = "Used to adjust target when mining scrypt coins. Used to estimate hashrate and for getwork workers.", handler = BooleanOptionHandler.class)
     private boolean isScrypt;
 
+    @Option(name = "--hashes-per-share-diff1-divider", usage = "The divider of average hashes needed to find a valid share at difficulty 1 used for the hashrate estimation. (Default is 1. If the scrypt option is set, the divider is forced to 65536.)")
+    private Integer hashesPerShareDiff1Divider;
+
     @Option(name = "--database-directory", usage = "Set the directory where the database is saved. (Default to the INSTALLATION_DIR/database)")
     private File databaseDirectory;
 
@@ -261,6 +264,10 @@ public class CommandLineOptions {
 
     public Boolean isScrypt() {
         return isScrypt;
+    }
+
+    public Integer getHashesPerShareDiff1Divider() {
+        return hashesPerShareDiff1Divider;
     }
 
     public File getConfigurationFile() {

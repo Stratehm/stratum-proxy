@@ -54,9 +54,6 @@ public class Constants {
 
     public static final String VERSION = "stratehm-stratum-proxy-" + ConfigurationManager.getVersion();
 
-    public static final double AVERAGE_NUMBER_OF_HASHES_PER_SHARE_AT_DIFFICULTY_ONE = Math.pow(2, 32);
-    public static final double AVERAGE_NUMBER_OF_HASHES_PER_SHARE_AT_DIFFICULTY_ONE_SCRYPT = Math.pow(2, 16);
-
     public static final String DEFAULT_WORKER_NAME_SEPARTOR = ".";
 
     public static final String DEFAULT_GETWORK_LONG_POLLING_URL = "/getwork/longpolling";

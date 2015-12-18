@@ -91,6 +91,7 @@ public class ConfigurationManager {
     private Integer userHashrateSamplingPeriod = Constants.DEFAULT_USER_HASHRATE_SAMPLING_PERIOD;
     private Integer connectionHashrateSamplingPeriod = Constants.DEFAULT_WORKER_CONNECTION_HASHRATE_SAMPLING_PERIOD;
     private boolean isScrypt = false;
+    private Integer hashesPerShareDiff1Divider = 1;
 
     private File databaseDirectory;
     private Integer hashrateDatabaseSamplingPeriod = Constants.DEFAULT_HASHRATE_DATABASE_SAMPLING_PERIOD;
@@ -217,6 +218,8 @@ public class ConfigurationManager {
         connectionHashrateSamplingPeriod = configuration.getConnectionHashrateSamplingPeriod() != null ? configuration
                 .getConnectionHashrateSamplingPeriod() : connectionHashrateSamplingPeriod;
         isScrypt = configuration.getIsScrypt() != null ? configuration.getIsScrypt() : isScrypt;
+        hashesPerShareDiff1Divider = configuration.getHashesPerShareDiff1Divider() != null ? configuration.getHashesPerShareDiff1Divider()
+                : hashesPerShareDiff1Divider;
 
         databaseDirectory = configuration.getDatabaseDirectory() != null && !configuration.getDatabaseDirectory().trim().isEmpty() ? new File(
                 configuration.getDatabaseDirectory()) : databaseDirectory;
@@ -246,7 +249,8 @@ public class ConfigurationManager {
 
         apiUser = configuration.getApiUser() != null ? configuration.getApiUser() : apiUser;
         if (apiUser != null) {
-            apiReadOnlyAccessEnabled = configuration.getApiReadOnlyAccessEnabled() != null ? configuration.getApiReadOnlyAccessEnabled() : apiReadOnlyAccessEnabled;
+            apiReadOnlyAccessEnabled = configuration.getApiReadOnlyAccessEnabled() != null ? configuration.getApiReadOnlyAccessEnabled()
+                    : apiReadOnlyAccessEnabled;
             // If the apiUser is empty, set it to null.
             if (apiUser.trim().isEmpty()) {
                 apiUser = null;
@@ -400,6 +404,7 @@ public class ConfigurationManager {
         connectionHashrateSamplingPeriod = cliParser.getConnectionHashrateSamplingPeriod() != null ? cliParser.getConnectionHashrateSamplingPeriod()
                 : connectionHashrateSamplingPeriod;
         isScrypt = cliParser.isScrypt() != null ? cliParser.isScrypt() : isScrypt;
+        hashesPerShareDiff1Divider = cliParser.getHashesPerShareDiff1Divider() != null ? cliParser.getHashesPerShareDiff1Divider() : hashesPerShareDiff1Divider;
 
         databaseDirectory = cliParser.getDatabaseDirectory() != null ? cliParser.getDatabaseDirectory() : databaseDirectory;
         hashrateDatabaseSamplingPeriod = cliParser.getHashrateDatabaseSamplingPeriod() != null ? cliParser.getHashrateDatabaseSamplingPeriod()
@@ -624,6 +629,10 @@ public class ConfigurationManager {
 
     public boolean isScrypt() {
         return isScrypt;
+    }
+
+    public Integer getHashesPerShareDiff1Divider() {
+        return isScrypt ? 65536 : hashesPerShareDiff1Divider;
     }
 
     public File getConfigurationFile() {
