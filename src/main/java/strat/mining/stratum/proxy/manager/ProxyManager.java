@@ -36,6 +36,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -764,12 +766,12 @@ public class ProxyManager {
         new URI("stratum+tcp://" + poolHost.trim());
 
         // The Username is mandatory only if appendWorkerNames is false.
-        if (!appendWorkerNames && (username == null || username.trim().isEmpty())) {
+        if (!BooleanUtils.isTrue(appendWorkerNames) && StringUtils.isBlank(username)) {
             throw new BadParameterException("Username is empty.");
         }
 
         // The Password is mandatory only if useWorkerPassword is false.
-        if (!useWorkerPassword && (password == null || password.trim().isEmpty())) {
+        if (!BooleanUtils.isTrue(useWorkerPassword) && StringUtils.isBlank(password)) {
             throw new BadParameterException("Password is empty.");
         }
     }
