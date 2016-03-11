@@ -25,12 +25,12 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import strat.mining.stratum.proxy.configuration.ConfigurationManager;
-import strat.mining.stratum.proxy.database.model.HashrateModel;
-
 import com.db4o.Db4oEmbedded;
 import com.db4o.ObjectContainer;
 import com.db4o.query.Predicate;
+
+import strat.mining.stratum.proxy.configuration.ConfigurationManager;
+import strat.mining.stratum.proxy.database.model.HashrateModel;
 
 public class DatabaseManager {
 
@@ -108,9 +108,29 @@ public class DatabaseManager {
 	 * @return
 	 */
 	public List<HashrateModel> getPoolHashrate(final String poolHost) {
+		return getPoolHashrate(poolHost, null, null);
+	}
+
+	/**
+	 * Return hashrate filtered on optional startTimestamp and endTimestamp
+	 * records for the given poolHost. Return null if the poolHost does not
+	 * exist. Return an empty list if no records are found.
+	 * 
+	 * @param poolHost
+	 * @param startTimestamp
+	 *            may be null, else a timestamp in seconds from Epoch
+	 * @param endTimestamp
+	 *            may be null, else a timestamp in seconds from Epoch
+	 * @return
+	 */
+	public List<HashrateModel> getPoolHashrate(final String poolHost, Long startTimestamp, Long endTimestamp) {
+		final Long startTimestampMs = startTimestamp != null ? startTimestamp * 1000L : null;
+		final Long endTimestampMs = endTimestamp != null ? endTimestamp * 1000L : null;
 		return poolDatabase.query(new Predicate<HashrateModel>() {
 			public boolean match(HashrateModel hashrateModel) {
-				return hashrateModel.getName().equals(poolHost);
+				boolean startFiltered = startTimestampMs != null && hashrateModel.getCaptureTime() < startTimestampMs;
+				boolean endFiltered = endTimestampMs != null && hashrateModel.getCaptureTime() > endTimestampMs;
+				return hashrateModel.getName().equals(poolHost) && !startFiltered && !endFiltered;
 			}
 		});
 	}
@@ -123,11 +143,7 @@ public class DatabaseManager {
 	 * @return
 	 */
 	public List<HashrateModel> getUserHashrate(final String username) {
-		return userDatabase.query(new Predicate<HashrateModel>() {
-			public boolean match(HashrateModel hashrateModel) {
-				return hashrateModel.getName().equals(username);
-			}
-		});
+		return getUserHashrate(username, null, null);
 	}
 
 	/**
@@ -204,8 +220,7 @@ public class DatabaseManager {
 			if (isRemoved) {
 				LOGGER.info("Old Neodatis pools database file {} removed.", poolDatabaseFile.getAbsolutePath());
 			} else {
-				LOGGER.warn("Failed to remove the old Neodatis pools database file {}. You can remove it manually.",
-						poolDatabaseFile.getAbsolutePath());
+				LOGGER.warn("Failed to remove the old Neodatis pools database file {}. You can remove it manually.", poolDatabaseFile.getAbsolutePath());
 			}
 		}
 
@@ -214,8 +229,7 @@ public class DatabaseManager {
 			if (isRemoved) {
 				LOGGER.info("Old Neodatis users database file {} removed.", userDatabaseFile.getAbsolutePath());
 			} else {
-				LOGGER.warn("Failed to remove the old Neodatis users database file {}. You can remove it manually.",
-						userDatabaseFile.getAbsolutePath());
+				LOGGER.warn("Failed to remove the old Neodatis users database file {}. You can remove it manually.", userDatabaseFile.getAbsolutePath());
 			}
 		}
 	}
@@ -250,6 +264,30 @@ public class DatabaseManager {
 		}
 
 		userDatabase.commit();
+	}
+
+	/**
+	 * Return hashrate filtered on optional startTimestamp and endTimestamp
+	 * records for the given username. Return null if the username does not
+	 * exist. Return an empty list if no records are found.
+	 * 
+	 * @param username
+	 * @param startTimestamp
+	 *            may be null, else a timestamp in seconds from Epoch
+	 * @param endTimestamp
+	 *            may be null, else a timestamp in seconds from Epoch
+	 * @return
+	 */
+	public List<HashrateModel> getUserHashrate(final String username, Long startTimestamp, Long endTimestamp) {
+		final Long startTimestampMs = startTimestamp != null ? startTimestamp * 1000L : null;
+		final Long endTimestampMs = endTimestamp != null ? endTimestamp * 1000L : null;
+		return userDatabase.query(new Predicate<HashrateModel>() {
+			public boolean match(HashrateModel hashrateModel) {
+				boolean startFiltered = startTimestampMs != null && hashrateModel.getCaptureTime() < startTimestampMs;
+				boolean endFiltered = endTimestampMs != null && hashrateModel.getCaptureTime() > endTimestampMs;
+				return hashrateModel.getName().equals(username) && !startFiltered && !endFiltered;
+			}
+		});
 	}
 
 }

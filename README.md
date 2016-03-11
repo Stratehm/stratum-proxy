@@ -108,80 +108,10 @@ Api Version: 1.0
 #### Overview
 API to manage the proxy
 
-#### **POST** `/hashrate/pool`
-##### getPoolHashrateHistory 
+#### **POST** `/address/ban`
+##### banIp 
 
-Return the hashrate history of a pool.
-
-
-###### Parameters
-- body
-
-<table border="1">
-    <tr>
-        <th>Parameter</th>
-        <th>Required</th>
-        <th>Description</th>
-        <th>Data Type</th>
-    </tr>
-    <tr>
-        <th>body</th>
-        <td>false</td>
-        <td></td>
-        <td><a href="#PoolNameDTO">PoolNameDTO</a></td>
-    </tr>
-</table>
-
-###### Response
-[List[HashrateModel]](#HashrateModel)
-
-
-###### Errors
-| Status Code | Reason      | Response Model |
-|-------------|-------------|----------------|
-| 500    | Error during pool hashrate history response build. | - |
-| 404    | Pool not found. | - |
-
-
-- - -
-#### **POST** `/hashrate/user`
-##### getUserHashrateHistory 
-
-Return the hashrate history of a user.
-
-
-###### Parameters
-- body
-
-<table border="1">
-    <tr>
-        <th>Parameter</th>
-        <th>Required</th>
-        <th>Description</th>
-        <th>Data Type</th>
-    </tr>
-    <tr>
-        <th>body</th>
-        <td>false</td>
-        <td></td>
-        <td><a href="#UserNameDTO">UserNameDTO</a></td>
-    </tr>
-</table>
-
-###### Response
-[List[HashrateModel]](#HashrateModel)
-
-
-###### Errors
-| Status Code | Reason      | Response Model |
-|-------------|-------------|----------------|
-
-
-- - -
-#### **POST** `/address/ban/list`
-##### listBannedAddress 
-
-List all banned addresses.
+Ban the given ip address.
 
 
 ###### Parameters
@@ -199,76 +129,6 @@ List all banned addresses.
         <td>false</td>
         <td></td>
         <td><a href="#AddressDTO">AddressDTO</a></td>
-    </tr>
-</table>
-
-###### Response
-[List[string]](#)
-
-
-###### Errors
-| Status Code | Reason      | Response Model |
-|-------------|-------------|----------------|
-
-
-- - -
-#### **GET** `/connection/list`
-##### getConnectionsList 
-
-Return the list of all worker connections.
-
-
-###### Parameters
-
-###### Response
-[List[WorkerConnectionDTO]](#WorkerConnectionDTO)
-
-
-###### Errors
-| Status Code | Reason      | Response Model |
-|-------------|-------------|----------------|
-
-
-- - -
-#### **GET** `/user/list`
-##### getUsersList 
-
-Get the list of users that has been connected at least once since the proxy is started.
-
-
-###### Parameters
-
-###### Response
-[List[UserDetailsDTO]](#UserDetailsDTO)
-
-
-###### Errors
-| Status Code | Reason      | Response Model |
-|-------------|-------------|----------------|
-
-
-- - -
-#### **POST** `/connection/kick`
-##### kickConnection 
-
-Kill the connection with the given address and port.
-
-
-###### Parameters
-- body
-
-<table border="1">
-    <tr>
-        <th>Parameter</th>
-        <th>Required</th>
-        <th>Description</th>
-        <th>Data Type</th>
-    </tr>
-    <tr>
-        <th>body</th>
-        <td>false</td>
-        <td></td>
-        <td><a href="#ConnectionIdentifierDTO">ConnectionIdentifierDTO</a></td>
     </tr>
 </table>
 
@@ -286,40 +146,6 @@ Kill the connection with the given address and port.
 ##### kickAddress 
 
 Kick all connections with the given address.
-
-
-###### Parameters
-- body
-
-<table border="1">
-    <tr>
-        <th>Parameter</th>
-        <th>Required</th>
-        <th>Description</th>
-        <th>Data Type</th>
-    </tr>
-    <tr>
-        <th>body</th>
-        <td>false</td>
-        <td></td>
-        <td><a href="#AddressDTO">AddressDTO</a></td>
-    </tr>
-</table>
-
-###### Response
-[StatusDTO](#StatusDTO)
-
-
-###### Errors
-| Status Code | Reason      | Response Model |
-|-------------|-------------|----------------|
-
-
-- - -
-#### **POST** `/address/ban`
-##### banIp 
-
-Ban the given ip address.
 
 
 ###### Parameters
@@ -389,6 +215,40 @@ Unban the given ip address.
         <td>false</td>
         <td></td>
         <td><a href="#AddressDTO">AddressDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[StatusDTO](#StatusDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/connection/kick`
+##### kickConnection 
+
+Kill the connection with the given address and port.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#ConnectionIdentifierDTO">ConnectionIdentifierDTO</a></td>
     </tr>
 </table>
 
@@ -862,6 +722,190 @@ Kick the given username. Kill all connections where the user has been seen (WARN
 
 
 - - -
+#### **GET** `/user/list`
+##### getUsersList 
+
+Get the list of users that has been connected at least once since the proxy is started.
+
+
+###### Parameters
+
+###### Response
+[List[UserDetailsDTO]](#UserDetailsDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/hashrate/pool`
+##### getPoolHashrateHistory 
+
+Return the hashrate history of a pool.
+
+
+###### Parameters
+- query
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>start</th>
+        <td>false</td>
+        <td>Allow to filter returned values on the given start timestamp (UTC from Epoch in seconds)</td>
+        <td>long</td>
+    </tr>
+    <tr>
+        <th>end</th>
+        <td>false</td>
+        <td>Allow to filter returned values on the given end timestamp (UTC from Epoch in seconds)</td>
+        <td>long</td>
+    </tr>
+</table>
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#PoolNameDTO">PoolNameDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[List[HashrateModel]](#HashrateModel)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+| 500    | Error during pool hashrate history response build. | - |
+| 404    | Pool not found. | - |
+
+
+- - -
+#### **POST** `/hashrate/user`
+##### getUserHashrateHistory 
+
+Return the hashrate history of a user.
+
+
+###### Parameters
+- query
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>start</th>
+        <td>false</td>
+        <td>Allow to filter returned values on the given start timestamp (UTC from Epoch in seconds)</td>
+        <td>long</td>
+    </tr>
+    <tr>
+        <th>end</th>
+        <td>false</td>
+        <td>Allow to filter returned values on the given end timestamp (UTC from Epoch in seconds)</td>
+        <td>long</td>
+    </tr>
+</table>
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#UserNameDTO">UserNameDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[List[HashrateModel]](#HashrateModel)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **POST** `/address/ban/list`
+##### listBannedAddress 
+
+List all banned addresses.
+
+
+###### Parameters
+- body
+
+<table border="1">
+    <tr>
+        <th>Parameter</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Data Type</th>
+    </tr>
+    <tr>
+        <th>body</th>
+        <td>false</td>
+        <td></td>
+        <td><a href="#AddressDTO">AddressDTO</a></td>
+    </tr>
+</table>
+
+###### Response
+[List[string]](#)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
+#### **GET** `/connection/list`
+##### getConnectionsList 
+
+Return the list of all worker connections.
+
+
+###### Parameters
+
+###### Response
+[List[WorkerConnectionDTO]](#WorkerConnectionDTO)
+
+
+###### Errors
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+
+
+- - -
 
 ## Data Types
 
@@ -1091,6 +1135,11 @@ Kick the given username. Kill all connections where the user has been seen (WARN
     <tr>
         <td>numberOfWorkerConnections</td>
         <td>int</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>lastPoolMessage</td>
+        <td>string</td>
         <td>-</td>
     </tr>
     <tr>
@@ -1529,12 +1578,22 @@ Kick the given username. Kill all connections where the user has been seen (WARN
         <td>-</td>
     </tr>
     <tr>
+        <td>remotePort</td>
+        <td>string</td>
+        <td>-</td>
+    </tr>
+    <tr>
         <td>acceptedHashesPerSeconds</td>
         <td>long</td>
         <td>-</td>
     </tr>
     <tr>
         <td>connectionType</td>
+        <td>string</td>
+        <td>-</td>
+    </tr>
+    <tr>
+        <td>workerVersion</td>
         <td>string</td>
         <td>-</td>
     </tr>
