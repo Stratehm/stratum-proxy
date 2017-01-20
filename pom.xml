@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>strat.mining.stratum</groupId>
 	<artifactId>stratum-proxy</artifactId>
-	<version>0.9.0-SNAPSHOT</version>
+	<version>0.8.1</version>
 	<name>stratum-proxy</name>
 	<url>https://github.com/Stratehm/stratum-proxy</url>
 
