@@ -24,6 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.constant.Constants;
+import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
+import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
+import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.ClientGetVersionRequest;
 import strat.mining.stratum.proxy.json.ClientGetVersionResponse;
 import strat.mining.stratum.proxy.json.ClientReconnectNotification;
@@ -69,7 +72,7 @@ public class PoolConnection extends StratumConnection {
     }
 
     @Override
-    protected void onNotify(MiningNotifyNotification notify) {
+    protected void onNotify(MiningNotifyNotification notify) throws NoPoolAvailableException, ChangeExtranonceNotSupportedException, TooManyWorkersException {
         pool.processNotify(notify);
     }
 

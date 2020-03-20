@@ -46,9 +46,7 @@ import org.slf4j.LoggerFactory;
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
-import strat.mining.stratum.proxy.exception.AuthorizationException;
-import strat.mining.stratum.proxy.exception.PoolStartException;
-import strat.mining.stratum.proxy.exception.TooManyWorkersException;
+import strat.mining.stratum.proxy.exception.*;
 import strat.mining.stratum.proxy.json.ClientReconnectNotification;
 import strat.mining.stratum.proxy.json.ClientShowMessageNotification;
 import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
@@ -369,7 +367,7 @@ public class Pool {
         return difficulty;
     }
 
-    public void processNotify(MiningNotifyNotification notify) {
+    public void processNotify(MiningNotifyNotification notify) throws NoPoolAvailableException, ChangeExtranonceNotSupportedException, TooManyWorkersException {
         resetNotifyTimeoutTimer();
         currentJob = notify;
         manager.onPoolNotify(this, notify);

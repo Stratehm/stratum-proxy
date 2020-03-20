@@ -33,6 +33,9 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
+import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
+import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.ClientGetVersionRequest;
 import strat.mining.stratum.proxy.json.ClientGetVersionResponse;
 import strat.mining.stratum.proxy.json.ClientReconnectNotification;
@@ -262,7 +265,7 @@ public abstract class StratumConnection implements Connection {
     /**
      * Called when a notification is received from the remote host.
      */
-    protected void onNotificationReceived(JsonRpcNotification notification) {
+    protected void onNotificationReceived(JsonRpcNotification notification) throws NoPoolAvailableException, ChangeExtranonceNotSupportedException, TooManyWorkersException {
         switch (notification.getMethod()) {
         case MiningNotifyNotification.METHOD_NAME:
             MiningNotifyNotification notify = new MiningNotifyNotification(notification);
@@ -338,7 +341,7 @@ public abstract class StratumConnection implements Connection {
     /**
      * Called when a request is received from the remote host
      */
-    protected void onRequestReceived(JsonRpcRequest request) {
+    protected void onRequestReceived(JsonRpcRequest request) throws NoPoolAvailableException, ChangeExtranonceNotSupportedException, TooManyWorkersException {
         switch (request.getMethod()) {
         case MiningAuthorizeRequest.METHOD_NAME:
             MiningAuthorizeRequest auhtorizeRequest = new MiningAuthorizeRequest(request);
@@ -412,7 +415,7 @@ public abstract class StratumConnection implements Connection {
     /**
      * Called when a notify is received
      */
-    protected abstract void onNotify(MiningNotifyNotification notify);
+    protected abstract void onNotify(MiningNotifyNotification notify) throws NoPoolAvailableException, ChangeExtranonceNotSupportedException, TooManyWorkersException;
 
     /**
      * Called when a setDifficulty is received

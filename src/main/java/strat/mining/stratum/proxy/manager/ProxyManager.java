@@ -395,7 +395,7 @@ public class ProxyManager {
      * @param pool
      * @param setDifficulty
      */
-    public void onPoolNotify(Pool pool, MiningNotifyNotification notify) {
+    public void onPoolNotify(Pool pool, MiningNotifyNotification notify) throws NoPoolAvailableException, ChangeExtranonceNotSupportedException, TooManyWorkersException {
         if (notify.getCleanJobs()) {
             LOGGER.info("New block detected on pool {}.", pool.getName());
         }
@@ -417,6 +417,9 @@ public class ProxyManager {
             LOGGER.debug("No worker connections on pool {}. Do not send notify.", pool.getName());
         } else {
             for (WorkerConnection connection : connections) {
+                if (notify.getCleanJobs()) {
+                    //this.changeWorkerPool(connection); // Changing pool every time, when new block detected
+                }
                 connection.onPoolNotify(notification);
             }
         }
@@ -1079,4 +1082,24 @@ public class ProxyManager {
         }
     }
 
+    public void changeWorkerPool(WorkerConnection connection) throws NoPoolAvailableException, ChangeExtranonceNotSupportedException, TooManyWorkersException {
+        Pool pool = poolSwitchingStrategyManager.getPoolForConnection(connection);
+        switchPoolForConnection(connection, pool);
+        /*connection.rebindToPool(pool);
+        Set<WorkerConnection> workerConnections = getPoolWorkerConnections(pool);
+        workerConnections.add(connection);
+        this.workerConnections.add(connection);*/
+        LOGGER.info("Changing WorkerConnection {} pool. {} connections active on pool {}.", connection.getConnectionName(),
+                workerConnections.size(), pool.getName());
+    }
+
+    public void changeAllWorkersPool() {
+        this.workerConnections.forEach(connection -> {
+            try {
+                changeWorkerPool(connection);
+            } catch (NoPoolAvailableException | ChangeExtranonceNotSupportedException | TooManyWorkersException e) {
+                LOGGER.error(e.getMessage());
+            }
+        });
+    }
 }

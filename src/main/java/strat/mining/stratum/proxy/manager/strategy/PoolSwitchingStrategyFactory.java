@@ -35,6 +35,8 @@ public class PoolSwitchingStrategyFactory {
 			result = getPriorityFailoverStrategyManager();
 		} else if (WeightedRoundRobinStrategyManager.NAME.equalsIgnoreCase(name)) {
 			result = getWeightedRoundRobinStrategyManager();
+		} else if (RandomStrategyManager.NAME.equalsIgnoreCase(name)) {
+			result = getRandomStrategyManager();
 		} else {
 			throw new UnsupportedPoolSwitchingStrategyException("No pool switching strategy found with name " + name
 					+ ". Available strategy are: priorityFailover, weightedRoundRobin");
@@ -48,5 +50,9 @@ public class PoolSwitchingStrategyFactory {
 
 	private WeightedRoundRobinStrategyManager getWeightedRoundRobinStrategyManager() {
 		return new WeightedRoundRobinStrategyManager(proxyManager);
+	}
+
+	private RandomStrategyManager getRandomStrategyManager() {
+		return new RandomStrategyManager(proxyManager);
 	}
 }

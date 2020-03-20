@@ -145,5 +145,4 @@ public interface WorkerConnection extends Connection {
      * @return
      */
     public String getWorkerVersion();
-
 }

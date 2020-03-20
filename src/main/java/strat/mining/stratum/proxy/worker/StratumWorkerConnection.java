@@ -596,5 +596,4 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
     public String getWorkerVersion() {
         return workerVersion;
     }
-
 }

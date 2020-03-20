@@ -756,6 +756,14 @@ public class ProxyResources {
 		return response;
 	}
 
+	@GET
+	@Path("changeDevicesPool")
+	@PubliclyAvailable
+	public boolean changeDevicesPool() {
+		this.stratumProxyManager.changeAllWorkersPool();
+		return true;
+	}
+
 	/**
 	 * Return the log level from the level name. Throw an exception if the level
 	 * does not exist.
