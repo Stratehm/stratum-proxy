@@ -46,6 +46,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import strat.mining.stratum.proxy.Launcher;
 import strat.mining.stratum.proxy.cli.CommandLineOptions;
 import strat.mining.stratum.proxy.configuration.model.Configuration;
+import strat.mining.stratum.proxy.configuration.model.Quota;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.BadParameterException;
 import strat.mining.stratum.proxy.manager.strategy.PriorityFailoverStrategyManager;
@@ -68,6 +69,8 @@ public class ConfigurationManager {
 	private File configurationFile;
 
 	private List<Pool> pools;
+
+	private List<strat.mining.stratum.proxy.pool.Quota> quotas;
 
 	private File logDirectory;
 	private Level logLevel = Level.INFO;
@@ -255,6 +258,7 @@ public class ConfigurationManager {
 		defineExtranonce1TailSize(configuration.getWorkerNumberLimit());
 
 		buildPoolsFromConfigurationFile(configuration);
+		buildQuotasFromConfigurationFile(configuration);
 	}
 
 	/**
@@ -349,6 +353,39 @@ public class ConfigurationManager {
 				counter++;
 			}
 		}
+	}
+
+	private void buildQuotasFromConfigurationFile(Configuration configuration) {
+		quotas = new ArrayList<>();
+		if (configuration.getPools() != null && configuration.getPools().size() > 0) {
+			if (configuration.getQuotas() != null && configuration.getQuotas().size() > 0) {
+				for (Quota confQuota : configuration.getQuotas()) {
+					Integer quotaValue = confQuota.getQuota();
+					try {
+						Pool pool = getPoolByName(confQuota.getPool());
+						strat.mining.stratum.proxy.pool.Quota quota = strat.mining.stratum.proxy.pool.Quota.builder()
+								.pool(pool)
+								.quota(quotaValue)
+								.build();
+
+						quotas.add(quota);
+					} catch (Exception e) {
+						System.err.println("Error during creation of quotas " + confQuota.getPool());
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	}
+
+	private Pool getPoolByName(String name) throws Exception {
+		for (Pool pool : pools) {
+			if (pool.getName().equals(name)) {
+				return pool;
+			}
+		}
+
+		throw new Exception("Pool not found");
 	}
 
 	/**
@@ -900,4 +937,7 @@ public class ConfigurationManager {
 		return suggestedPoolDifficulty;
 	}
 
+	public List<strat.mining.stratum.proxy.pool.Quota> getQuotas() {
+		return quotas;
+	}
 }

@@ -78,6 +78,9 @@ public class Configuration {
     @Valid
     private List<Pool> pools;
 
+    @Valid
+    private List<Quota> quotas;
+
     public String getLogDirectory() {
         return logDirectory;
     }
@@ -393,4 +396,14 @@ public class Configuration {
         this.suggestedPoolDifficulty = suggestedPoolDifficulty;
     }
 
+    public List<Quota> getQuotas() {
+        return quotas;
+    }
+
+    public void setQuotas(List<Quota> quotas) {
+        if (quotas == null) {
+            quotas = new ArrayList<>();
+        }
+        this.quotas = quotas;
+    }
 }

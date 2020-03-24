@@ -2,17 +2,17 @@
  * stratum-proxy is a proxy supporting the crypto-currency stratum pool mining
  * protocol.
  * Copyright (C) 2014-2015  Stratehm (stratehm@hotmail.com)
- *
+ * <p>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with multipool-stats-backend. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
+import strat.mining.stratum.proxy.configuration.model.Quota;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.database.DatabaseManager;
 import strat.mining.stratum.proxy.exception.AuthorizationException;
@@ -78,9 +79,9 @@ import strat.mining.stratum.proxy.worker.WorkerConnection;
 
 /**
  * Manage connections (Pool and Worker) and build some stats.
- * 
+ *
  * @author Strat
- * 
+ *
  */
 public class ProxyManager {
 
@@ -92,6 +93,8 @@ public class ProxyManager {
     private Thread listeningThread;
 
     private List<Pool> pools;
+
+    private List<Quota> quotas;
 
     private List<WorkerConnection> workerConnections;
 
@@ -107,6 +110,8 @@ public class ProxyManager {
 
     private PoolSwitchingStrategyFactory poolSwitchingStrategyFactory;
 
+    private ConfigurationManager configurationManager;
+
     private ProxyManager() {
         this.stratumAuthorizationManager = new AuthorizationManager();
         this.pools = Collections.synchronizedList(new ArrayList<Pool>());
@@ -114,8 +119,8 @@ public class ProxyManager {
         this.users = Collections.synchronizedMap(new HashMap<String, User>());
         this.poolWorkerConnections = Collections.synchronizedMap(new HashMap<Pool, Set<WorkerConnection>>());
         this.poolSwitchingStrategyFactory = new PoolSwitchingStrategyFactory(this);
-
-        setPoolSwitchingStrategy(ConfigurationManager.getInstance().getPoolSwitchingStrategy());
+        this.configurationManager = ConfigurationManager.getInstance();
+        setPoolSwitchingStrategy(this.configurationManager.getPoolSwitchingStrategy());
     }
 
     public static ProxyManager getInstance() {
@@ -159,7 +164,7 @@ public class ProxyManager {
     /**
      * Start listening incoming connections on the given interface and port. If
      * bindInterface is null, bind to 0.0.0.0
-     * 
+     *
      * @param bindInterface
      * @param port
      * @throws IOException
@@ -231,7 +236,7 @@ public class ProxyManager {
     /**
      * To call when a subscribe request is received on a worker connection.
      * Return the pool on which the connection is bound.
-     * 
+     *
      * @param connection
      * @param request
      */
@@ -249,7 +254,7 @@ public class ProxyManager {
 
     /**
      * To call when an authorize request is received.
-     * 
+     *
      * @param connection
      * @param request
      */
@@ -266,7 +271,7 @@ public class ProxyManager {
 
     /**
      * Link the connection to the user
-     * 
+     *
      * @param connection
      * @param request
      */
@@ -282,8 +287,8 @@ public class ProxyManager {
 
     /**
      * To call when a submit request is received from a worker connection.
-     * 
-     * 
+     *
+     *
      * @param workerConnection
      * @param workerRequest
      */
@@ -316,7 +321,7 @@ public class ProxyManager {
 
     /**
      * Update the share lists of all pools, users and worker connections.
-     * 
+     *
      * @param request
      * @param response
      * @param workerConnection
@@ -342,7 +347,7 @@ public class ProxyManager {
 
     /**
      * Called when a pool set the difficulty.
-     * 
+     *
      * @param pool
      * @param setDifficulty
      */
@@ -365,7 +370,7 @@ public class ProxyManager {
 
     /**
      * Called when a pool set the extranonce
-     * 
+     *
      * @param pool
      * @param setExtranonce
      */
@@ -391,7 +396,7 @@ public class ProxyManager {
 
     /**
      * Called when a pool send a notify request.
-     * 
+     *
      * @param pool
      * @param setDifficulty
      */
@@ -427,7 +432,7 @@ public class ProxyManager {
 
     /**
      * Called when a pool has sent a message to show.
-     * 
+     *
      * @param showMessage
      */
     public void onPoolShowMessage(Pool pool, ClientShowMessageNotification showMessage) {
@@ -444,7 +449,7 @@ public class ProxyManager {
 
     /**
      * Called when a worker is disconnected.
-     * 
+     *
      * @param workerConnection
      * @param cause
      */
@@ -474,7 +479,7 @@ public class ProxyManager {
 
     /**
      * Called when a pool is now stable.
-     * 
+     *
      * @param pool
      */
     public void onPoolStable(Pool pool) {
@@ -484,7 +489,7 @@ public class ProxyManager {
 
     /**
      * Switch the given connection to the given pool.
-     * 
+     *
      * @param connection
      * @param newPool
      */
@@ -532,7 +537,7 @@ public class ProxyManager {
     /**
      * Set the priority of the pool with the given name and rebind worker
      * connections based on this new priority.
-     * 
+     *
      * @param poolName
      * @param newPriority
      * @throws BadParameterException
@@ -555,7 +560,7 @@ public class ProxyManager {
 
     /**
      * Disable/Enable the pool with the given name
-     * 
+     *
      * @param poolName
      * @param isEnabled
      * @throws NoPoolAvailableException
@@ -574,7 +579,7 @@ public class ProxyManager {
 
     /**
      * Return the pool based on the pool name.
-     * 
+     *
      * @param poolHost
      * @return
      */
@@ -593,7 +598,7 @@ public class ProxyManager {
 
     /**
      * Return all pools managed by this manager.
-     * 
+     *
      * @return
      */
     public List<Pool> getPools() {
@@ -604,9 +609,13 @@ public class ProxyManager {
         return result;
     }
 
+    public List<strat.mining.stratum.proxy.pool.Quota> getQuotas() {
+        return this.configurationManager.getQuotas();
+    }
+
     /**
      * Return the number of worker connections on the pool with the given name.
-     * 
+     *
      * @param poolName
      * @return
      */
@@ -618,7 +627,7 @@ public class ProxyManager {
 
     /**
      * Return a list of all worker connections.
-     * 
+     *
      * @return
      */
     public List<WorkerConnection> getWorkerConnections() {
@@ -627,7 +636,7 @@ public class ProxyManager {
 
     /**
      * Return all authorized users.
-     * 
+     *
      * @return
      */
     public List<User> getUsers() {
@@ -640,7 +649,7 @@ public class ProxyManager {
 
     /**
      * Add the pool described in the given poolDTO
-     * 
+     *
      * @param addPoolDTO
      * @return
      * @throws URISyntaxException
@@ -702,7 +711,7 @@ public class ProxyManager {
 
     /**
      * Remove the pool with the given name.
-     * 
+     *
      * @param poolName
      * @throws NoPoolAvailableException
      */
@@ -729,7 +738,7 @@ public class ProxyManager {
 
     /**
      * Check that all parameters to add the pool are presents and valid.
-     * 
+     *
      * @param addPoolDTO
      * @throws URISyntaxException
      */
@@ -740,7 +749,7 @@ public class ProxyManager {
 
     /**
      * Check that all parameters to update the pool are presents and valid.
-     * 
+     *
      * @param updatePoolDTO
      * @throws URISyntaxException
      */
@@ -751,7 +760,7 @@ public class ProxyManager {
 
     /**
      * Check that all mandatory of the pool are presents and valid.
-     * 
+     *
      * @param poolHost
      * @param username
      * @param appendWorkerNames
@@ -782,7 +791,7 @@ public class ProxyManager {
     /**
      * Kick the given user. Kill all the connections where the user has been
      * seen.
-     * 
+     *
      * @param username
      * @throws NotConnectedException
      * @throws NotFoundException
@@ -811,7 +820,7 @@ public class ProxyManager {
 
     /**
      * Ban the given user until the next proxy restart
-     * 
+     *
      * @param username
      * @throws NotFoundException
      * @throws NotConnectedException
@@ -827,7 +836,7 @@ public class ProxyManager {
 
     /**
      * Unban the given user.
-     * 
+     *
      * @param username
      * @throws NotFoundException
      */
@@ -837,7 +846,7 @@ public class ProxyManager {
 
     /**
      * Return the list of banned users.
-     * 
+     *
      * @return
      */
     public List<String> getBannedUsers() {
@@ -846,7 +855,7 @@ public class ProxyManager {
 
     /**
      * Kick the connection on the given address and port
-     * 
+     *
      * @param connection
      * @throws BadParameterException
      * @throws NotFoundException
@@ -883,7 +892,7 @@ public class ProxyManager {
 
     /**
      * Kick all the connections with the given address
-     * 
+     *
      * @param address
      * @throws NotConnectedException
      * @throws NotFoundException
@@ -916,7 +925,7 @@ public class ProxyManager {
 
     /**
      * Ban the given address until the next proxy restart
-     * 
+     *
      * @param address
      * @throws NotFoundException
      * @throws NotConnectedException
@@ -936,7 +945,7 @@ public class ProxyManager {
 
     /**
      * Unban the given address.
-     * 
+     *
      * @param username
      * @throws NotFoundException
      * @throws BadParameterException
@@ -951,7 +960,7 @@ public class ProxyManager {
 
     /**
      * Return the list of banned addresses.
-     * 
+     *
      * @return
      */
     public List<String> getBannedAddresses() {
@@ -960,7 +969,7 @@ public class ProxyManager {
 
     /**
      * Change the pool switching strategy used.
-     * 
+     *
      * @param strategyName
      * @throws NotFoundException
      */
@@ -975,7 +984,7 @@ public class ProxyManager {
 
     /**
      * Return the connections associated to the given pool.
-     * 
+     *
      * @param pool
      */
     protected Set<WorkerConnection> getPoolWorkerConnections(Pool pool) {
@@ -988,7 +997,7 @@ public class ProxyManager {
     }
 
     /**
-     * 
+     *
      * @param poolToUpdate
      * @throws URISyntaxException
      * @throws PoolStartException

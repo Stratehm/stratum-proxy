@@ -72,6 +72,8 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 
     private Pool pool;
 
+    private Pool nextPool;
+
     private ProxyManager manager;
 
     private Task subscribeTimeoutTask;
@@ -400,7 +402,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
      * Send the first notifications to the worker. The setDifficulty and the
      * current job.
      */
-    private void sendInitialNotifications() {
+    public void sendInitialNotifications() {
         // Send the setExtranonce notif
         if (isSetExtranonceNotificationSupported) {
             MiningSetExtranonceNotification extranonceNotif = new MiningSetExtranonceNotification();
@@ -432,7 +434,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
     /**
      * Send a GetVersion request to the worker.
      */
-    private void sendGetVersion() {
+    public void sendGetVersion() {
         ClientGetVersionRequest request = new ClientGetVersionRequest();
         sendRequest(request);
     }
@@ -446,7 +448,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
      * @throws ChangeExtranonceNotSupportedException
      */
     public void rebindToPool(Pool newPool) throws TooManyWorkersException, ChangeExtranonceNotSupportedException {
-        if (isSetExtranonceNotificationSupported) {
+        if (!isSetExtranonceNotificationSupported) {
             LOGGER.info("Rebind connection {} from pool {} to pool {} with setExtranonce notification.", getConnectionName(), pool.getName(),
                     newPool.getName());
             // Release the old extranonce
@@ -595,5 +597,13 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
     @Override
     public String getWorkerVersion() {
         return workerVersion;
+    }
+
+    public Pool getNextPool() {
+        return nextPool;
+    }
+
+    public void setNextPool(Pool nextPool) {
+        this.nextPool = nextPool;
     }
 }
