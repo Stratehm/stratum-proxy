@@ -19,7 +19,7 @@
 package strat.mining.stratum.proxy.manager.strategy;
 
 import strat.mining.stratum.proxy.exception.UnsupportedPoolSwitchingStrategyException;
-import strat.mining.stratum.proxy.manager.ProxyManager;
+import strat.mining.stratum.proxy.manager.proxy.ProxyManager;
 
 public class PoolSwitchingStrategyFactory {
 

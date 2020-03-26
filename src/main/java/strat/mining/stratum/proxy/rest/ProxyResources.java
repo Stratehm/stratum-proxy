@@ -55,7 +55,7 @@ import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
 import strat.mining.stratum.proxy.exception.NotConnectedException;
 import strat.mining.stratum.proxy.exception.NotFoundException;
 import strat.mining.stratum.proxy.exception.PoolStartException;
-import strat.mining.stratum.proxy.manager.ProxyManager;
+import strat.mining.stratum.proxy.manager.proxy.ProxyManager;
 import strat.mining.stratum.proxy.model.User;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.authentication.PubliclyAvailable;

@@ -25,6 +25,8 @@ import javax.validation.Valid;
 
 public class Configuration {
 
+    private String proxyManager;
+
     private String logDirectory;
     private String logLevel;
     private String apiLogLevel;
@@ -80,6 +82,14 @@ public class Configuration {
 
     @Valid
     private List<Quota> quotas;
+
+    public String getProxyManager() {
+        return proxyManager;
+    }
+
+    public void setProxyManager(String proxyManager) {
+        this.proxyManager = proxyManager;
+    }
 
     public String getLogDirectory() {
         return logDirectory;

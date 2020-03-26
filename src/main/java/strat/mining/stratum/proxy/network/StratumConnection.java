@@ -58,7 +58,6 @@ import strat.mining.stratum.proxy.json.MiningSubscribeResponse;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import strat.mining.stratum.proxy.manager.WorkerManager;
 
 public abstract class StratumConnection implements Connection {
 
@@ -351,7 +350,6 @@ public abstract class StratumConnection implements Connection {
 
         case MiningSubscribeRequest.METHOD_NAME:
             MiningSubscribeRequest subscribeRequest = new MiningSubscribeRequest(request);
-            //WorkerManager.getInstance().
             onSubscribeRequest(subscribeRequest);
             break;
 

@@ -61,7 +61,7 @@ import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
 import strat.mining.stratum.proxy.json.MiningSubscribeResponse;
 import strat.mining.stratum.proxy.json.MiningSuggestDifficultyRequest;
-import strat.mining.stratum.proxy.manager.ProxyManager;
+import strat.mining.stratum.proxy.manager.proxy.ProxyManager;
 import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.utils.Timer.Task;

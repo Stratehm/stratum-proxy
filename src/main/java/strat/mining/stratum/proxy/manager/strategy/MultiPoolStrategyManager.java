@@ -5,8 +5,7 @@ import lombok.extern.log4j.Log4j;
 import strat.mining.stratum.proxy.dto.ConnectionQuota;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
-import strat.mining.stratum.proxy.exception.TooManyWorkersException;
-import strat.mining.stratum.proxy.manager.ProxyManager;
+import strat.mining.stratum.proxy.manager.proxy.ProxyManager;
 import strat.mining.stratum.proxy.network.StratumConnection;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.pool.Quota;
@@ -107,7 +106,6 @@ public class MultiPoolStrategyManager extends MonoCurrentPoolStrategyManager {
                 if (isToSwitch(connectionQuota)) {
                     log.info("Switching pool");
                     try {
-                        connection.close();
                         proxyManager.switchPoolForConnection(connection, connection.getNextPool());
                     } catch (ChangeExtranonceNotSupportedException e) {
                         log.info("Close connection since the on-the-fly extranonce change is not supported.");

@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
-import strat.mining.stratum.proxy.manager.ProxyManager;
+import strat.mining.stratum.proxy.manager.proxy.ProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 
 /**

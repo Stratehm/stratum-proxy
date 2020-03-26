@@ -76,7 +76,10 @@ import strat.mining.stratum.proxy.database.DatabaseManager;
 import strat.mining.stratum.proxy.grizzly.CLStaticHttpHandlerWithIndexSupport;
 import strat.mining.stratum.proxy.grizzly.StaticHttpHandlerWithCharset;
 import strat.mining.stratum.proxy.manager.HashrateRecorder;
-import strat.mining.stratum.proxy.manager.ProxyManager;
+import strat.mining.stratum.proxy.manager.proxy.MultiConnectProxyManager;
+import strat.mining.stratum.proxy.manager.proxy.ProxyManager;
+import strat.mining.stratum.proxy.manager.proxy.ProxyManagerFactory;
+import strat.mining.stratum.proxy.manager.proxy.ProxyManagerInterface;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.ProxyResources;
 import strat.mining.stratum.proxy.rest.authentication.AuthenticationAddOn;
@@ -360,9 +363,12 @@ public class Launcher {
     private static void initProxyManager(ConfigurationManager configurationManager) throws IOException, CmdLineException {
         List<Pool> pools = configurationManager.getPools();
         LOGGER.info("Using pools: {}.", pools);
+        ProxyManagerInterface proxyManager = ProxyManagerFactory
+                .getInstance()
+                .getProxy(configurationManager.getProxyManager());
 
         // Start the pools.
-        ProxyManager.getInstance().startPools(pools);
+        proxyManager.startPools(pools);
 
         if (!ConfigurationManager.getInstance().isDisableStratum()) {
             // Start to accept incoming workers connections

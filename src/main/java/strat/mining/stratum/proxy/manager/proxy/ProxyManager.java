@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with multipool-stats-backend. If not, see <http://www.gnu.org/licenses/>.
  */
-package strat.mining.stratum.proxy.manager;
+package strat.mining.stratum.proxy.manager.proxy;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
-import strat.mining.stratum.proxy.configuration.model.Quota;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.database.DatabaseManager;
 import strat.mining.stratum.proxy.exception.AuthorizationException;
@@ -64,6 +63,7 @@ import strat.mining.stratum.proxy.json.MiningSetExtranonceNotification;
 import strat.mining.stratum.proxy.json.MiningSubmitRequest;
 import strat.mining.stratum.proxy.json.MiningSubmitResponse;
 import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
+import strat.mining.stratum.proxy.manager.AuthorizationManager;
 import strat.mining.stratum.proxy.manager.strategy.PoolSwitchingStrategyFactory;
 import strat.mining.stratum.proxy.manager.strategy.PoolSwitchingStrategyManager;
 import strat.mining.stratum.proxy.model.Share;
@@ -83,18 +83,24 @@ import strat.mining.stratum.proxy.worker.WorkerConnection;
  * @author Strat
  *
  */
-public class ProxyManager {
+public class ProxyManager implements ProxyManagerInterface {
+
+    public static ProxyManager getInstance() {
+        if (ProxyManager.instance == null) {
+            ProxyManager.instance = new ProxyManager();
+        }
+        return ProxyManager.instance;
+    }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProxyManager.class);
 
     private static ProxyManager instance;
 
     private ServerSocket serverSocket;
+
     private Thread listeningThread;
 
     private List<Pool> pools;
-
-    private List<Quota> quotas;
 
     private List<WorkerConnection> workerConnections;
 
@@ -112,7 +118,7 @@ public class ProxyManager {
 
     private ConfigurationManager configurationManager;
 
-    private ProxyManager() {
+    protected ProxyManager() {
         this.stratumAuthorizationManager = new AuthorizationManager();
         this.pools = Collections.synchronizedList(new ArrayList<Pool>());
         this.workerConnections = new CopyOnWriteArrayList<WorkerConnection>();
@@ -123,16 +129,10 @@ public class ProxyManager {
         setPoolSwitchingStrategy(this.configurationManager.getPoolSwitchingStrategy());
     }
 
-    public static ProxyManager getInstance() {
-        if (instance == null) {
-            instance = new ProxyManager();
-        }
-        return instance;
-    }
-
     /**
      * Start all pools.
      */
+    @Override
     public void startPools(List<Pool> pools) {
         this.pools = Collections.synchronizedList(new ArrayList<Pool>(pools));
         synchronized (pools) {
@@ -153,6 +153,7 @@ public class ProxyManager {
     /**
      * Stop all pools
      */
+    @Override
     public void stopPools() {
         synchronized (pools) {
             for (Pool pool : pools) {
@@ -169,6 +170,7 @@ public class ProxyManager {
      * @param port
      * @throws IOException
      */
+    @Override
     public void startListeningIncomingConnections(String bindInterface, Integer port) throws IOException {
         if (bindInterface == null) {
             serverSocket = new ServerSocket(port, 0);
@@ -212,6 +214,7 @@ public class ProxyManager {
     /**
      * Stop to listen incoming connections
      */
+    @Override
     public void stopListeningIncomingConnections() {
         if (serverSocket != null) {
             LOGGER.info("Closing the server socket on {}.", serverSocket.getLocalSocketAddress());
@@ -227,6 +230,7 @@ public class ProxyManager {
     /**
      * Close all existing workerConnections
      */
+    @Override
     public void closeAllWorkerConnections() {
         for (WorkerConnection connection : workerConnections) {
             connection.close();
@@ -240,6 +244,7 @@ public class ProxyManager {
      * @param connection
      * @param request
      */
+    @Override
     public Pool onSubscribeRequest(WorkerConnection connection, MiningSubscribeRequest request) throws NoPoolAvailableException {
         Pool pool = poolSwitchingStrategyManager.getPoolForConnection(connection);
 
@@ -258,6 +263,7 @@ public class ProxyManager {
      * @param connection
      * @param request
      */
+    @Override
     public void onAuthorizeRequest(WorkerConnection connection, MiningAuthorizeRequest request) throws AuthorizationException {
         // Check that the worker is authorized on this proxy
         stratumAuthorizationManager.checkAuthorization(connection, request);
@@ -292,6 +298,7 @@ public class ProxyManager {
      * @param workerConnection
      * @param workerRequest
      */
+    @Override
     public void onSubmitRequest(final WorkerConnection workerConnection, final MiningSubmitRequest workerRequest) {
         if (workerConnection.getPool() != null && workerConnection.getPool().isReady()) {
             for (int i = 0; i < workerConnection.getPool().getNumberOfSubmit(); i++) {
@@ -351,6 +358,7 @@ public class ProxyManager {
      * @param pool
      * @param setDifficulty
      */
+    @Override
     public void onPoolSetDifficulty(Pool pool, MiningSetDifficultyNotification setDifficulty) {
         LOGGER.info("Set difficulty {} on pool {}.", setDifficulty.getDifficulty(), pool.getName());
 
@@ -374,6 +382,7 @@ public class ProxyManager {
      * @param pool
      * @param setExtranonce
      */
+    @Override
     public void onPoolSetExtranonce(Pool pool, MiningSetExtranonceNotification setExtranonce) {
         LOGGER.info("Set the extranonce on pool {}.", pool.getName());
 
@@ -400,6 +409,7 @@ public class ProxyManager {
      * @param pool
      * @param setDifficulty
      */
+    @Override
     public void onPoolNotify(Pool pool, MiningNotifyNotification notify) throws NoPoolAvailableException, ChangeExtranonceNotSupportedException, TooManyWorkersException {
         if (notify.getCleanJobs()) {
             LOGGER.info("New block detected on pool {}.", pool.getName());
@@ -435,6 +445,7 @@ public class ProxyManager {
      *
      * @param showMessage
      */
+    @Override
     public void onPoolShowMessage(Pool pool, ClientShowMessageNotification showMessage) {
         LOGGER.info("\n*****************************\nMessage from pool {}: {}\n*****************************", pool.getName(),
                 showMessage.getMessage());
@@ -453,6 +464,7 @@ public class ProxyManager {
      * @param workerConnection
      * @param cause
      */
+    @Override
     public void onWorkerDisconnection(final WorkerConnection workerConnection, final Throwable cause) {
         Set<WorkerConnection> connections = getPoolWorkerConnections(workerConnection.getPool());
         if (connections != null) {
@@ -467,6 +479,7 @@ public class ProxyManager {
     /**
      * Called by pool when its state changes
      */
+    @Override
     public void onPoolStateChange(Pool pool) {
         if (pool.isReady()) {
             LOGGER.warn("Pool {} is UP.", pool.getName());
@@ -482,6 +495,7 @@ public class ProxyManager {
      *
      * @param pool
      */
+    @Override
     public void onPoolStable(Pool pool) {
         LOGGER.warn("Pool {} is STABLE.", pool.getName());
         poolSwitchingStrategyManager.onPoolStable(pool);
@@ -493,6 +507,7 @@ public class ProxyManager {
      * @param connection
      * @param newPool
      */
+    @Override
     public void switchPoolForConnection(WorkerConnection connection, Pool newPool) throws TooManyWorkersException,
             ChangeExtranonceNotSupportedException {
         // If the old pool is the same as the new pool, do nothing.
@@ -542,6 +557,7 @@ public class ProxyManager {
      * @param newPriority
      * @throws BadParameterException
      */
+    @Override
     public void setPoolPriority(String poolName, int newPriority) throws NoPoolAvailableException, BadParameterException {
         if (getPool(poolName) == null) {
             throw new NoPoolAvailableException("Pool with name " + poolName + " not found");
@@ -565,6 +581,7 @@ public class ProxyManager {
      * @param isEnabled
      * @throws NoPoolAvailableException
      */
+    @Override
     public void setPoolEnabled(String poolName, boolean isEnabled) throws NoPoolAvailableException, Exception {
         Pool pool = getPool(poolName);
         if (pool == null) {
@@ -583,6 +600,7 @@ public class ProxyManager {
      * @param poolHost
      * @return
      */
+    @Override
     public Pool getPool(String poolName) {
         Pool result = null;
         synchronized (pools) {
@@ -601,6 +619,7 @@ public class ProxyManager {
      *
      * @return
      */
+    @Override
     public List<Pool> getPools() {
         List<Pool> result = new ArrayList<>();
         synchronized (pools) {
@@ -609,6 +628,7 @@ public class ProxyManager {
         return result;
     }
 
+    @Override
     public List<strat.mining.stratum.proxy.pool.Quota> getQuotas() {
         return this.configurationManager.getQuotas();
     }
@@ -619,6 +639,7 @@ public class ProxyManager {
      * @param poolName
      * @return
      */
+    @Override
     public int getNumberOfWorkerConnectionsOnPool(String poolName) {
         Pool pool = getPool(poolName);
         Set<WorkerConnection> connections = getPoolWorkerConnections(pool);
@@ -630,6 +651,7 @@ public class ProxyManager {
      *
      * @return
      */
+    @Override
     public List<WorkerConnection> getWorkerConnections() {
         return Collections.unmodifiableList(workerConnections);
     }
@@ -639,6 +661,7 @@ public class ProxyManager {
      *
      * @return
      */
+    @Override
     public List<User> getUsers() {
         List<User> result = new ArrayList<>(users.size());
         synchronized (users) {
@@ -656,6 +679,7 @@ public class ProxyManager {
      * @throws PoolStartException
      * @throws SocketException
      */
+    @Override
     public Pool addPool(AddPoolDTO addPoolDTO) throws BadParameterException, SocketException, PoolStartException, URISyntaxException {
 
         LOGGER.debug("Trying to add pool {}.", addPoolDTO);
@@ -715,6 +739,7 @@ public class ProxyManager {
      * @param poolName
      * @throws NoPoolAvailableException
      */
+    @Override
     public void removePool(String poolName, Boolean keepHistory) throws NoPoolAvailableException {
         Pool pool = getPool(poolName);
         if (pool == null) {
@@ -796,6 +821,7 @@ public class ProxyManager {
      * @throws NotConnectedException
      * @throws NotFoundException
      */
+    @Override
     public void kickUser(UserNameDTO username) throws BadParameterException, NotConnectedException, NotFoundException {
         if (username.getUsername() != null && !username.getUsername().trim().isEmpty()) {
             User user = users.get(username.getUsername());
@@ -825,6 +851,7 @@ public class ProxyManager {
      * @throws NotFoundException
      * @throws NotConnectedException
      */
+    @Override
     public void banUser(UserNameDTO username) throws BadParameterException {
         try {
             kickUser(username);
@@ -840,6 +867,7 @@ public class ProxyManager {
      * @param username
      * @throws NotFoundException
      */
+    @Override
     public void unbanUser(UserNameDTO username) throws NotFoundException {
         stratumAuthorizationManager.unbanUser(username);
     }
@@ -849,6 +877,7 @@ public class ProxyManager {
      *
      * @return
      */
+    @Override
     public List<String> getBannedUsers() {
         return stratumAuthorizationManager.getBannedUsers();
     }
@@ -860,6 +889,7 @@ public class ProxyManager {
      * @throws BadParameterException
      * @throws NotFoundException
      */
+    @Override
     public void kickConnection(ConnectionIdentifierDTO connection) throws BadParameterException, NotFoundException {
         InetAddress address = null;
         try {
@@ -897,6 +927,7 @@ public class ProxyManager {
      * @throws NotConnectedException
      * @throws NotFoundException
      */
+    @Override
     public void kickAddress(AddressDTO address) throws BadParameterException, NotFoundException {
         InetAddress inetAddress = null;
         try {
@@ -930,6 +961,7 @@ public class ProxyManager {
      * @throws NotFoundException
      * @throws NotConnectedException
      */
+    @Override
     public void banAddress(AddressDTO address) throws BadParameterException {
         try {
             kickAddress(address);
@@ -950,6 +982,7 @@ public class ProxyManager {
      * @throws NotFoundException
      * @throws BadParameterException
      */
+    @Override
     public void unbanAddress(AddressDTO address) throws NotFoundException, BadParameterException {
         try {
             stratumAuthorizationManager.unbanAddress(address);
@@ -963,6 +996,7 @@ public class ProxyManager {
      *
      * @return
      */
+    @Override
     public List<String> getBannedAddresses() {
         return stratumAuthorizationManager.getBannedAddresses();
     }
@@ -973,6 +1007,7 @@ public class ProxyManager {
      * @param strategyName
      * @throws NotFoundException
      */
+    @Override
     public void setPoolSwitchingStrategy(String strategyName) throws UnsupportedPoolSwitchingStrategyException {
         if (poolSwitchingStrategyManager == null || !poolSwitchingStrategyManager.getName().equalsIgnoreCase(strategyName)) {
             if (poolSwitchingStrategyManager != null) {
@@ -1004,6 +1039,7 @@ public class ProxyManager {
      * @throws SocketException
      * @throws BadParameterException
      */
+    @Override
     public void updatePool(UpdatePoolDTO poolToUpdate) throws NotFoundException, SocketException, PoolStartException, URISyntaxException,
             BadParameterException {
         boolean hasBeenStopped = false;
@@ -1091,6 +1127,7 @@ public class ProxyManager {
         }
     }
 
+    @Override
     public void changeWorkerPool(WorkerConnection connection) throws NoPoolAvailableException, ChangeExtranonceNotSupportedException, TooManyWorkersException {
         Pool pool = poolSwitchingStrategyManager.getPoolForConnection(connection);
         switchPoolForConnection(connection, pool);
@@ -1102,6 +1139,7 @@ public class ProxyManager {
                 workerConnections.size(), pool.getName());
     }
 
+    @Override
     public void changeAllWorkersPool() {
         this.workerConnections.forEach(connection -> {
             try {

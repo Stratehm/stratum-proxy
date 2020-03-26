@@ -60,6 +60,8 @@ import strat.mining.stratum.proxy.pool.Pool;
  */
 public class ConfigurationManager {
 
+	private String proxyManager;
+
 	private static Logger logger;
 
 	private static ConfigurationManager instance;
@@ -196,6 +198,7 @@ public class ConfigurationManager {
 		// Initialize the logging system
 		initLogging();
 
+		proxyManager = configuration.getProxyManager();
 		stratumListeningPort = configuration.getStratumListenPort() != null ? configuration.getStratumListenPort() : stratumListeningPort;
 		stratumBindAddress = configuration.getStratumListenAddress() != null ? configuration.getStratumListenAddress() : stratumBindAddress;
 		restListenPort = configuration.getApiListenPort() != null ? configuration.getApiListenPort() : restListenPort;
@@ -939,5 +942,9 @@ public class ConfigurationManager {
 
 	public List<strat.mining.stratum.proxy.pool.Quota> getQuotas() {
 		return quotas;
+	}
+
+	public String getProxyManager() {
+		return proxyManager;
 	}
 }

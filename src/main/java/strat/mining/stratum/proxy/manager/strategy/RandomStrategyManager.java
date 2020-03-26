@@ -3,7 +3,7 @@ package strat.mining.stratum.proxy.manager.strategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
-import strat.mining.stratum.proxy.manager.ProxyManager;
+import strat.mining.stratum.proxy.manager.proxy.ProxyManager;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
 
