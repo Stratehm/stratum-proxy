@@ -102,7 +102,7 @@ public class ProxyManager implements ProxyManagerInterface {
 
     private List<Pool> pools;
 
-    private List<WorkerConnection> workerConnections;
+    protected List<WorkerConnection> workerConnections;
 
     private Map<String, User> users;
 
@@ -112,7 +112,7 @@ public class ProxyManager implements ProxyManagerInterface {
 
     private AuthorizationManager stratumAuthorizationManager;
 
-    private volatile PoolSwitchingStrategyManager poolSwitchingStrategyManager;
+    protected volatile PoolSwitchingStrategyManager poolSwitchingStrategyManager;
 
     private PoolSwitchingStrategyFactory poolSwitchingStrategyFactory;
 
@@ -1016,6 +1016,8 @@ public class ProxyManager implements ProxyManagerInterface {
             poolSwitchingStrategyManager = poolSwitchingStrategyFactory.getPoolSwitchingStrategyManagerByName(strategyName);
         }
     }
+
+
 
     /**
      * Return the connections associated to the given pool.

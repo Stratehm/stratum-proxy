@@ -28,6 +28,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -58,6 +59,8 @@ import strat.mining.stratum.proxy.json.MiningSubscribeResponse;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import strat.mining.stratum.proxy.pool.Pool;
+import strat.mining.stratum.proxy.worker.StratumWorkerConnectionManager;
 
 public abstract class StratumConnection implements Connection {
 
@@ -350,6 +353,8 @@ public abstract class StratumConnection implements Connection {
 
         case MiningSubscribeRequest.METHOD_NAME:
             MiningSubscribeRequest subscribeRequest = new MiningSubscribeRequest(request);
+            StratumWorkerConnectionManager manager = new StratumWorkerConnectionManager();
+            manager.onSubscribeRequest(subscribeRequest, this);
             onSubscribeRequest(subscribeRequest);
             break;
 
@@ -445,7 +450,9 @@ public abstract class StratumConnection implements Connection {
     /**
      * Called when a subscribe request is received
      */
-    protected abstract void onSubscribeRequest(MiningSubscribeRequest request);
+    public abstract void onSubscribeRequest(MiningSubscribeRequest request);
+
+    public abstract MiningSubscribeResponse onSubscribeRequest(MiningSubscribeRequest request, Pool pool, boolean latest);
 
     /**
      * Called when a submit request is received
@@ -573,4 +580,5 @@ public abstract class StratumConnection implements Connection {
         return socket.getPort();
     }
 
+    public abstract void setResponseList(Map<Pool, MiningSubscribeResponse> responses);
 }

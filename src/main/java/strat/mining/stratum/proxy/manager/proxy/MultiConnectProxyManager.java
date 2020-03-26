@@ -2,12 +2,24 @@ package strat.mining.stratum.proxy.manager.proxy;
 
 import lombok.extern.slf4j.Slf4j;
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
+import strat.mining.stratum.proxy.exception.AuthorizationException;
+import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
+import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
+import strat.mining.stratum.proxy.exception.TooManyWorkersException;
+import strat.mining.stratum.proxy.json.MiningAuthorizeRequest;
+import strat.mining.stratum.proxy.json.MiningSubscribeRequest;
+import strat.mining.stratum.proxy.manager.strategy.PoolSwitchingStrategyFactory;
+import strat.mining.stratum.proxy.manager.strategy.PoolSwitchingStrategyManager;
+import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.worker.StratumWorkerConnection;
+import strat.mining.stratum.proxy.worker.WorkerConnection;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 public class MultiConnectProxyManager extends ProxyManager {
@@ -80,4 +92,47 @@ public class MultiConnectProxyManager extends ProxyManager {
         listeningThread.setDaemon(true);
         listeningThread.start();
     }
+
+    @Override
+    public Pool onSubscribeRequest(WorkerConnection connection, MiningSubscribeRequest request) throws NoPoolAvailableException {
+        Pool pool = poolSwitchingStrategyManager.getPoolForConnection(connection);
+
+        Set<WorkerConnection> workerConnections = getPoolWorkerConnections(pool);
+        workerConnections.add(connection);
+        this.workerConnections.add(connection);
+        log.info("New WorkerConnection {} subscribed. {} connections active on pool {}.", connection.getConnectionName(),
+                workerConnections.size(), pool.getName());
+
+        return pool;
+    }
+
+    /**
+     * Switch the given connection to the given pool.
+     *
+     * @param connection
+     * @param newPool
+     */
+    @Override
+    public void switchPoolForConnection(WorkerConnection connection, Pool newPool) throws TooManyWorkersException,
+            ChangeExtranonceNotSupportedException {
+        // If the old pool is the same as the new pool, do nothing.
+        if (!newPool.equals(connection.getPool())) {
+            // Remove the connection from the old pool connection list.
+            Set<WorkerConnection> oldPoolConnections = getPoolWorkerConnections(connection.getPool());
+            if (oldPoolConnections != null) {
+                oldPoolConnections.remove(connection);
+            }
+
+            // Then rebind the connection to this pool. An exception is thrown
+            // if the rebind fails since the connection does not support the
+            // extranonce change.
+            connection.rebindToPool(newPool);
+
+            // And finally add the worker connection to the pool's worker
+            // connections
+            Set<WorkerConnection> newPoolConnections = getPoolWorkerConnections(newPool);
+            newPoolConnections.add(connection);
+        }
+    }
+
 }

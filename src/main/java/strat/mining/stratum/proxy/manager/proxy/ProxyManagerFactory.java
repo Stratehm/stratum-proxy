@@ -9,6 +9,8 @@ public class ProxyManagerFactory {
 
     private Map<String, ProxyManagerInterface> proxies;
 
+    private ProxyManagerInterface proxyManager;
+
     private ProxyManagerFactory() {
         proxies = new HashMap<>();
         proxies.put("ProxyManager", ProxyManager.getInstance());
@@ -23,6 +25,12 @@ public class ProxyManagerFactory {
     }
 
     public ProxyManagerInterface getProxy(String name) {
-        return proxies.get(name);
+        this.proxyManager = proxies.get(name);
+
+        return this.proxyManager;
+    }
+
+    public ProxyManagerInterface getProxy() {
+        return this.proxyManager;
     }
 }

@@ -468,6 +468,16 @@ public class GetworkWorkerConnection implements WorkerConnection {
     }
 
     @Override
+    public boolean isReadyToChangePool() {
+        return false;
+    }
+
+    @Override
+    public void setReadyToChangePool(boolean readyToChangePool) {
+
+    }
+
+    @Override
     public void onPoolShowMessage(ClientShowMessageNotification showMessage) {
         // Not supported with Getwork.
 

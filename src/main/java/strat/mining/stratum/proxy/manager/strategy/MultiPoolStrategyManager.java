@@ -9,6 +9,7 @@ import strat.mining.stratum.proxy.manager.proxy.ProxyManager;
 import strat.mining.stratum.proxy.network.StratumConnection;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.pool.Quota;
+import strat.mining.stratum.proxy.worker.MultiPoolStratumWorkerConnection;
 import strat.mining.stratum.proxy.worker.StratumWorkerConnection;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
 
@@ -106,7 +107,10 @@ public class MultiPoolStrategyManager extends MonoCurrentPoolStrategyManager {
                 if (isToSwitch(connectionQuota)) {
                     log.info("Switching pool");
                     try {
-                        proxyManager.switchPoolForConnection(connection, connection.getNextPool());
+                        if (connection.isReadyToChangePool()) {
+                            proxyManager.switchPoolForConnection(connection, connection.getNextPool());
+                            connection.setReadyToChangePool(false);
+                        }
                     } catch (ChangeExtranonceNotSupportedException e) {
                         log.info("Close connection since the on-the-fly extranonce change is not supported.");
                         connection.close();

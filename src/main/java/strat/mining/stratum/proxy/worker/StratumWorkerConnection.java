@@ -70,33 +70,34 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerConnection.class);
 
-    private Pool pool;
+    protected Pool pool;
 
-    private Pool nextPool;
+    protected Pool nextPool;
 
-    private ProxyManager manager;
+    protected ProxyManager manager;
 
-    private Task subscribeTimeoutTask;
-    private Integer subscribeReceiveTimeout = Constants.DEFAULT_SUBSCRIBE_RECEIVE_TIMEOUT;
+    protected Task subscribeTimeoutTask;
 
-    private Date isActiveSince;
+    protected Integer subscribeReceiveTimeout = Constants.DEFAULT_SUBSCRIBE_RECEIVE_TIMEOUT;
+
+    protected Date isActiveSince;
 
     // The tail is the salt which is added to extranonce1 and which is unique by
     // connection.
-    private String extranonce1Tail;
-    private Integer extranonce2Size;
+    protected String extranonce1Tail;
+    protected Integer extranonce2Size;
 
-    private Map<String, String> authorizedWorkers;
+    protected Map<String, String> authorizedWorkers;
 
-    private boolean isSetExtranonceNotificationSupported = false;
+    protected boolean isSetExtranonceNotificationSupported = false;
 
-    private WorkerConnectionHashrateDelegator workerHashrateDelegator;
+    protected WorkerConnectionHashrateDelegator workerHashrateDelegator;
 
-    private Boolean logRealShareDifficulty = ConfigurationManager.getInstance().getLogRealShareDifficulty();
-    private Boolean validateShare = ConfigurationManager.getInstance().isValidateGetworkShares();
-    private GetworkJobTemplate currentHeader;
+    protected Boolean logRealShareDifficulty = ConfigurationManager.getInstance().getLogRealShareDifficulty();
+    protected Boolean validateShare = ConfigurationManager.getInstance().isValidateGetworkShares();
+    protected GetworkJobTemplate currentHeader;
 
-    private String workerVersion;
+    protected String workerVersion;
 
     public StratumWorkerConnection(Socket socket, ProxyManager manager) {
         super(socket);
@@ -128,6 +129,10 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
     @Override
     protected void onDisconnectWithError(Throwable cause) {
         manager.onWorkerDisconnection(this, cause);
+    }
+
+    @Override
+    public void setResponseList(Map<Pool, MiningSubscribeResponse> responses) {
     }
 
     @Override
@@ -178,7 +183,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
     }
 
     @Override
-    protected void onSubscribeRequest(MiningSubscribeRequest request) {
+    public void onSubscribeRequest(MiningSubscribeRequest request) {
         // Once the subscribe request is received, cancel the timeout timer.
         if (subscribeTimeoutTask != null) {
             subscribeTimeoutTask.cancel();
@@ -227,6 +232,11 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
             sendInitialNotifications();
             sendGetVersion();
         }
+    }
+
+    @Override
+    public MiningSubscribeResponse onSubscribeRequest(MiningSubscribeRequest request, Pool pool, boolean latest) {
+        return null;
     }
 
     @Override
@@ -376,7 +386,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
      * 
      * @return
      */
-    private List<Object> getSubscibtionDetails() {
+    protected List<Object> getSubscibtionDetails() {
         List<Object> details = new ArrayList<Object>();
         List<Object> setDifficultySubscribe = new ArrayList<>();
         setDifficultySubscribe.add(MiningSetDifficultyNotification.METHOD_NAME);
@@ -579,7 +589,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
      * 
      * @return
      */
-    private boolean checkTarget(MiningSubmitRequest request) {
+    protected boolean checkTarget(MiningSubmitRequest request) {
         boolean isShareValid = false;
         if (currentHeader != null) {
             GetworkJobTemplate jobTemplate = new GetworkJobTemplate(currentHeader);
@@ -597,6 +607,16 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
     @Override
     public String getWorkerVersion() {
         return workerVersion;
+    }
+
+    @Override
+    public boolean isReadyToChangePool() {
+        return false;
+    }
+
+    @Override
+    public void setReadyToChangePool(boolean readyToChangePool) {
+
     }
 
     public Pool getNextPool() {

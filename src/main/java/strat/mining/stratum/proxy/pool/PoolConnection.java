@@ -19,6 +19,7 @@
 package strat.mining.stratum.proxy.pool;
 
 import java.net.Socket;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +73,11 @@ public class PoolConnection extends StratumConnection {
     }
 
     @Override
+    public void setResponseList(Map<Pool, MiningSubscribeResponse> responses) {
+
+    }
+
+    @Override
     protected void onNotify(MiningNotifyNotification notify) throws NoPoolAvailableException, ChangeExtranonceNotSupportedException, TooManyWorkersException {
         pool.processNotify(notify);
     }
@@ -102,8 +108,13 @@ public class PoolConnection extends StratumConnection {
     }
 
     @Override
-    protected void onSubscribeRequest(MiningSubscribeRequest request) {
+    public void onSubscribeRequest(MiningSubscribeRequest request) {
         LOGGER.warn("Pool {} received a Subscribe request. This should not happen.", pool.getName());
+    }
+
+    @Override
+    public MiningSubscribeResponse onSubscribeRequest(MiningSubscribeRequest request, Pool pool, boolean latest) {
+        return null;
     }
 
     @Override

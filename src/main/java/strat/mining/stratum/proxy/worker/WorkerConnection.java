@@ -145,4 +145,8 @@ public interface WorkerConnection extends Connection {
      * @return
      */
     public String getWorkerVersion();
+
+    public boolean isReadyToChangePool();
+
+    public void setReadyToChangePool(boolean readyToChangePool);
 }
